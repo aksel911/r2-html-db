@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R2 Model Viewer - Optimized</title>
+    <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            background-color: transparent;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+        }
+
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            flex-direction: row;
+            align-items: center;
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+            visibility: visible; /* Initially visible */
+            opacity: 1; /* Initially visible */
+        }
+
+        .controls.hidden {
+            opacity: 0; /* Fade out */
+            visibility: hidden; /* Make non-interactive */
+        }
+
+        .toggle-menu {
+            position: absolute;
+            top: 110px; /* Position the button at the bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 16px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for opacity and visibility */
+        }
+
+        .toggle-menu.hidden {
+            opacity: 0; /* Fade out */
+            visibility: hidden; /* Ensure it's not interactive when hidden */
+        }
+
+        .animation-controls, .model-controls {
+            display: flex;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: #2196F3;
+            color: white;
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #1976D2;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .info {
+            color: white;
+            text-align: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        #modelInfo {
+            margin-bottom: 10px;
+        }
+
+        .animation-name {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <model-viewer
+            id="modelViewer"
+            camera-controls
+            autoplay
+            shadow-intensity="1"
+            exposure="1"
+            shadow-softness="0.5"
+            environment-image="neutral"
+            camera-orbit="0deg 75deg 105%"
+            min-camera-orbit="auto auto auto"
+            max-camera-orbit="auto auto 400%"
+            interaction-prompt="auto"
+            alt="R2 Online 3D model viewer with animation">
+        </model-viewer>
+        <button class="toggle-menu" onclick="toggleMenu()">▲ Show Menu</button>
+        <div class="controls hidden">
+            <div class="info" id="animInfo">Loading animations...</div>
+            <div class="animation-controls">
+                <button id="playBtn" onclick="togglePlay()">Play</button>
+                <button id="resetBtn" onclick="resetAnimation()">Reset</button>
+            </div>
+            <div class="model-controls">
+                <button id="prevModel" onclick="previousModel()">◀ Prev Animation</button>
+                <button id="nextModel" onclick="nextModel()">Next Animation ▶</button>
+            </div>
+            <div class="info" id="modelInfo">Animation: Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        const modelViewer = document.getElementById('modelViewer');
+        const baseUrl = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/{{ monstermodelno_result }}/{{ monstermodelno_result }}_';
+        let availableModels = [];
+        let currentModelIndex = 0;
+        let isPlaying = true;
+        let modelCache = new Map();
+
+        // Функция для скрытия/показа меню
+        function toggleMenu() {
+            const controls = document.querySelector('.controls');
+            const toggleBtn = document.querySelector('.toggle-menu');
+            controls.classList.toggle('hidden');  // Toggle visibility
+            toggleBtn.textContent = controls.classList.contains('hidden') ? '▲ Show Menu' : '▼ Hide Menu';
+        }
+
+        // Оптимизированная функция проверки файла
+        async function checkFileExists(url) {
+            if (modelCache.has(url)) {
+                return true;
+            }
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                const exists = response.status === 200;
+                if (exists) {
+                    modelCache.set(url, true);
+                }
+                return exists;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Оптимизированная функция поиска моделей
+        async function findAvailableModels() {
+            document.getElementById('modelInfo').textContent = 'Scanning for models...';
+            const models = [];
+            const promises = [];
+
+            for (let i = 0; i <= 35; i++) {
+                const index = i.toString().padStart(2, '0');
+                const url = `${baseUrl}${index}.glb`;
+                promises.push(
+                    checkFileExists(url).then(exists => {
+                        if (exists) {
+                            models.push(index);
+                        }
+                    })
+                );
+            }
+
+            await Promise.all(promises);
+            return models.sort((a, b) => parseInt(a) - parseInt(b));
+        }
+
+        function loadModel(index) {
+            if (index >= 0 && index < availableModels.length) {
+                const modelIndex = availableModels[index];
+                const modelUrl = `${baseUrl}${modelIndex}.glb`;
+                modelViewer.src = modelUrl;
+                currentModelIndex = index;
+                updateModelInfo();
+            }
+        }
+
+        function updateModelInfo() {
+            document.getElementById('modelInfo').textContent =
+                `Animation File: ${currentModelIndex + 1}/${availableModels.length}`;
+
+            document.getElementById('prevModel').disabled = currentModelIndex <= 0;
+            document.getElementById('nextModel').disabled = currentModelIndex >= availableModels.length - 1;
+        }
+
+        function previousModel() {
+            if (currentModelIndex > 0) {
+                loadModel(currentModelIndex - 1);
+            }
+        }
+
+        function nextModel() {
+            if (currentModelIndex < availableModels.length - 1) {
+                loadModel(currentModelIndex + 1);
+            }
+        }
+
+        function togglePlay() {
+            const playBtn = document.getElementById('playBtn');
+            if (isPlaying) {
+                modelViewer.pause();
+                playBtn.textContent = 'Play';
+            } else {
+                modelViewer.play();
+                playBtn.textContent = 'Pause';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function resetAnimation() {
+            modelViewer.currentTime = 0;
+            modelViewer.play();
+            isPlaying = true;
+            document.getElementById('playBtn').textContent = 'Pause';
+        }
+
+        modelViewer.addEventListener('load', () => {
+            console.log('Model loaded');
+            const animations = modelViewer.availableAnimations;
+            const animationsList = animations.map(anim =>
+                `<span class="animation-name">${anim}</span>`).join(', ');
+
+            document.getElementById('animInfo').innerHTML =
+                animations.length > 0 ?
+                `Animation name: ${animationsList}` :
+                'No animations available';
+        });
+
+        async function initialize() {
+            availableModels = await findAvailableModels();
+            console.log('Available models:', availableModels);
+
+            if (availableModels.length > 0) {
+                loadModel(0);
+            } else {
+                document.getElementById('modelInfo').textContent = 'No models found';
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case 'ArrowLeft':
+                    previousModel();
+                    break;
+                case 'ArrowRight':
+                    nextModel();
+                    break;
+                case ' ':
+                    togglePlay();
+                    event.preventDefault();
+                    break;
+                case 'Escape':
+                    toggleMenu();
+                    break;
+            }
+        });
+
+        initialize();
+    </script>
+</body>
+</html>
