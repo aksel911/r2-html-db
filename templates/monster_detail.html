@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>[{{ item.MID }}] {{ item.MName }}</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        body {
+			padding: 20px;
+			background-image: url('https://kavita-ganesan.com/wp-content/uploads/2018/08/iStock-941461760.jpg');
+			background-repeat: no-repeat;
+			background-attachment: fixed;
+			background-position: center;
+			background-size: cover;
+			perspective: 1000px;
+			overflow-x: hidden;
+		}
+
+
+        .animated-img {
+            animation: img-animation 5s infinite;
+        }
+
+	@keyframes img-animation {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.05);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+
+        .progress-bar {
+            transition: width 2s ease-in-out;
+        }
+        
+		.exp-bar {
+            background-color: #0bb917;
+        }
+        .health-bar {
+            background-color: #dc3545;
+        }
+
+        .mana-bar {
+            background-color: #007bff;
+        }
+		
+        .chaotic-bar {
+            background-color: #98a2c8;
+        }
+
+        /* Добавленные стили для анимации и фишек */
+        .fadeIn {
+            opacity: 0;
+            animation: fadeInAnimation 1s forwards;
+        }
+
+        @keyframes fadeInAnimation {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .fancy-effect {
+            /* Добавьте здесь свои стили для красивых фишек */
+            /* Например: */
+            color: #ff0000;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px #000000;
+            /* и т.д. */
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="container text-center">
+            <h1 class="my-4 fadeIn">{{ item.MName }}</h1>
+            {% if file_path %}
+                <img class="animated-img mb-4 fadeIn" src="{{ url_for('static', filename=file_path) }}">
+            {% else %}
+                <p class="fadeIn">No image available</p>
+            {% endif %}
+
+            {% if file_path_gif %}
+                <p class="fadeIn"><img src="{{ url_for('static', filename='gif/' + file_path_gif) }}" style="transform: scale(0.75);"></p>
+            {% else %}
+                <p class="fadeIn">No gif image available</p>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <h2 class="fadeIn">Информация</h2>
+                    <!-- Добавьте класс fadeIn к каждому блоку, который вы хотите анимировать -->
+                    <p class="fadeIn">Уровень: <span class="font-weight-bold">{{ item.MLevel }}</span></p>
+                    <p class="fadeIn">Класс: <span class="font-weight-bold">{{ item.MClass }}</span>, {{ classinfo.MName }}</p>
+                    <p class="fadeIn">Раса: <span class="font-weight-bold">{{ raceinfo.mDesc }}</span></p>
+                    <p class="fadeIn">Отображается HP: <span class="font-weight-bold">{{ item.mIsShowHp }}</span></p>
+                    <p class="fadeIn">Агрессивность: <span class="font-weight-bold">{{ item.mIsResistTransF }}</span></p>
+                    <p class="fadeIn">Агр. на перевоплощение: <span class="font-weight-bold">{{ item.mDetectTransP }}</span></p>
+                    <p class="fadeIn">Агр. на невидимость: <span class="font-weight-bold">{{ item.mDetectTransF }}</span></p>
+                    {% if respawntimeinfo.mTick != 0.001 %}
+                        <p class="fadeIn">Время возрождения: <span class="font-weight-bold">{{ respawntimeinfo.mTick }} сек. или {{ respawntimeinfo.mTickms }} мс.</span></p>
+                    {% endif %}
+
+                    {% if monlocationinfo.Location %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Локация обитания</h2>
+                        <p class="fadeIn">Название локации: <span class="font-weight-bold">{{ monlocationinfo.Location }}</span></p>
+						{% endif %}
+						{% if monlocationinfo.LocationLevel %}
+                        <p class="fadeIn">Тип: <span class="font-weight-bold"> {{ monlocationinfo.LocationLevel }}</span></p>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <h2 class="fadeIn">Статистика</h2>
+                    <p class="fadeIn">Опыт:</p>
+                    <div class="progress fadeIn">
+                        <div class="progress-bar exp-bar" role="progressbar" style="width: {{ item.mExp / 10 }}%;" aria-valuenow="{{ item.mExp }}" aria-valuemin="0" aria-valuemax="{{ item.mExp }}">{{ item.mExp }} Exp</div>
+                    </div>
+                    <p class="fadeIn">HP:</p>
+                    <div class="progress fadeIn">
+                        <div class="progress-bar health-bar" role="progressbar" style="width: {{ item.MHP / 10 }}%;" aria-valuenow="{{ item.MHP }}" aria-valuemin="0" aria-valuemax="{{ item.MHP }}">{{ item.MHP }} HP</div>
+                    </div>
+
+                    <p class="fadeIn">MP:</p>
+                    <div class="progress fadeIn">
+                        <div class="progress-bar mana-bar" role="progressbar" style="width: {{ item.MMP / 10 }}%;" aria-valuenow="{{ item.MMP }}" aria-valuemin="0" aria-valuemax="{{ item.MMP }}">{{ item.MMP }} MP</div>
+                    </div>
+
+                    <p class="fadeIn">Репутация:</p>
+                    <div class="progress fadeIn">
+                        <div class="progress-bar chaotic-bar" role="progressbar" style="width: {{ item.MChaotic }}%;" aria-valuenow="{{ item.MChaotic }}" aria-valuemin="0" aria-valuemax="1000">{{ item.MChaotic }}</div>
+                    </div>
+			
+{% if mondropinfo %}
+    <p class="fadeIn">★</p>
+    <h2 class="fadeIn">Список выпадающих предметов</h2>
+    {% for drop in mondropinfo %}
+        <p class="fadeIn" style="text-align: left;"><img src="{{ url_for('static', filename=drop['Pic']) }}"> <a href="{{ url_for('item_detail', item_id=drop['DItem']) }}">{{ drop["IName"] }}</a> <span class="font-weight-bold">{{ drop["DNumber"] }} шт.</span> {{ drop["DPercentItem"] }} %</p>
+    {% endfor %}
+{% endif %}
+
+			
+
+			
+			
+			
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+	
+	<script>$(document).ready(function() {
+    var parallaxStrength = 0; // Измените это значение для управления силой параллакса
+
+    $(document).mousemove(function(e) {
+        var screenWidth = $(window).width();
+        var screenHeight = $(window).height();
+        var mouseX = e.pageX;
+        var mouseY = e.pageY;
+
+        var percentX = (mouseX / screenWidth) * parallaxStrength - parallaxStrength / 2;
+        var percentY = (mouseY / screenHeight) * parallaxStrength - parallaxStrength / 2;
+
+        $('body').css('transform', 'rotateY(' + percentX + 'deg) rotateX(' + -percentY + 'deg)');
+    });
+});
+</script>
+	
+</body>
+</html>
