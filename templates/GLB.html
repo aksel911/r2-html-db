@@ -54,7 +54,7 @@
             top: 110px; /* Position the button at the bottom */
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.2);
             color: white;
             border: none;
             border-radius: 8px 8px 0 0;
@@ -119,14 +119,22 @@
             id="modelViewer"
             camera-controls
             autoplay
+
             shadow-intensity="1"
             exposure="1"
             shadow-softness="0.5"
             environment-image="neutral"
-            camera-orbit="0deg 75deg 105%"
+
+            camera-orbit="180deg 75deg 105%"
             min-camera-orbit="auto auto auto"
             max-camera-orbit="auto auto 400%"
+
             interaction-prompt="auto"
+
+            auto-rotate
+            rotation-per-second="3deg"
+            auto-rotate-delay="0"
+
             alt="R2 Online 3D model viewer with animation">
         </model-viewer>
         <button class="toggle-menu" onclick="toggleMenu()">▲ Show Menu</button>
@@ -144,23 +152,32 @@
         </div>
     </div>
 
+    <!-- Constants and Configuration -->
     <script>
+        // Определение основных констант
+        const animationVariants = [
+            'AttackArms',
+            'AttackLeg',
+            'ChargeAttack',
+            'Cidle',
+            'Die',
+            'EarthQuake',
+            'FireDestroyer',
+            'Regen',
+            'Walk'
+        ];
+
         const modelViewer = document.getElementById('modelViewer');
         const baseUrl = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/{{ monstermodelno_result }}/{{ monstermodelno_result }}_';
         let availableModels = [];
         let currentModelIndex = 0;
         let isPlaying = true;
         let modelCache = new Map();
+    </script>
 
-        // Функция для скрытия/показа меню
-        function toggleMenu() {
-            const controls = document.querySelector('.controls');
-            const toggleBtn = document.querySelector('.toggle-menu');
-            controls.classList.toggle('hidden');  // Toggle visibility
-            toggleBtn.textContent = controls.classList.contains('hidden') ? '▲ Show Menu' : '▼ Hide Menu';
-        }
-
-        // Оптимизированная функция проверки файла
+    <!-- Utilities and Helpers -->
+    <script>
+        // Вспомогательные функции
         async function checkFileExists(url) {
             if (modelCache.has(url)) {
                 return true;
@@ -176,57 +193,94 @@
                 return false;
             }
         }
+    </script>
 
-        // Оптимизированная функция поиска моделей
+    <!-- Model Search and Loading -->
+    <script>
+        // Функции поиска и загрузки моделей
         async function findAvailableModels() {
             document.getElementById('modelInfo').textContent = 'Scanning for models...';
             const models = [];
             const promises = [];
 
+            // Поиск обычных моделей
             for (let i = 0; i <= 35; i++) {
                 const index = i.toString().padStart(2, '0');
                 const url = `${baseUrl}${index}.glb`;
                 promises.push(
                     checkFileExists(url).then(exists => {
                         if (exists) {
-                            models.push(index);
+                            models.push({
+                                index: index,
+                                variant: null,
+                                url: url
+                            });
                         }
                     })
                 );
             }
 
             await Promise.all(promises);
-            return models.sort((a, b) => parseInt(a) - parseInt(b));
+
+            // Поиск анимационных вариантов
+            if (models.length < 3) {
+                const animationPromises = [];
+
+                for (let i = 0; i <= 35; i++) {
+                    const index = i.toString().padStart(2, '0');
+                    for (const variant of animationVariants) {
+                        const url = `${baseUrl}${index}_${variant}.glb`;
+                        animationPromises.push(
+                            checkFileExists(url).then(exists => {
+                                if (exists) {
+                                    models.push({
+                                        index: index,
+                                        variant: variant,
+                                        url: url
+                                    });
+                                }
+                            })
+                        );
+                    }
+                }
+
+                await Promise.all(animationPromises);
+            }
+
+            return models.sort((a, b) => {
+                if (a.index !== b.index) {
+                    return parseInt(a.index) - parseInt(b.index);
+                }
+                if (!a.variant) return -1;
+                if (!b.variant) return 1;
+                return a.variant.localeCompare(b.variant);
+            });
         }
 
         function loadModel(index) {
             if (index >= 0 && index < availableModels.length) {
-                const modelIndex = availableModels[index];
-                const modelUrl = `${baseUrl}${modelIndex}.glb`;
-                modelViewer.src = modelUrl;
+                const model = availableModels[index];
+                modelViewer.src = model.url;
                 currentModelIndex = index;
                 updateModelInfo();
             }
         }
+    </script>
 
+    <!-- UI Controls and Updates -->
+    <script>
+        // Функции управления интерфейсом
         function updateModelInfo() {
+            const currentModel = availableModels[currentModelIndex];
+            const modelName = currentModel.variant
+                ? `${currentModel.index}_${currentModel.variant}`
+                : currentModel.index;
+
             document.getElementById('modelInfo').textContent =
-                `Animation File: ${currentModelIndex + 1}/${availableModels.length}`;
+                `Animation File: ${modelName} (${currentModelIndex + 1}/${availableModels.length})`;
 
             document.getElementById('prevModel').disabled = currentModelIndex <= 0;
             document.getElementById('nextModel').disabled = currentModelIndex >= availableModels.length - 1;
-        }
-
-        function previousModel() {
-            if (currentModelIndex > 0) {
-                loadModel(currentModelIndex - 1);
-            }
-        }
-
-        function nextModel() {
-            if (currentModelIndex < availableModels.length - 1) {
-                loadModel(currentModelIndex + 1);
-            }
         }
 
         function togglePlay() {
@@ -248,6 +302,29 @@
             document.getElementById('playBtn').textContent = 'Pause';
         }
 
+        function previousModel() {
+            if (currentModelIndex > 0) {
+                loadModel(currentModelIndex - 1);
+            }
+        }
+
+        function nextModel() {
+            if (currentModelIndex < availableModels.length - 1) {
+                loadModel(currentModelIndex + 1);
+            }
+        }
+
+        function toggleMenu() {
+            const controls = document.querySelector('.controls');
+            const toggleBtn = document.querySelector('.toggle-menu');
+            controls.classList.toggle('hidden');
+            toggleBtn.textContent = controls.classList.contains('hidden') ? '▲ Show Menu' : '▼ Hide Menu';
+        }
+    </script>
+
+    <!-- Event Listeners -->
+    <script>
+        // Обработчики событий
         modelViewer.addEventListener('load', () => {
             console.log('Model loaded');
             const animations = modelViewer.availableAnimations;
@@ -259,17 +336,6 @@
                 `Animation name: ${animationsList}` :
                 'No animations available';
         });
-
-        async function initialize() {
-            availableModels = await findAvailableModels();
-            console.log('Available models:', availableModels);
-
-            if (availableModels.length > 0) {
-                loadModel(0);
-            } else {
-                document.getElementById('modelInfo').textContent = 'No models found';
-            }
-        }
 
         document.addEventListener('keydown', (event) => {
             switch(event.key) {
@@ -288,6 +354,21 @@
                     break;
             }
         });
+    </script>
+
+    <!-- Initialization -->
+    <script>
+        // Инициализация приложения
+        async function initialize() {
+            availableModels = await findAvailableModels();
+            console.log('Available models:', availableModels);
+
+            if (availableModels.length > 0) {
+                loadModel(0);
+            } else {
+                document.getElementById('modelInfo').textContent = 'No models found';
+            }
+        }
 
         initialize();
     </script>
