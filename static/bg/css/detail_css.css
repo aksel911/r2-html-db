@@ -1,0 +1,355 @@
+/* Темная тема */
+:root {
+    --bg-light: #ffffff;
+    --text-light: #333333;
+    --bg-dark: #1a1a1a;
+    --text-dark: #ffffff;
+}
+
+/* Базовые стили для body */
+body {
+    padding: 20px;
+    font-family: "Didact Gothic", sans-serif;
+    background-image: url('/static/bg/bg.jpg');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    perspective: 1000px;
+    overflow-x: hidden;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Контейнер для кнопок */
+.back-button-container {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    width: fit-content;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: -60px;
+}
+
+/* Контейнер для кнопки темы */
+.theme-toggle-container {
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999;
+    width: fit-content;
+    margin-top: auto;
+}
+
+/* Кнопка темы */
+.theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2196F3;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+}
+
+.theme-toggle i {
+    font-size: 18px;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Улучшенная кнопка назад */
+.back-button {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.back-button:hover {
+    background-color: #098714;
+    transform: translateX(-5px);
+}
+
+/* Анимация для изображений */
+img {
+    transition: transform 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.1);
+}
+
+/* Оригинальные цвета прогресс-баров с эффектом мерцания */
+.exp-bar {
+    background-color: #0bb917;
+}
+
+.health-bar {
+    background-color: #dc3545;
+}
+
+.mana-bar {
+    background-color: #007bff;
+}
+
+.chaotic-bar {
+    background-color: #ffd966;
+}
+
+/* Эффект мерцания для прогресс-баров */
+.progress-bar {
+    position: relative;
+    overflow: hidden;
+    color: black;
+    font-weight: bold;
+}
+
+.progress-bar:hover {
+    color: white;
+    background: linear-gradient(
+        to right,
+        #d35151,
+        #e07b45,
+        #e6b05c,
+        #a8c573,
+        #7fb5b5,
+        #6d8bd5,
+        #8b7abd,
+        #c06c96,
+        #d3867d,
+        #b88c5d,
+        #7c9f98,
+        #7d88a5,
+        #a17c93,
+        #b67a7a
+    );
+    background-size: 200% auto;
+    animation: rainbow 2s linear infinite;
+}
+
+@keyframes rainbow {
+    0% {
+        background-position: 100% center;
+    }
+    100% {
+        background-position: -100% center;
+    }
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0) 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        left: 100%;
+    }
+}
+
+/* Эффект fadeIn */
+.fadeIn {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s ease forwards;
+    font-family: "Didact Gothic", sans-serif;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Добавляем задержку для последовательного появления */
+.fadeIn:nth-child(1) { animation-delay: 0.1s; }
+.fadeIn:nth-child(2) { animation-delay: 0.2s; }
+.fadeIn:nth-child(3) { animation-delay: 0.3s; }
+.fadeIn:nth-child(4) { animation-delay: 0.4s; }
+.fadeIn:nth-child(5) { animation-delay: 0.5s; }
+
+/* GLB Container */
+.monster-viewer-container {
+    width: 100%;
+    height: 600px;
+    margin: 10px 0;
+    position: relative;
+}
+
+.monster-viewer-container model-viewer {
+    width: 100%;
+    height: 100%;
+}
+
+/* Контейнер */
+.container {
+    padding: 20px;
+    margin: 0 auto;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Dark Theme Styles */
+body.dark-theme {
+    background-image: url('/static/bg/bg_black.jpg') !important;
+    color: var(--text-dark);
+}
+
+.dark-theme .theme-toggle {
+    background: #2c3e50;
+    color: white;
+}
+.dark-theme .theme-toggle:hover {
+    background: #34495e;
+}
+
+
+.dark-theme .container {
+
+}
+
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme p {
+    color: white !important;
+}
+
+/* Специальный заголовок в темной теме */
+.dark-theme .monster-title {
+    background: linear-gradient(135deg, #4a90e2 0%, #87ceeb 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+}
+
+.dark-theme .monster-title::before,
+.dark-theme .monster-title::after {
+    background: linear-gradient(90deg, #4a90e2, transparent);
+}
+
+/* Кнопка "Назад" в темной теме */
+.dark-theme .back-button {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.dark-theme .back-button:hover {
+    background-color: #34495e;
+}
+
+/* Ссылки в темной теме */
+.dark-theme a {
+    color: #FFF5E6 !important;
+    text-decoration: none !important;
+}
+
+.dark-theme a:hover {
+    color: #FFE4B5 !important;
+    text-decoration: underline !important;
+}
+
+/* Контейнер с информацией о монстре в темной теме */
+.dark-theme .monster-viewer-container {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Строки с информацией о дропе в темной теме */
+.dark-theme p[style*="display: flex"] {
+    padding: 7px;
+    border-radius: 4px;
+    margin: 1px 0;
+}
+
+.dark-theme p[style*="display: flex"]:hover {
+    background: rgba(52, 73, 94, 0.7);
+}
+
+/* Progress bars в темной теме */
+.dark-theme .progress {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .progress-bar::after {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,0.1) 50%,
+        rgba(255,255,255,0) 100%);
+}
+
+/* Monster Title Styles */
+.monster-title {
+    position: relative;
+    overflow: visible;
+}
+
+.monster-title::before,
+.monster-title::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #1e3c72, transparent);
+}
+
+.monster-title::before {
+    left: -40px;
+    transform: translateY(-50%);
+}
+
+.monster-title::after {
+    right: -40px;
+    transform: translateY(-50%) rotate(180deg);
+}

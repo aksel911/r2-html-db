@@ -2,68 +2,22 @@
 <html>
 <head>
     <title>R2 Online Knowledge Base</title>
-    <!-- Include Bootstrap CSS -->
+
+    <!-- Required CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <style>
-        .dropdown-menu {
-            display: none;
-        }
+    {% include 'item_core/item_page_styles.html' %}
 
-        .nav-item:hover {
-            background-color: rgba(0, 0, 0, 0.1);
+	<style>
+        .aquarium {
+            position: relative;
+            overflow: hidden;
+            background: transparent;
+            width: 800px; height: 500px;
+            margin: auto;
         }
-
-        .nav-item.hover {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-item:hover .dropdown-menu {
-            display: block;
-            animation: fadeIn 1s ease-in-out;
-        }
-
-        .dropdown-item img {
-            height: 24px;
-            width: 24px;
-            margin-right: 5px;
-            opacity: 0;
-            transition: opacity 1s, transform 1s;
-            transform: translateX(-20px);
-        }
-
-        .dropdown-item:hover img {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            animation: fadeIn 1s ease-in-out;
-        }
-		
-		
-		
-		
-    </style>
-	
-	<style>.aquarium {
-	position: relative;
-	overflow: hidden;
-	background: white;
-	width: 800px; height: 500px;
-	margin: auto;
-}
 	.aquarium *, .aquarium *::before, .aquarium *::after {
 		position: absolute;
 		content: '';
@@ -538,57 +492,9 @@
 }</style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">R2 Online Game</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Предметы
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-						<a class="dropdown-item" href="/weapon"><img src="/static/item06_432_384.png" alt="Weapons"> Оружие</a>
-						<a class="dropdown-item" href="/helmet"><img src="/static/item06_96_384.png" alt="Helmet"> Шлем</a>
-                        <a class="dropdown-item" href="/armor"><img src="/static/item06_288_432.png" alt="Armor"> Броня</a>
-                        <a class="dropdown-item" href="/gloves"><img src="/static/item06_144_384.png" alt="Gloves"> Перчатки</a>
-                        <a class="dropdown-item" href="/boots"><img src="/static/item06_192_384.png" alt="Boots"> Ботинки</a>
-						<a class="dropdown-item" href="/cloak"><img src="/static/item06_336_384.png" alt="Cloak"> Плащ</a>
-						<a class="dropdown-item" href="/ring"><img src="/static/item06_288_384.png" alt="Ring"> Кольца</a>
-                        <a class="dropdown-item" href="/belt"><img src="/static/item06_384_192.png" alt="Belt"> Ремни</a>
-                        <a class="dropdown-item" href="/necklace"><img src="/static/item06_384_384.png" alt="Necklace"> Ожерелья</a>
-						<a class="dropdown-item" href="/earrings"><img src="/static/item43_384_240.png" alt="Earrings"> Серьги</a>
-                        <a class="dropdown-item" href="/shield"><img src="/static/item06_0_432.png" alt="Shield"> Щит</a>
-                        <a class="dropdown-item" href="/arrows"><img src="/static/item08_144_192.png" alt="Arrows"> Стрелы</a>
-                        <a class="dropdown-item" href="/books"><img src="/static/item02_0_0.png" alt="Books"> Книги</a>
-                        <a class="dropdown-item" href="/potions"><img src="/static/item02_144_144.png" alt="Potions"> Зелья</a>
-						<a class="dropdown-item" href="/materials"><img src="/static/item01_192_0.png" alt="Materials"> Материалы</a>
-                        <a class="dropdown-item" href="/etc"><img src="/static/item01_336_0.png" alt="Etc"> Разное</a>
-                        <a class="dropdown-item" href="/quest"><img src="/static/item01_432_0.png" alt="Quest"> Квест</a>
-                        <a class="dropdown-item" href="/event"><img src="/static/item05_48_144.png" alt="Event"> Ивент</a>
-                        <a class="dropdown-item" href="/sphere"><img src="/static/item10_336_144.png" alt="Sphere"> Сферы</a>
-                        <!-- Other item types here -->
-                        <!-- TODO -->
-                    </div>
-					
-				<li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Монстры
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <a class="dropdown-item" href="/monster_regular"><img src="/static/33.png" alt="Обычные"> Обычные</a>
-                        <a class="dropdown-item" href="/monster_imennoy"><img src="/static/361.png" alt="Именные"> Именные</a>
-                        <a class="dropdown-item" href="/monster_boss"><img src="/static/3050.png" alt="Боссы"> Боссы</a>
-                        <a class="dropdown-item" href="/monster_raidboss"><img src="/static/2058.png" alt="Рейд-Боссы"> Рейд-Боссы</a>
-                        <a class="dropdown-item" href="/monster_event"><img src="/static/2160.png" alt="События"> События</a>
-						<a class="dropdown-item" href="/monster_npc"><img src="/static/2015.png" alt="NPC"> NPC</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    {% include 'item_core/item_page_menu.html' %}
+
+
     <div class="container">
         <center><h1 class="animated-heading">Добро пожаловать в базу знаний R2 Online</h1></center>
         <div class="aquarium">
@@ -622,11 +528,16 @@
   </div>
 </div>
     </div>
-
+    <center><h2 class="animated-heading">Created by <a href="https://vk.com/akselrus" target="_blank">Victor Pavlov</a></h2></center>
     <!-- Include Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <!-- Required JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    {% include 'item_core/item_page_scripts.html' %}
 
     <script>
         $(document).ready(function() {

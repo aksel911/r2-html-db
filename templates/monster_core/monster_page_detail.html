@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>[{{ item.MID }}] {{ item.MName }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap" rel="stylesheet">
+
+
+    <!-- Подключение Dark Theme -->
+    <link rel="stylesheet" href="/static/bg/css/detail_css.css">
+</head>
+<body>
+
+    <!-- Контейнер для sticky-кнопки -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Назад
+        </button>
+
+        <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+
+
+    <main>
+        <div class="container text-center">
+
+            {% if monstermodelno_result %}
+                <p class="fadeIn">{{ monstermodelno_result }}</p>
+                <div class="monster-viewer-container">
+                    {% include 'GLB.html' %}
+                </div>
+            {% else %}
+                <p class="fadeIn">No monstermodelno_result</p>
+            {% endif %}
+
+            {% if not monstermodelno_result and file_path_gif %}
+                <p class="fadeIn"><img src="{{ url_for('static', filename='gif/' + file_path_gif) }}" style="transform: scale(0.75);"></p>
+            {% elif not monstermodelno_result %}
+                <p class="fadeIn">No gif image available</p>
+            {% endif %}
+
+
+
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <h2 class="fadeIn">Информация</h2>
+
+                    {% if file_path %}
+                    <p class="fadeIn">
+                        <img src="{{ file_path }}"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                    </p>
+                    {% else %}
+                        <p class="fadeIn">No image available</p>
+                    {% endif %}
+
+                    <p class="fadeIn">Уровень: <span class="font-weight-bold">{{ item.MLevel }}</span></p>
+                    <p class="fadeIn">Класс: <span class="font-weight-bold">{{ item.MClass }}</span>, {{ classinfo.MName }}</p>
+                    <p class="fadeIn">Раса: <span class="font-weight-bold">{{ raceinfo.mDesc }}</span></p>
+                    <p class="fadeIn">Отображается HP: <span class="font-weight-bold">{{ item.mIsShowHp }}</span></p>
+                    <p class="fadeIn">Агрессивность: <span class="font-weight-bold">{{ item.mIsResistTransF }}</span></p>
+                    <p class="fadeIn">Агр. на перевоплощение: <span class="font-weight-bold">{{ item.mDetectTransP }}</span></p>
+                    <p class="fadeIn">Агр. на невидимость: <span class="font-weight-bold">{{ item.mDetectTransF }}</span></p>
+                    {% if respawntimeinfo.mTick != 0.001 %}
+                        <p class="fadeIn">Время возрождения: <span class="font-weight-bold">{{ respawntimeinfo.mTick }} сек. или {{ respawntimeinfo.mTickms }} мс.</span></p>
+                    {% endif %}
+
+                    {% if monlocationinfo.Location %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Локация обитания</h2>
+                        <p class="fadeIn">Название локации: <span class="font-weight-bold">{{ monlocationinfo.Location }}</span></p>
+						{% endif %}
+						{% if monlocationinfo.LocationLevel %}
+                        <p class="fadeIn">Тип: <span class="font-weight-bold"> {{ monlocationinfo.LocationLevel }}</span></p>
+                    {% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+
+                    <h1 class="monster-title fadeIn" style="
+                        font-size: 3rem;
+                        font-weight: 800;
+                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;
+                        padding: 20px 30px;
+                        margin: 20px 0;
+                        position: relative;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        display: inline-block;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                    ">
+                        <span style="
+                            position: relative;
+                            z-index: 1;
+                            text-shadow:
+                                2px 2px 0px rgba(0,0,0,0.1),
+                                -1px -1px 0px rgba(255,255,255,0.1);
+                        ">{{ item.MName }}</span>
+                        <div style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 110%;
+                            height: 110%;
+                            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+                            filter: blur(5px);
+                            z-index: 0;
+                        "></div>
+                    </h1>
+
+                    <style>
+                    .monster-title {
+                        position: relative;
+                        overflow: visible;
+                    }
+
+                    .monster-title::before,
+                    .monster-title::after {
+                        content: '';
+                        position: absolute;
+                        top: 50%;
+                        width: 30px;
+                        height: 2px;
+                        background: linear-gradient(90deg, #1e3c72, transparent);
+                    }
+
+                    .monster-title::before {
+                        left: -40px;
+                        transform: translateY(-50%);
+                    }
+
+                    .monster-title::after {
+                        right: -40px;
+                        transform: translateY(-50%) rotate(180deg);
+                    }
+                    </style>
+
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Статистика</h2>
+                    <div style="display: flex; justify-content: center; max-width: 400px; margin: 0 auto;">
+                        <div style="width: 100%;">
+                            <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                                <span style="width: 80px; text-align: left;">Опыт:</span>
+                                <div class="progress fadeIn" style="flex-grow: 1;">
+                                    <div class="progress-bar exp-bar" role="progressbar" style="width: {{ item.mExp / 10 }}%;" aria-valuenow="{{ item.mExp }}" aria-valuemin="0" aria-valuemax="{{ item.mExp }}">{{ item.mExp }} Exp</div>
+                                </div>
+                            </p>
+
+                            <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                                <span style="width: 80px; text-align: left;">HP:</span>
+                                <div class="progress fadeIn" style="flex-grow: 1;">
+                                    <div class="progress-bar health-bar" role="progressbar" style="width: {{ item.MHP / 10 }}%;" aria-valuenow="{{ item.MHP }}" aria-valuemin="0" aria-valuemax="{{ item.MHP }}">{{ item.MHP }} HP</div>
+                                </div>
+                            </p>
+
+                            <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                                <span style="width: 80px; text-align: left;">MP:</span>
+                                <div class="progress fadeIn" style="flex-grow: 1;">
+                                    <div class="progress-bar mana-bar" role="progressbar" style="width: {{ item.MMP / 10 }}%;" aria-valuenow="{{ item.MMP }}" aria-valuemin="0" aria-valuemax="{{ item.MMP }}">{{ item.MMP }} MP</div>
+                                </div>
+                            </p>
+
+                            <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                                <span style="width: 80px; text-align: left;">Репутация:</span>
+                                <div class="progress fadeIn" style="flex-grow: 1;">
+                                    <div class="progress-bar chaotic-bar" role="progressbar" style="width: {{ item.MChaotic }}%;" aria-valuenow="{{ item.MChaotic }}" aria-valuemin="0" aria-valuemax="1000">{{ item.MChaotic }}</div>
+                                </div>
+                            </p>
+                        </div>
+                    </div>
+
+
+                    {% if mondropinfo %}
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Список выпадающих предметов</h2>
+                    {% for drop in mondropinfo %}
+                       <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                           <img style="width: 32px;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'" src="{{ drop['Pic'] }}">
+                           <a href="{{ url_for('item_detail', item_id=drop['DItem']) }}" style="width: 200px; text-align: left;">{{ drop["IName"] }}</a>
+                           <span class="font-weight-bold" style="width: 80px;">{{ drop["DNumber"] }} шт.</span>
+                           <span style="width: 80px;">{{ drop["DPercentItem"] }} %</span>
+                       </p>
+                    {% endfor %}
+                    {% endif %}
+
+
+
+                    {% if merchant_items %}
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Список продаваемых предметов</h2>
+                    {% for item in merchant_items %}
+                       <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                           <img style="width: 32px;"
+                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                src="{{ item.MerchantItemPicture }}">
+                           <a href="{{ url_for('item_detail', item_id=item.MerchantItemID) }}"
+                              style="width: 200px; text-align: left;">{{ item.MerchantItemName }}</a>
+                           <span class="font-weight-bold" style="width: 80px;">{{ item.MerchantItemPrice }}</span>
+                           <span style="width: 80px;">{{ item.MerchantPaymentType }}</span>
+                       </p>
+                    {% endfor %}
+                    {% endif %}
+
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var parallaxStrength = 0;
+
+            $(document).mousemove(function(e) {
+                var screenWidth = $(window).width();
+                var screenHeight = $(window).height();
+                var mouseX = e.pageX;
+                var mouseY = e.pageY;
+
+                var percentX = (mouseX / screenWidth) * parallaxStrength - parallaxStrength / 2;
+                var percentY = (mouseY / screenHeight) * parallaxStrength - parallaxStrength / 2;
+
+                $('body').css('transform', 'rotateY(' + percentX + 'deg) rotateX(' + -percentY + 'deg)');
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // Проверка сохранённой темы при загрузке
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+
+</body>
+</html>

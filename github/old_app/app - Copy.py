@@ -4,7 +4,7 @@ from flask import Flask, render_template, request
 import pyodbc
 from os.path import splitext
 from functools import lru_cache
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 from contextlib import contextmanager
 from dotenv import load_dotenv
@@ -128,7 +128,7 @@ def get_item_by_id(item_id: int) -> Optional[DT_Item]:
         row = cursor.fetchone()
         if row:
             return DT_Item(
-                row.IID, row.IName, row.IDesc.replace('\\n', ' ⭑ ') if row.IDesc else '', row.IWeight,
+                row.IID, row.IName, row.IDesc.replace('\\n', ' ') if row.IDesc else '', row.IWeight,
                 row.IUseClass, row.IType, row.IMaxBeadHoleCount,
                 row.ITermOfValidity
             )
@@ -179,33 +179,25 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
         ORDER BY a.MID
         """
         cursor.execute(query, (item_id,))
-
-        unique_results = {}
-
+        results = []
         for row in cursor.fetchall():
-            # Используем только MID как ключ для уникальности
-            key = row.MID
+            monster_pic = f"{GITHUB_URL}{row.MID}.png"
 
-            # Если такого монстра еще нет в результатах, добавляем его
-            if key not in unique_results:
-                monster_pic = f"{GITHUB_URL}{row.MID}.png"
-
-                unique_results[key] = {
-                    "MID": row.MID,
-                    "MName": row.MName.replace('/n', ' ') if row.MName else '',
-                    "DDropType": row.DDropType,
-                    "DPercentGroup": row.GroupDropChance,
-                    "DGroup": row.DropGroupID,
-                    "DName": row.Description,
-                    "DDrop": row.DDropID,
-                    "DPercentItem": round(float(row.ItemDropChance), 1),
-                    "DItem": row.DItem,
-                    "IName": row.ItemName,
-                    "DNumber": row.Quantity,
-                    "Pic": monster_pic
-                }
-
-        return list(unique_results.values())
+            results.append({
+                "MID": row.MID,
+                "MName": row.MName,
+                "DDropType": row.DDropType,
+                "DPercentGroup": row.GroupDropChance,
+                "DGroup": row.DropGroupID,
+                "DName": row.Description,
+                "DDrop": row.DDropID,
+                "DPercentItem": round(row.ItemDropChance, 2),
+                "DItem": row.DItem,
+                "IName": row.ItemName,
+                "DNumber": row.Quantity,
+                "Pic": monster_pic
+            })
+        return results
 
 
 def get_monster_by_id(monster_id: int) -> Optional[Dict]:
@@ -295,7 +287,7 @@ def item_detail(item_id: int):
     item = get_item_by_id(item_id)
     use_class = item.IUseClass.split('/')[-1].replace('.png', '')
     use_class = int(use_class)
-    #print(f"{item.IType} {use_class}")
+    print(f"{item.IType} {use_class}")
 
     if not item:
         return "Item not found", 404
@@ -306,9 +298,7 @@ def item_detail(item_id: int):
 
     mondropinfo = get_monster_drop_info(item_id)
     merchant_sellers = get_merchant_sellers(item_id)
-    craft_items = check_base_items_for_craft(item_id)
-    craft_next_item = check_next_craft_item(item_id)
-    
+
     # Get item model number
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -365,123 +355,8 @@ def item_detail(item_id: int):
         merchant_sellers=merchant_sellers,
         monstermodelno_result=item_model_no,
         prefix=prefix,  # Добавляем префикс в рендер
-        use_class=use_class,
-        craft_result=craft_items, # Рецепт
-        craft_next=craft_next_item # Next item
+        use_class=use_class
     )
-
-
-# Рецепт крафта
-def check_base_items_for_craft(item_id: int):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = """
-        SELECT DISTINCT
-  a.RID,
-  a.RItemID0,
-  b.IName,
-  c.RItemID,
-  b1.IName AS 'CraftItems',
-  a.RSuccess,
-  a.RIsCreateCnt,
-  c.ROrderNo
-FROM
-  DT_Refine AS a
-  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
-  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
-  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID ) 
-WHERE
-  a.RItemID0 = ? 
-ORDER BY
-  a.RID, c.ROrderNo"""
-
-        cursor.execute(query, (item_id,))
-        craft_results = cursor.fetchall()
-
-        # Используем словарь для хранения уникальных записей
-        unique_results = {}
-
-        for row in craft_results:
-            # Используем RItemID как ключ для уникальности
-            key = row.RItemID
-
-            # Обновляем запись только если её ещё нет или если это первое появление
-            if key not in unique_results:
-                item_resource = get_item_resource(row.RItemID)
-
-                if item_resource:
-                    file_name = item_resource.RFileName.split('.')[0]
-                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
-                else:
-                    image_path = f"{GITHUB_URL}no_item_image.png"
-
-                unique_results[key] = {
-                    'RID': row.RID,
-                    'RItemID0': row.RItemID0,
-                    'IName': row.IName,
-                    'RItemID': row.RItemID,
-                    'CraftItems': row.CraftItems,
-                    'RSuccess': round(float(row.RSuccess), 1),
-                    'RIsCreateCnt': row.RIsCreateCnt,
-                    'ROrderNo': row.ROrderNo,
-                    'ImagePath': image_path
-                }
-
-        # Преобразуем словарь обратно в список
-        return list(unique_results.values())
-
-
-# Нужен для крафта
-def check_next_craft_item(item_id: int):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = """
-SELECT DISTINCT
-  a.RID,
-  a.RItemID0,
-  b.IName,
-  a.RSuccess,
-  a.RIsCreateCnt
-FROM
-  DT_Refine AS a
-  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
-  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
-  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID )
-WHERE
-  c.RItemID = ?
-ORDER BY
-  a.RID"""
-        cursor.execute(query, (item_id,))
-        craft_results = cursor.fetchall()
-
-        # Используем словарь для хранения уникальных записей
-        unique_results = {}
-
-        for row in craft_results:
-            # Используем RItemID0 как ключ для уникальности
-            key = row.RItemID0
-
-            # Обновляем запись только если её ещё нет
-            if key not in unique_results:
-                item_resource = get_item_resource(row.RItemID0)
-
-                if item_resource:
-                    file_name = item_resource.RFileName.split('.')[0]
-                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
-                else:
-                    image_path = f"{GITHUB_URL}no_item_image.png"
-
-                unique_results[key] = {
-                    'RID': row.RID,
-                    'RItemID0': row.RItemID0,
-                    'IName': row.IName,
-                    'RSuccess': round(float(row.RSuccess), 1),
-                    'RIsCreateCnt': row.RIsCreateCnt,
-                    'ImagePath': image_path
-                }
-
-        # Преобразуем словарь обратно в список
-        return list(unique_results.values())
 
 
 def get_monster_drops(monster_id: int) -> List[Dict]:
@@ -516,46 +391,26 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
         ORDER BY r.DItem
         """
         cursor.execute(query, (monster_id,))
-
-        # Словарь для хранения уникальных предметов и подсчета дубликатов
-        unique_results = {}
-
+        results = []
         for row in cursor.fetchall():
-            # Используем DItem как ключ
-            key = row.DItem
-
             pic = None
             if row.RFileName and row.RPosX is not None and row.RPosY is not None:
                 pic = f"{GITHUB_URL}{row.RFileName.split('.')[0]}_{row.RPosX}_{row.RPosY}.png"
 
-            if key not in unique_results:
-                # Если предмет встречается впервые, создаем новую запись
-                unique_results[key] = {
-                    "MID": row.MID,
-                    "MName": row.MName,
-                    "DDropType": row.DDropType,
-                    "DPercentGroup": row.GroupDropChance,
-                    "DGroup": row.DropGroupID,
-                    "DName": row.Description,
-                    "DDrop": row.DDropID,
-                    "DPercentItem": round(float(row.ItemDropChance), 1),
-                    "DItem": row.DItem,
-                    "IName": row.ItemName,
-                    "DNumber": row.Quantity,  # Начальное количество
-                    "Pic": pic if pic else f"{GITHUB_URL}no_item_image.png",
-                    "count": 1  # Счетчик дубликатов
-                }
-            else:
-                # Если предмет уже есть, увеличиваем счетчик и обновляем количество
-                unique_results[key]["count"] += 1
-                unique_results[key]["DNumber"] += row.Quantity
-
-        # Преобразуем словарь обратно в список
-        results = list(unique_results.values())
-
-        # Сортируем результаты по DItem
-        results.sort(key=lambda x: x["DItem"])
-
+            results.append({
+                "MID": row.MID,
+                "MName": row.MName,
+                "DDropType": row.DDropType,
+                "DPercentGroup": row.GroupDropChance,
+                "DGroup": row.DropGroupID,
+                "DName": row.Description,
+                "DDrop": row.DDropID,
+                "DPercentItem": round(row.ItemDropChance, 2) if row.ItemDropChance else 0,
+                "DItem": row.DItem,
+                "IName": row.ItemName,
+                "DNumber": row.Quantity,
+                "Pic": pic if pic else f"{GITHUB_URL}no_item_image.png"
+            })
         return results
 
 
@@ -986,9 +841,6 @@ def merchants_list():
 def remove_extension(value):
     """Remove file extension from string"""
     return splitext(value)[0]
-
-
-
 
 
 if __name__ == '__main__':

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>[{{ item.IID }}] {{ item.IName }} </title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap" rel="stylesheet">
+
+
+    <!-- Подключение Dark Theme -->
+    <link rel="stylesheet" href="/static/bg/css/detail_css.css">
+
+</head>
+<body>
+
+    <!-- Контейнер для sticky-кнопки -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Назад
+        </button>
+
+        <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <main>
+        <div class="container text-center">
+<!--			<h1 class="my-4 fadeIn">{{ item.IName }}</h1>-->
+
+<!--			{% if file_path %}-->
+<!--				<img class="animated-img mb-4 fadeIn" src="{{ url_for('static', filename=file_path) }}">-->
+<!--			{% else %}-->
+<!--                <p class="fadeIn">No image available</p>-->
+<!--            {% endif %}-->
+
+
+			{% if monstermodelno_result %}
+                <p class="fadeIn">{{ monstermodelno_result }}</p>
+                <div class="monster-viewer-container">
+                    {% include 'GLB.html' %}
+                </div>
+            {% else %}
+                <p class="fadeIn">No monstermodelno_result</p>
+            {% endif %}
+
+
+
+			<div class="row">
+                <div class="col-12 col-md-6">
+                    <h2 class="fadeIn">Информация</h2>
+
+                    {% if file_path %}
+                    <p class="fadeIn">
+                        <img src="{{ file_path }}"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                    </p>
+                    {% else %}
+                        <p class="fadeIn">No image available</p>
+                    {% endif %}
+
+						<p class="fadeIn">Вес: {{ item.IWeight }}</p>
+						<p class="fadeIn">Количество ячеек для рун: {{ item.IMaxBeadHoleCount }}</p>
+						{% if item.ITermOfValidity != 10000 %}
+							<p class="fadeIn">Время использования: {{ item.ITermOfValidity }} дней</p>
+						{% endif %}
+
+                    
+                    {% if craft_result %}
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Крафт предмета</h2>
+                    {% for craft in craft_result %}
+                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <img style="width: 32px;"
+                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                src="{{ craft.ImagePath }}">
+                        <a href="{{ url_for('item_detail', item_id=craft.RItemID) }}"
+                            style="width: 200px; text-align: left;">{{ craft.CraftItems }}</a>
+                        <span class="font-weight-bold" style="width: 80px;">{% if craft.RSuccess is not none %}{{ craft.RSuccess }} %{% endif %}</span>
+                        <span style="width: 80px;">{{ craft.RIsCreateCnt }} шт.</span>
+                    </p>
+                    {% endfor %}
+                    {% endif %}
+
+
+                    {% if craft_next %}
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Нужен для крафта</h2>
+                    {% for craft in craft_next %}
+                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <img style="width: 32px;"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                             src="{{ craft.ImagePath }}">
+                        <a href="{{ url_for('item_detail', item_id=craft.RItemID0) }}"
+                           style="width: 200px; text-align: left;">{{ craft.IName }}</a>
+                        <span class="font-weight-bold" style="width: 80px;">{{ craft.RSuccess }} %</span>
+                        <span style="width: 80px;">{{ craft.RIsCreateCnt }} шт.</span>
+                    </p>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    {% if merchant_sellers %}
+                    <p class="fadeIn">★</p>
+                    <h2 class="fadeIn">Можно купить у</h2>
+                    {% for merchant in merchant_sellers %}
+                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                        <img style="width: 32px;"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                             src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/{{ merchant.MerchantID }}.png">
+                        <a href="{{ url_for('monster_detail', monster_id=merchant.MerchantID) }}"
+                           style="width: 200px; text-align: left;">{{ merchant.MerchantName }}</a>
+                        <span class="font-weight-bold" style="width: 80px;">{{ merchant.Price }}</span>
+                        <span style="width: 80px;">{{ merchant.PaymentType }}</span>
+                    </p>
+                    {% endfor %}
+                    {% endif %}
+
+				</div>
+
+				<div class="col-12 col-md-6">
+					<h1 class="monster-title fadeIn" style="
+                        font-size: 3rem;
+                        font-weight: 800;
+                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;
+                        padding: 20px 30px;
+                        margin: 20px 0;
+                        position: relative;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        display: inline-block;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                    ">
+                        <span style="
+                            position: relative;
+                            z-index: 1;
+                            text-shadow:
+                                2px 2px 0px rgba(0,0,0,0.1),
+                                -1px -1px 0px rgba(255,255,255,0.1);
+                        ">{{ item.IName }}</span>
+                        <div style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 110%;
+                            height: 110%;
+                            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+                            filter: blur(5px);
+                            z-index: 0;
+                        "></div>
+                    </h1>
+                    <style>
+                    .monster-title {
+                        position: relative;
+                        overflow: visible;
+                    }
+
+                    .monster-title::before,
+                    .monster-title::after {
+                        content: '';
+                        position: absolute;
+                        top: 50%;
+                        width: 30px;
+                        height: 2px;
+                        background: linear-gradient(90deg, #1e3c72, transparent);
+                    }
+
+                    .monster-title::before {
+                        left: -40px;
+                        transform: translateY(-50%);
+                    }
+
+                    .monster-title::after {
+                        right: -40px;
+                        transform: translateY(-50%) rotate(180deg);
+                    }
+                    </style>
+
+					<p class="fadeIn">{{ item.IDesc }}</p>
+					<p class="fadeIn"><img src="{{ item.IUseClass }}"></p>
+					{% if mondropinfo %}
+					<p class="fadeIn">★</p>
+					<h2 class="fadeIn">Можно получить из</h2>
+						{% for drop in mondropinfo %}
+						<p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+							<img style="width: 32px;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'" src="{{ drop['Pic'] }}">
+							<a href="{{ url_for('monster_detail', monster_id=drop['MID']) }}" style="width: 200px; text-align: left;">{{ drop["MName"] }}</a>
+							<span class="font-weight-bold" style="width: 80px;">{{ drop["DNumber"] }} шт.</span>
+							<span style="width: 80px;">{{ drop["DPercentItem"] }} %</span>
+						</p>
+						{% endfor %}
+					{% endif %}
+
+				</div>
+
+
+				
+
+
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // Проверка сохранённой темы при загрузке
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+</body>
+</html>
