@@ -55,6 +55,16 @@
 ### 📦 Прочие предметы
 ![Etc](https://github.com/Aksel911/R2-HTML-DB/blob/main/github/pics/Etc_Example.png?raw=true)
 
+### Пример .env конфиг-файла
+```
+DB_DRIVER={ODBC Driver 17 for SQL Server}
+DB_SERVER=localhost
+DB_NAME=FNLParm
+DB_USER=sa
+DB_PASSWORD=pass
+GITHUB_URL=https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/
+```
+
 ## 🤝 Вклад в проект
 
 Если вы хотите внести свой вклад в развитие проекта:
