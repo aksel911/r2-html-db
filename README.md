@@ -1,5 +1,5 @@
 # R2-HTML-DB
-Created by [Victor Pavlov](vk.com/akselrus) | [R2Genius](vk.com/r2genius)
+Created by [Victor Pavlov](https://vk.com/akselrus) | [R2Genius](https://vk.com/r2genius)
 
 ## Светлая и темная темы:
 ![Light Mode](https://github.com/Aksel911/R2-HTML-DB/blob/main/github/pics/Main_White.png?raw=true)Dark Mode:
