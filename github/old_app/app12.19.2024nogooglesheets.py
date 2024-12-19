@@ -1,6 +1,5 @@
 import os
 import requests
-import pandas as pd
 from flask import Flask, render_template, request
 import pyodbc
 from os.path import splitext
@@ -13,15 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)
 
-# URLs for Google Sheets
-MONSTER_CLASS_URL = "https://docs.google.com/spreadsheets/d/1fcCO8ZwJsENYZhKBpEfdgaTswANkrGolBtAcqVeTECs/edit?usp=sharing"  # TP_MonsterClass
-MONSTER_RACE_URL = "https://docs.google.com/spreadsheets/d/1c3Yh1GD-6GnDufvGzUdfRQtq5zHXkj9DRq_S9t1Lf9s/edit?usp=sharing"   # TP_MonsterRaceType
-MONSTER_LOCATION_URL = "https://docs.google.com/spreadsheets/d/1rBuuiMUvlYZwNPaRhdk5PkhTQa1mwj5z8dUDKWoBetU/edit?usp=sharing"   # DT_MonsterLocation
-
-# GitHub URL
-GITHUB_URL = "https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/"
-
-# DONT ANYTHING TOUCH BELOW!
 
 # Configuration
 def get_database_config() -> Dict[str, str]:
@@ -36,7 +26,7 @@ def get_database_config() -> Dict[str, str]:
 
 
 def get_github_url() -> str:
-    return os.getenv('GITHUB_URL', GITHUB_URL)
+    return os.getenv('GITHUB_URL', 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/')
 
 
 required_env_vars = ['DB_USER', 'DB_PASSWORD']
@@ -47,7 +37,6 @@ if missing_vars:
 DATABASE_CONFIG = get_database_config()
 GITHUB_URL = get_github_url()
 
-DATABASE_NAME = os.getenv('DB_NAME', 'FNLParm')
 
 # Connection pooling
 @contextmanager
@@ -128,20 +117,6 @@ class Monster:
         }
 
 
-def get_google_sheets_data(url: str) -> pd.DataFrame:
-    """Fetch monster class data from Google Sheets"""
-    # Convert the Google Sheets URL to export format
-    sheet_id = url.split('/d/')[1].split('/')[0]
-    export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-
-    try:
-        # Read the CSV directly from the export URL
-        df = pd.read_csv(export_url)
-        return df
-    except Exception as e:
-        print(f"Error fetching Google Sheets data: {e}")
-        return pd.DataFrame()
-
 # Cache decorators
 @lru_cache(maxsize=1000)
 def get_item_by_id(item_id: int) -> Optional[DT_Item]:
@@ -176,72 +151,14 @@ def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
     return None
 
 
-# def get_monster_drop_info(item_id: int) -> List[Dict]:
-#     """Get monster drop information for an item"""
-#     with get_db_connection() as conn:
-#         cursor = conn.cursor()
-#         query = f"""
-#         SELECT
-#             a.MID,
-#             a.MName,
-#             w.DDropType,
-#             q.DPercent as GroupDropChance,
-#             q.DGroup as DropGroupID,
-#             w.DName as Description,
-#             e.DDrop as DDropID,
-#             e.DPercent as ItemDropChance,
-#             r.DItem,
-#             c.IName as ItemName,
-#             r.DNumber as Quantity
-#         FROM {DATABASE_NAME}.dbo.DT_Monster a
-#         LEFT JOIN {DATABASE_NAME}1602.dbo.TP_MonsterClass b ON a.mClass = b.MClass
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_MonsterDrop q ON a.MID = q.MID
-#         LEFT JOIN {DATABASE_NAME}.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_DropItem r ON e.DDrop = r.DDrop
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_Item c ON r.DItem = c.IID
-#         WHERE r.DItem = ? AND c.IIsEvent = 0
-#         ORDER BY a.MID
-#         """
-#         cursor.execute(query, (item_id,))
-#
-#         unique_results = {}
-#
-#         for row in cursor.fetchall():
-#             # Используем только MID как ключ для уникальности
-#             key = row.MID
-#
-#             # Если такого монстра еще нет в результатах, добавляем его
-#             if key not in unique_results:
-#                 monster_pic = f"{GITHUB_URL}{row.MID}.png"
-#
-#                 unique_results[key] = {
-#                     "MID": row.MID,
-#                     "MName": row.MName.replace('/n', ' ') if row.MName else '',
-#                     "DDropType": row.DDropType,
-#                     "DPercentGroup": row.GroupDropChance,
-#                     "DGroup": row.DropGroupID,
-#                     "DName": row.Description,
-#                     "DDrop": row.DDropID,
-#                     "DPercentItem": round(float(row.ItemDropChance), 1),
-#                     "DItem": row.DItem,
-#                     "IName": row.ItemName,
-#                     "DNumber": row.Quantity,
-#                     "Pic": monster_pic
-#                 }
-#
-#         return list(unique_results.values())
 def get_monster_drop_info(item_id: int) -> List[Dict]:
-    """TP_MonsterClass"""
-    monster_class_df = get_google_sheets_data(MONSTER_CLASS_URL)
-
+    """Get monster drop information for an item"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        query = f"""
+        query = """
         SELECT
             a.MID,
             a.MName,
-            a.mClass,  -- Added mClass to fetch for joining with Google Sheets data
             w.DDropType,
             q.DPercent as GroupDropChance,
             q.DGroup as DropGroupID,
@@ -251,31 +168,31 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
             r.DItem,
             c.IName as ItemName,
             r.DNumber as Quantity
-        FROM {DATABASE_NAME}.dbo.DT_Monster a
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_MonsterDrop q ON a.MID = q.MID
-        LEFT JOIN {DATABASE_NAME}.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_DropItem r ON e.DDrop = r.DDrop
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_Item c ON r.DItem = c.IID
+        FROM DT_Monster a
+        LEFT JOIN FNLParm1602.dbo.TP_MonsterClass b ON a.mClass = b.MClass
+        LEFT JOIN FNLParm.dbo.DT_MonsterDrop q ON a.MID = q.MID
+        LEFT JOIN FNLParm.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
+        LEFT JOIN FNLParm.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
+        LEFT JOIN FNLParm.dbo.DT_DropItem r ON e.DDrop = r.DDrop
+        LEFT JOIN DT_Item c ON r.DItem = c.IID
         WHERE r.DItem = ? AND c.IIsEvent = 0
         ORDER BY a.MID
         """
         cursor.execute(query, (item_id,))
+
         unique_results = {}
 
         for row in cursor.fetchall():
-            # Get monster class info from Google Sheets data
-            monster_class_info = monster_class_df[
-                monster_class_df['MClass'] == row.mClass
-                ]['MName'].iloc[0] if not monster_class_df.empty else ''
-
+            # Используем только MID как ключ для уникальности
             key = row.MID
+
+            # Если такого монстра еще нет в результатах, добавляем его
             if key not in unique_results:
                 monster_pic = f"{GITHUB_URL}{row.MID}.png"
+
                 unique_results[key] = {
                     "MID": row.MID,
                     "MName": row.MName.replace('/n', ' ') if row.MName else '',
-                    "MClass": monster_class_info,  # Added monster class info from Google Sheets
                     "DDropType": row.DDropType,
                     "DPercentGroup": row.GroupDropChance,
                     "DGroup": row.DropGroupID,
@@ -289,6 +206,7 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
                 }
 
         return list(unique_results.values())
+
 
 def get_monster_by_id(monster_id: int) -> Optional[Dict]:
     """Get monster information by ID"""
@@ -566,91 +484,14 @@ ORDER BY
         return list(unique_results.values())
 
 
-# def get_monster_drops(monster_id: int) -> List[Dict]:
-#     """Get all drops for a specific monster"""
-#     with get_db_connection() as conn:
-#         cursor = conn.cursor()
-#         query = f"""
-#         SELECT
-#             a.MID,
-#             a.MName,
-#             w.DDropType,
-#             q.DPercent as GroupDropChance,
-#             q.DGroup as DropGroupID,
-#             w.DName as Description,
-#             e.DDrop as DDropID,
-#             e.DPercent as ItemDropChance,
-#             r.DItem,
-#             c.IName as ItemName,
-#             r.DNumber as Quantity,
-#             i.RFileName,
-#             i.RPosX,
-#             i.RPosY
-#         FROM {DATABASE_NAME}.dbo.DT_Monster a
-#         LEFT JOIN {DATABASE_NAME}1602.dbo.TP_MonsterClass b ON a.mClass = b.MClass
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_MonsterDrop q ON a.MID = q.MID
-#         LEFT JOIN {DATABASE_NAME}.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_DropItem r ON e.DDrop = r.DDrop
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_Item c ON r.DItem = c.IID
-#         LEFT JOIN {DATABASE_NAME}.dbo.DT_ItemResource i ON c.IID = i.ROwnerID AND i.RType = 2
-#         WHERE a.MID = ? AND c.IIsEvent = 0
-#         ORDER BY r.DItem
-#         """
-#         cursor.execute(query, (monster_id,))
-#
-#         # Словарь для хранения уникальных предметов и подсчета дубликатов
-#         unique_results = {}
-#
-#         for row in cursor.fetchall():
-#             # Используем DItem как ключ
-#             key = row.DItem
-#
-#             pic = None
-#             if row.RFileName and row.RPosX is not None and row.RPosY is not None:
-#                 pic = f"{GITHUB_URL}{row.RFileName.split('.')[0]}_{row.RPosX}_{row.RPosY}.png"
-#
-#             if key not in unique_results:
-#                 # Если предмет встречается впервые, создаем новую запись
-#                 unique_results[key] = {
-#                     "MID": row.MID,
-#                     "MName": row.MName,
-#                     "DDropType": row.DDropType,
-#                     "DPercentGroup": row.GroupDropChance,
-#                     "DGroup": row.DropGroupID,
-#                     "DName": row.Description,
-#                     "DDrop": row.DDropID,
-#                     "DPercentItem": round(float(row.ItemDropChance), 1),
-#                     "DItem": row.DItem,
-#                     "IName": row.ItemName,
-#                     "DNumber": row.Quantity,  # Начальное количество
-#                     "Pic": pic if pic else f"{GITHUB_URL}no_item_image.png",
-#                     "count": 1  # Счетчик дубликатов
-#                 }
-#             else:
-#                 # Если предмет уже есть, увеличиваем счетчик и обновляем количество
-#                 unique_results[key]["count"] += 1
-#                 unique_results[key]["DNumber"] += row.Quantity
-#
-#         # Преобразуем словарь обратно в список
-#         results = list(unique_results.values())
-#
-#         # Сортируем результаты по DItem
-#         results.sort(key=lambda x: x["DItem"])
-#
-#         return results
-
 def get_monster_drops(monster_id: int) -> List[Dict]:
-    """TP_MonsterClass"""
-    monster_class_df = get_google_sheets_data(MONSTER_CLASS_URL)
-
+    """Get all drops for a specific monster"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        query = f"""
+        query = """
         SELECT
             a.MID,
             a.MName,
-            a.mClass,  -- Added mClass to fetch for joining with Google Sheets data
             w.DDropType,
             q.DPercent as GroupDropChance,
             q.DGroup as DropGroupID,
@@ -663,28 +504,24 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
             i.RFileName,
             i.RPosX,
             i.RPosY
-        FROM {DATABASE_NAME}.dbo.DT_Monster a
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_MonsterDrop q ON a.MID = q.MID
-        LEFT JOIN {DATABASE_NAME}.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_DropItem r ON e.DDrop = r.DDrop
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_Item c ON r.DItem = c.IID
-        LEFT JOIN {DATABASE_NAME}.dbo.DT_ItemResource i ON c.IID = i.ROwnerID AND i.RType = 2
+        FROM DT_Monster a
+        LEFT JOIN FNLParm1602.dbo.TP_MonsterClass b ON a.mClass = b.MClass
+        LEFT JOIN FNLParm.dbo.DT_MonsterDrop q ON a.MID = q.MID
+        LEFT JOIN FNLParm.dbo.TP_DropGroup w ON q.DGroup = w.DGroup
+        LEFT JOIN FNLParm.dbo.DT_DropGroup e ON w.DGroup = e.DGroup
+        LEFT JOIN FNLParm.dbo.DT_DropItem r ON e.DDrop = r.DDrop
+        LEFT JOIN DT_Item c ON r.DItem = c.IID
+        LEFT JOIN DT_ItemResource i ON c.IID = i.ROwnerID AND i.RType = 2
         WHERE a.MID = ? AND c.IIsEvent = 0
         ORDER BY r.DItem
         """
         cursor.execute(query, (monster_id,))
 
-        # Dictionary to store unique items and count duplicates
+        # Словарь для хранения уникальных предметов и подсчета дубликатов
         unique_results = {}
 
         for row in cursor.fetchall():
-            # Get monster class info from Google Sheets data
-            monster_class_info = monster_class_df[
-                monster_class_df['MClass'] == row.mClass
-                ]['MName'].iloc[0] if not monster_class_df.empty else ''
-
-            # Use DItem as key
+            # Используем DItem как ключ
             key = row.DItem
 
             pic = None
@@ -692,11 +529,10 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
                 pic = f"{GITHUB_URL}{row.RFileName.split('.')[0]}_{row.RPosX}_{row.RPosY}.png"
 
             if key not in unique_results:
-                # If item appears for the first time, create new entry
+                # Если предмет встречается впервые, создаем новую запись
                 unique_results[key] = {
                     "MID": row.MID,
                     "MName": row.MName,
-                    "MClass": monster_class_info,  # Added monster class info from Google Sheets
                     "DDropType": row.DDropType,
                     "DPercentGroup": row.GroupDropChance,
                     "DGroup": row.DropGroupID,
@@ -705,154 +541,24 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
                     "DPercentItem": round(float(row.ItemDropChance), 1),
                     "DItem": row.DItem,
                     "IName": row.ItemName,
-                    "DNumber": row.Quantity,
+                    "DNumber": row.Quantity,  # Начальное количество
                     "Pic": pic if pic else f"{GITHUB_URL}no_item_image.png",
-                    "count": 1
+                    "count": 1  # Счетчик дубликатов
                 }
             else:
-                # If item already exists, increment counter and update quantity
+                # Если предмет уже есть, увеличиваем счетчик и обновляем количество
                 unique_results[key]["count"] += 1
                 unique_results[key]["DNumber"] += row.Quantity
 
-        # Convert dictionary back to list
+        # Преобразуем словарь обратно в список
         results = list(unique_results.values())
 
-        # Sort results by DItem
+        # Сортируем результаты по DItem
         results.sort(key=lambda x: x["DItem"])
 
         return results
 
-# @app.route('/monster/<int:monster_id>')
-# def monster_detail(monster_id: int):
-#     """Monster detail page"""
-#     monster = get_monster_by_id(monster_id)
-#     if not monster:
-#         return "Monster not found", 404
-#
-#     with get_db_connection() as conn:
-#         cursor = conn.cursor()
-#
-#         # Get class info
-#         cursor.execute(
-#             f"SELECT MName FROM {DATABASE_NAME}1602.dbo.TP_MonsterClass WHERE MClass = ?",
-#             (monster['MClass'],)
-#         )
-#         class_info = {"MName": cursor.fetchone()[0]}
-#
-#         # Get race info
-#         cursor.execute(
-#             f"SELECT mDesc FROM {DATABASE_NAME}1602.dbo.TP_MonsterRaceType WHERE MRaceType = ?",
-#             (monster['mRaceType'],)
-#         )
-#         race_result = cursor.fetchone()
-#         race_info = {"mDesc": race_result[0] if race_result else None}
-#
-#         # Get respawn time
-#         cursor.execute(
-#             f"SELECT mTick FROM {DATABASE_NAME}.dbo.TblMonsterSpot WHERE mMID = ?",
-#             (monster_id,)
-#         )
-#         respawn_result = cursor.fetchone()
-#         respawn_time = respawn_result[0] if respawn_result else 1000
-#         respawn_info = {
-#             "mTick": respawn_time / 1000,
-#             "mTickms": respawn_time
-#         }
-#
-#         # Get monster location
-#         cursor.execute(
-#             f"SELECT Location, LocationLevel FROM {DATABASE_NAME}1602.dbo.DT_MonsterLocation WHERE MID = ?",
-#             (monster_id,)
-#         )
-#         location_result = cursor.fetchone()
-#         monster_location = None
-#         if location_result:
-#             monster_location = {
-#                 "Location": location_result.Location,
-#                 "LocationLevel": location_result.LocationLevel
-#             }
-#
-#         # Get Merchant items
-#         merchant_items = []
-#         cursor.execute(
-#             f"""
-#             SELECT
-#               a.ListID,
-#               c.MID,
-#               c.MName,
-#               c.MClass,
-#               a.ItemID,
-#               d.IName,
-#               a.Price,
-#               b.mPaymentType
-#             FROM
-#               {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-#               LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-#               LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
-#               LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Item] AS d ON ( a.ItemID = d.IID )
-#             WHERE c.MID = ?
-#             """,
-#             (monster_id,)
-#         )
-#         merchant_results = cursor.fetchall()
-#
-#         if merchant_results:
-#             for merchant_result in merchant_results:
-#                 merch_pic = None
-#                 merch_item_pics = get_item_resource(merchant_result.ItemID)
-#
-#                 if merch_item_pics:
-#                     if merch_item_pics.RFileName and merch_item_pics.RPosX is not None and merch_item_pics.RPosY is not None:
-#                         merch_pic = f"{GITHUB_URL}{merch_item_pics.RFileName.split('.')[0]}_{merch_item_pics.RPosX}_{merch_item_pics.RPosY}.png"
-#
-#                 merchant_items.append({
-#                     "MerchantListID": merchant_result.ListID,
-#                     "MerchantItemID": merchant_result.ItemID,
-#                     "MerchantItemName": merchant_result.IName,
-#                     "MerchantItemPrice": merchant_result.Price,
-#                     "MerchantPaymentType": get_payment_type_name(merchant_result.mPaymentType),
-#                     "MerchantItemPicture": merch_pic,
-#                 })
-#
-#         # Get monster model number and set prefix
-#         cursor.execute(
-#             f"SELECT RFileName FROM {DATABASE_NAME}.dbo.DT_MonsterResource WHERE ROwnerID = ?",
-#             (monster_id,)
-#         )
-#         model_result = cursor.fetchone()
-#         monster_model_no = None
-#         prefix = 'm'  # Устанавливаем префикс 'm' для всех монстров
-#
-#         if model_result:
-#             monster_model_no = f"{int(model_result.RFileName):05}"
-#
-#     # Handle images
-#     file_path = f"{GITHUB_URL}{monster_id}.png"
-#     file_path_gif = f"{GITHUB_URL}gif/{monster_id}_IDLE.gif"
-#     try:
-#         response = requests.head(file_path_gif)
-#         if response.status_code != 200:
-#             file_path_gif = None
-#     except:
-#         file_path_gif = None
-#
-#     return render_template(
-#         'monster_core/monster_page_detail.html',
-#         item=monster,
-#         file_path=file_path,
-#         file_path_gif=file_path_gif,
-#         classinfo=class_info,
-#         raceinfo=race_info,
-#         respawntimeinfo=respawn_info,
-#         monlocationinfo=monster_location,
-#         merchant_items=merchant_items,
-#         mondropinfo=get_monster_drops(monster_id),
-#         monstermodelno_result=monster_model_no,
-#         prefix=prefix  # Добавляем префикс в контекст шаблона
-#     )
 
-
-# Item type routes
 @app.route('/monster/<int:monster_id>')
 def monster_detail(monster_id: int):
     """Monster detail page"""
@@ -860,31 +566,27 @@ def monster_detail(monster_id: int):
     if not monster:
         return "Monster not found", 404
 
-    # Fetch data from Google Sheets
-    monster_class_df = get_google_sheets_data(MONSTER_CLASS_URL)
-    monster_race_df = get_google_sheets_data(MONSTER_RACE_URL)
-    monster_location_df = get_google_sheets_data(MONSTER_LOCATION_URL)
-
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
-        # Get class info from Google Sheets
-        class_info = {"MName": ""}
-        if not monster_class_df.empty:
-            class_match = monster_class_df[monster_class_df['MClass'] == monster['MClass']]
-            if not class_match.empty:
-                class_info = {"MName": class_match.iloc[0]['MName']}
+        # Get class info
+        cursor.execute(
+            "SELECT MName FROM FNLParm1602.dbo.TP_MonsterClass WHERE MClass = ?",
+            (monster['MClass'],)
+        )
+        class_info = {"MName": cursor.fetchone()[0]}
 
-        # Get race info from Google Sheets
-        race_info = {"mDesc": None}
-        if not monster_race_df.empty:
-            race_match = monster_race_df[monster_race_df['MRaceType'] == monster['mRaceType']]
-            if not race_match.empty:
-                race_info = {"mDesc": race_match.iloc[0]['mDesc']}
+        # Get race info
+        cursor.execute(
+            "SELECT mDesc FROM FNLParm1602.dbo.TP_MonsterRaceType WHERE MRaceType = ?",
+            (monster['mRaceType'],)
+        )
+        race_result = cursor.fetchone()
+        race_info = {"mDesc": race_result[0] if race_result else None}
 
         # Get respawn time
         cursor.execute(
-            f"SELECT mTick FROM {DATABASE_NAME}.dbo.TblMonsterSpot WHERE mMID = ?",
+            "SELECT mTick FROM FNLParm.dbo.TblMonsterSpot WHERE mMID = ?",
             (monster_id,)
         )
         respawn_result = cursor.fetchone()
@@ -894,27 +596,23 @@ def monster_detail(monster_id: int):
             "mTickms": respawn_time
         }
 
-        # Get monster location from Google Sheets
+        # Get monster location
+        cursor.execute(
+            "SELECT Location, LocationLevel FROM FNLParm1602.dbo.DT_MonsterLocation WHERE MID = ?",
+            (monster_id,)
+        )
+        location_result = cursor.fetchone()
         monster_location = None
-        if not monster_location_df.empty:
-            location_match = monster_location_df[monster_location_df['MID'] == monster_id]
-            if not location_match.empty:
-                location_level = location_match.iloc[0]['LocationLevel']
-
-                # Проверяем является ли значение nan
-                if pd.isna(location_level):
-                    location_level = None
-
-                monster_location = {
-                    "Location": location_match.iloc[0]['Location'],
-                    "LocationLevel": location_level
-                }
-
+        if location_result:
+            monster_location = {
+                "Location": location_result.Location,
+                "LocationLevel": location_result.LocationLevel
+            }
 
         # Get Merchant items
         merchant_items = []
         cursor.execute(
-            f"""
+            """
             SELECT
               a.ListID,
               c.MID,
@@ -925,10 +623,10 @@ def monster_detail(monster_id: int):
               a.Price,
               b.mPaymentType 
             FROM
-              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
+              [dbo].[TblMerchantSellList] AS a
+              LEFT JOIN [dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
+              LEFT JOIN [dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
+              LEFT JOIN [dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
             WHERE c.MID = ?
             """,
             (monster_id,)
@@ -955,12 +653,12 @@ def monster_detail(monster_id: int):
 
         # Get monster model number and set prefix
         cursor.execute(
-            f"SELECT RFileName FROM {DATABASE_NAME}.dbo.DT_MonsterResource WHERE ROwnerID = ?",
+            "SELECT RFileName FROM FNLParm.dbo.DT_MonsterResource WHERE ROwnerID = ?",
             (monster_id,)
         )
         model_result = cursor.fetchone()
         monster_model_no = None
-        prefix = 'm'  # Default prefix for all monsters
+        prefix = 'm'  # Устанавливаем префикс 'm' для всех монстров
 
         if model_result:
             monster_model_no = f"{int(model_result.RFileName):05}"
@@ -987,11 +685,11 @@ def monster_detail(monster_id: int):
         merchant_items=merchant_items,
         mondropinfo=get_monster_drops(monster_id),
         monstermodelno_result=monster_model_no,
-        prefix=prefix
+        prefix=prefix  # Добавляем префикс в контекст шаблона
     )
 
 
-
+# Item type routes
 @app.route('/weapon')
 def weapon():
     search_term = request.args.get('search', '')
@@ -1225,10 +923,10 @@ def get_merchant_sell_list():
               a.Price,
               b.mPaymentType 
             FROM
-              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
+              [dbo].[TblMerchantSellList] AS a
+              LEFT JOIN [dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
+              LEFT JOIN [dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
+              LEFT JOIN [dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
             ORDER BY
               c.MName DESC 
         """
@@ -1249,7 +947,7 @@ def get_merchant_sellers(item_id: int) -> List[Dict]:
     """Get merchants selling a specific item"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        query = f"""
+        query = """
             SELECT
               a.ListID,
               c.MID,
@@ -1257,9 +955,9 @@ def get_merchant_sellers(item_id: int) -> List[Dict]:
               a.Price,
               b.mPaymentType 
             FROM
-              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
+              [dbo].[TblMerchantSellList] AS a
+              LEFT JOIN [dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
+              LEFT JOIN [dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
             WHERE a.ItemID = ?
             ORDER BY c.MName
         """
