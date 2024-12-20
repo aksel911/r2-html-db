@@ -9,17 +9,20 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from contextlib import contextmanager
 from dotenv import load_dotenv
+from dataclasses import dataclass, field
 
 load_dotenv()
 app = Flask(__name__)
 
-# URLs for Google Sheets
+# !URLs for Google Sheets
 MONSTER_CLASS_URL = "https://docs.google.com/spreadsheets/d/1fcCO8ZwJsENYZhKBpEfdgaTswANkrGolBtAcqVeTECs/edit?usp=sharing"  # TP_MonsterClass
-MONSTER_RACE_URL = "https://docs.google.com/spreadsheets/d/1c3Yh1GD-6GnDufvGzUdfRQtq5zHXkj9DRq_S9t1Lf9s/edit?usp=sharing"   # TP_MonsterRaceType
-MONSTER_LOCATION_URL = "https://docs.google.com/spreadsheets/d/1rBuuiMUvlYZwNPaRhdk5PkhTQa1mwj5z8dUDKWoBetU/edit?usp=sharing"   # DT_MonsterLocation
+MONSTER_RACE_URL = "https://docs.google.com/spreadsheets/d/1c3Yh1GD-6GnDufvGzUdfRQtq5zHXkj9DRq_S9t1Lf9s/edit?usp=sharing"  # TP_MonsterRaceType
+MONSTER_LOCATION_URL = "https://docs.google.com/spreadsheets/d/1rBuuiMUvlYZwNPaRhdk5PkhTQa1mwj5z8dUDKWoBetU/edit?usp=sharing"  # DT_MonsterLocation
+SKILLAPPLYRACE_LOCATION_URL = "https://docs.google.com/spreadsheets/d/1Vz-YWTOGnFUqzlieWfUg0NM-fSilneIEZ03FratjC2E/edit?usp=sharing"    # TP_SkillApplyRace
 
-# GitHub URL
+# !GitHub URL
 GITHUB_URL = "https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/"
+
 
 # DONT ANYTHING TOUCH BELOW!
 
@@ -49,6 +52,7 @@ GITHUB_URL = get_github_url()
 
 DATABASE_NAME = os.getenv('DB_NAME', 'FNLParm')
 
+
 # Connection pooling
 @contextmanager
 def get_db_connection():
@@ -60,6 +64,9 @@ def get_db_connection():
     finally:
         conn.close()
 
+
+
+# ? MODELS
 
 @dataclass
 class DT_Item:
@@ -128,6 +135,77 @@ class Monster:
         }
 
 
+@dataclass
+class Skill:
+    """Data class for skills"""
+    sid: int
+    name: str
+    desc: str
+    hit_plus: int
+    mp_per_use: int
+    skill_type: int
+    type_desc: str
+    hp_per_use: int
+    chao_use: int
+    apply_radius: int
+    apply_race: int
+    casting_delay: int
+    consume_item: int
+    active_type: int
+    animation: str
+    casting_speed: int
+    skill_effect: int
+    cool_time: int
+    consume_item2: int
+    consume_item_cnt2: int
+    item_id: Optional[int]
+    item_pic: Optional[str]
+    item_name: Optional[str]
+    item_use_level: Optional[int]
+    item_use_class: Optional[str]
+    skill_pack_id: Optional[int]
+    skill_pack_desc: Optional[str]
+    abnormal_data: Optional[Dict[str, any]] = field(default_factory=dict)
+    module_data: Optional[Dict[str, any]] = field(default_factory=dict)
+
+    def __post_init__(self):
+        # Очистка описаний от /n
+        self.desc = self.desc.replace('/n', ' ⭑ ').replace('\\n', ' ⭑ ') if self.desc else ''
+        self.item_name = self.item_name.replace('/n', '') if self.item_name else ''
+        self.skill_pack_desc = self.skill_pack_desc.replace('/n', ' ⭑ ').replace('\\n', ' ⭑ ') if self.skill_pack_desc else ''
+
+        # Обработка item_use_class
+        if self.item_use_class:
+            self.item_use_class = f"{GITHUB_URL}class/{self.item_use_class}.png"
+        else:
+            self.item_use_class = f"{GITHUB_URL}class/0.png"  # Дефолтное значение
+
+        if self.item_pic and isinstance(self.item_pic, DT_ItemResource):
+            self.item_pic = self.item_pic.file_path
+
+        # Очистка и форматирование данных аномалий
+        if self.abnormal_data:
+            self.abnormal_data = {
+                key: (str(value).replace('/n', ' ').strip() if isinstance(value, str) else value)
+                for key, value in self.abnormal_data.items()
+            }
+
+        # Очистка и форматирование данных модулей
+        if self.module_data and "params" in self.module_data:
+            self.module_data["params"] = [
+                {
+                    "name": param.get("name", "").replace('/n', ' ').strip(),
+                    "value": param.get("value", None)
+                }
+                for param in self.module_data["params"]
+            ]
+
+
+
+
+# ? Utils
+
+# Google Sheets
 def get_google_sheets_data(url: str) -> pd.DataFrame:
     """Fetch monster class data from Google Sheets"""
     # Convert the Google Sheets URL to export format
@@ -142,7 +220,15 @@ def get_google_sheets_data(url: str) -> pd.DataFrame:
         print(f"Error fetching Google Sheets data: {e}")
         return pd.DataFrame()
 
-# Cache decorators
+# Template filters
+@app.template_filter('remove_extension')
+def remove_extension(value):
+    """Remove file extension from string"""
+    return splitext(value)[0]
+
+
+
+# ! ITEMS
 @lru_cache(maxsize=1000)
 def get_item_by_id(item_id: int) -> Optional[DT_Item]:
     """Get item by ID with caching"""
@@ -175,6 +261,117 @@ def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
             )
     return None
 
+def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
+    """Generic function to fetch items by type with optional search"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+
+        # Convert item types to string for SQL
+        type_str = ','.join(str(t) for t in item_types)
+
+        # Get item IDs
+        query = f"""
+        SELECT IID FROM DT_ITem 
+        WHERE IType IN ({type_str}) 
+        AND IName LIKE ? 
+        ORDER BY IID
+        """
+        cursor.execute(query, (f'%{search_term}%',))
+        item_ids = [row.IID for row in cursor.fetchall()]
+
+        if not item_ids:
+            return [], {}
+
+        # Get item resources
+        id_str = ','.join(str(i) for i in item_ids)
+        query = f"""
+        SELECT RFileName, RPosX, RPosY, ROwnerID 
+        FROM DT_ItemResource 
+        WHERE ROwnerID IN ({id_str}) 
+        AND RType = 2
+        """
+        cursor.execute(query)
+        file_paths = {}
+        for row in cursor.fetchall():
+            file_name = splitext(row.RFileName)[0]
+            file_path = f"{GITHUB_URL}{file_name}_{row.RPosX}_{row.RPosY}.png"
+            file_paths[row.ROwnerID] = file_path
+
+        # Get items
+        query = f"SELECT * FROM DT_ITem WHERE IID IN ({id_str})"
+        cursor.execute(query)
+        items = [
+            DT_Item(
+                row.IID, row.IName, (row.IDesc or "").replace('\\n', ' '), row.IWeight,
+                row.IUseClass, row.IType, row.IMaxBeadHoleCount,
+                row.ITermOfValidity
+            )
+            for row in cursor.fetchall()
+        ]
+
+        return items, file_paths
+
+def get_item_skill(item_id: int) -> Optional[Tuple]:
+    """Get skill details by ID"""
+    if item_id is None:
+        return None
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # *Если выбрать в шаблоне: b1.SID, тогда ссылка будет на Создание скила, если на сам скилл: v2.SID AS v2_SID
+        query = """
+        SELECT 
+            a.IID,
+            a.IName,
+            b1.SID,
+            c1.AID,
+            d1.MID,
+            v.mSPID,
+            v.mName,
+            v.mSpriteFile,
+            v.mSpriteX,
+            v.mSpriteY,
+            v2.SID AS v2_SID,
+            v2.SName AS v2_SName
+        FROM DT_Item a
+            INNER JOIN DT_ItemSkill b 
+                ON a.IID = b.IID AND a.IID = ?
+            INNER JOIN DT_Skill b1 
+                ON b.SID = b1.SID
+            INNER JOIN DT_SkillAbnormal c 
+                ON b1.SID = c.SID
+            INNER JOIN DT_Abnormal c1 
+                ON c.AbnormalID = c1.AID
+            INNER JOIN DT_AbnormalModule d 
+                ON c1.AID = d.AID
+            INNER JOIN DT_Module d1 
+                ON d.MID = d1.MID
+            INNER JOIN DT_SkillPack v 
+                ON d1.MAParam = v.mSPID
+            INNER JOIN DT_SkillPackSkill v1 
+                ON v.mSPID = v1.mSPID
+            INNER JOIN DT_Skill v2 
+                ON v1.mSID = v2.SID
+        """
+        try:
+            cursor.execute(query, (item_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            itemdskill_data = (row.IID, row.IName, row.SID, row.AID, row.MID, row.mSPID, row.mName, row.mSpriteFile, row.mSpriteX, row.mSpriteY, row.v2_SID, row.v2_SName)
+
+            itemskill_pic = get_skill_icon_path(row.mSpriteFile, row.mSpriteX, row.mSpriteY)
+
+            return itemdskill_data, itemskill_pic
+
+        except Exception as e:
+            print(f"Error in get_item_skill: {e}")
+            return None
+
+
+# ! MONSTERS / NPS
 
 # def get_monster_drop_info(item_id: int) -> List[Dict]:
 #     """Get monster drop information for an item"""
@@ -290,6 +487,7 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
 
         return list(unique_results.values())
 
+
 def get_monster_by_id(monster_id: int) -> Optional[Dict]:
     """Get monster information by ID"""
     with get_db_connection() as conn:
@@ -312,259 +510,6 @@ def get_monster_by_id(monster_id: int) -> Optional[Dict]:
             )
             return monster.to_dict()
     return None
-
-
-def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
-    """Generic function to fetch items by type with optional search"""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-
-        # Convert item types to string for SQL
-        type_str = ','.join(str(t) for t in item_types)
-
-        # Get item IDs
-        query = f"""
-        SELECT IID FROM DT_ITem 
-        WHERE IType IN ({type_str}) 
-        AND IName LIKE ? 
-        ORDER BY IID
-        """
-        cursor.execute(query, (f'%{search_term}%',))
-        item_ids = [row.IID for row in cursor.fetchall()]
-
-        if not item_ids:
-            return [], {}
-
-        # Get item resources
-        id_str = ','.join(str(i) for i in item_ids)
-        query = f"""
-        SELECT RFileName, RPosX, RPosY, ROwnerID 
-        FROM DT_ItemResource 
-        WHERE ROwnerID IN ({id_str}) 
-        AND RType = 2
-        """
-        cursor.execute(query)
-        file_paths = {}
-        for row in cursor.fetchall():
-            file_name = splitext(row.RFileName)[0]
-            file_path = f"{GITHUB_URL}{file_name}_{row.RPosX}_{row.RPosY}.png"
-            file_paths[row.ROwnerID] = file_path
-
-        # Get items
-        query = f"SELECT * FROM DT_ITem WHERE IID IN ({id_str})"
-        cursor.execute(query)
-        items = [
-            DT_Item(
-                row.IID, row.IName, row.IDesc, row.IWeight,
-                row.IUseClass, row.IType, row.IMaxBeadHoleCount,
-                row.ITermOfValidity
-            )
-            for row in cursor.fetchall()
-        ]
-
-        return items, file_paths
-
-
-# Routes
-@app.route('/')
-def home():
-    return render_template('home.html')
-
-
-@app.route('/item/<int:item_id>')
-def item_detail(item_id: int):
-    """Item detail page"""
-    item = get_item_by_id(item_id)
-    use_class = item.IUseClass.split('/')[-1].replace('.png', '')
-    use_class = int(use_class)
-    #print(f"{item.IType} {use_class}")
-
-    if not item:
-        return "Item not found", 404
-
-    item_resource = get_item_resource(item_id)
-    if not item_resource:
-        return "Item resource not found", 404
-
-    mondropinfo = get_monster_drop_info(item_id)
-    merchant_sellers = get_merchant_sellers(item_id)
-    craft_items = check_base_items_for_craft(item_id)
-    craft_next_item = check_next_craft_item(item_id)
-    
-    # Get item model number
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = "SELECT RPosX, RPosY FROM DT_ItemResource WHERE ROwnerID = ? AND RType = 0"
-        cursor.execute(query, (item_id,))
-        model_result = cursor.fetchone()
-        item_model_no = None
-        prefix = None  # Добавляем переменную для префикса
-
-        if model_result:
-            base = f"{int(model_result.RPosX):03}{int(model_result.RPosY):03}"
-            final = base
-
-            if item.IType == 3:  # Armor
-                prefix = 'p'  # Используем одну букву вместо кортежа
-                replace_dict = {
-                    1: [0, 1],
-                    2: [2, 3],
-                    4: [4, 5],
-                    5: [0, 1, 4, 5],
-                    7: [4, 5, 0, 1, 2, 3],
-                    8: [6, 7],  # Ассасин
-                    15: [0, 1, 2, 3, 4, 5, 6, 7],
-                    16: [8, 9],
-                    18: [8, 9, 2, 3],
-                    19: [8, 9, 2, 3, 0, 1],
-                    20: [8, 9, 4, 5],
-                    22: [8, 9, 4, 5, 2, 3],
-                    23: [0, 1, 2, 3, 4, 5, 8, 9],
-                    0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-                    255: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                }
-                if use_class in replace_dict:
-                    for index in replace_dict[use_class]:
-                        final = f"0{index}0{base[3:]}"
-                        #print(f"FINAL:{final}")
-
-                        #model_url = f"https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/{prefix}{final}/{prefix}{final}.glb"
-                        #print(f"Model URL: {model_url}")
-
-                    item_model_no = final
-            elif item.IType in [1, 18, 20, 2, 19]:  # Weapons / Shield / Arrows
-                prefix = 'i'  # Используем одну букву вместо кортежа
-                item_model_no = base
-            else:
-                prefix = 'i'  # TODO: ЗАГЛУШКА ДЛЯ ОСТАЛЬНОГО!
-                item_model_no = base
-
-    return render_template(
-        'item_core/item_page_detail.html',
-        item=item,
-        file_path=item_resource.file_path,
-        mondropinfo=mondropinfo,
-        merchant_sellers=merchant_sellers,
-        monstermodelno_result=item_model_no,
-        prefix=prefix,  # Добавляем префикс в рендер
-        use_class=use_class,
-        craft_result=craft_items, # Рецепт
-        craft_next=craft_next_item # Next item
-    )
-
-
-# Рецепт крафта
-def check_base_items_for_craft(item_id: int):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = """
-        SELECT DISTINCT
-  a.RID,
-  a.RItemID0,
-  b.IName,
-  c.RItemID,
-  b1.IName AS 'CraftItems',
-  a.RSuccess,
-  a.RIsCreateCnt,
-  c.ROrderNo
-FROM
-  DT_Refine AS a
-  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
-  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
-  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID ) 
-WHERE
-  a.RItemID0 = ? 
-ORDER BY
-  a.RID, c.ROrderNo"""
-
-        cursor.execute(query, (item_id,))
-        craft_results = cursor.fetchall()
-
-        # Используем словарь для хранения уникальных записей
-        unique_results = {}
-
-        for row in craft_results:
-            # Используем RItemID как ключ для уникальности
-            key = row.RItemID
-
-            # Обновляем запись только если её ещё нет или если это первое появление
-            if key not in unique_results:
-                item_resource = get_item_resource(row.RItemID)
-
-                if item_resource:
-                    file_name = item_resource.RFileName.split('.')[0]
-                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
-                else:
-                    image_path = f"{GITHUB_URL}no_item_image.png"
-
-                unique_results[key] = {
-                    'RID': row.RID,
-                    'RItemID0': row.RItemID0,
-                    'IName': row.IName,
-                    'RItemID': row.RItemID,
-                    'CraftItems': row.CraftItems,
-                    'RSuccess': round(float(row.RSuccess), 1),
-                    'RIsCreateCnt': row.RIsCreateCnt,
-                    'ROrderNo': row.ROrderNo,
-                    'ImagePath': image_path
-                }
-
-        # Преобразуем словарь обратно в список
-        return list(unique_results.values())
-
-
-# Нужен для крафта
-def check_next_craft_item(item_id: int):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = """
-SELECT DISTINCT
-  a.RID,
-  a.RItemID0,
-  b.IName,
-  a.RSuccess,
-  a.RIsCreateCnt
-FROM
-  DT_Refine AS a
-  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
-  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
-  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID )
-WHERE
-  c.RItemID = ?
-ORDER BY
-  a.RID"""
-        cursor.execute(query, (item_id,))
-        craft_results = cursor.fetchall()
-
-        # Используем словарь для хранения уникальных записей
-        unique_results = {}
-
-        for row in craft_results:
-            # Используем RItemID0 как ключ для уникальности
-            key = row.RItemID0
-
-            # Обновляем запись только если её ещё нет
-            if key not in unique_results:
-                item_resource = get_item_resource(row.RItemID0)
-
-                if item_resource:
-                    file_name = item_resource.RFileName.split('.')[0]
-                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
-                else:
-                    image_path = f"{GITHUB_URL}no_item_image.png"
-
-                unique_results[key] = {
-                    'RID': row.RID,
-                    'RItemID0': row.RItemID0,
-                    'IName': row.IName,
-                    'RSuccess': round(float(row.RSuccess), 1),
-                    'RIsCreateCnt': row.RIsCreateCnt,
-                    'ImagePath': image_path
-                }
-
-        # Преобразуем словарь обратно в список
-        return list(unique_results.values())
-
 
 # def get_monster_drops(monster_id: int) -> List[Dict]:
 #     """Get all drops for a specific monster"""
@@ -721,6 +666,672 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
         results.sort(key=lambda x: x["DItem"])
 
         return results
+
+
+def get_monsters_by_class(class_ids: List[int]) -> Tuple[List[Tuple], Dict]:
+    """Get monsters by class IDs"""
+    base_github_url = "https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/"
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        class_str = ','.join(str(c) for c in class_ids)
+        query = f"""
+            SELECT MID, MName, MClass 
+            FROM DT_Monster 
+            WHERE MClass IN ({class_str}) 
+            ORDER BY MID
+        """
+        cursor.execute(query)
+        monsters = [(row.MID, row.MName, row.MClass) for row in cursor.fetchall()]
+
+        # Get file paths - без проверок существования
+        file_paths = {
+            monster[0]: f"{base_github_url}{monster[0]}.png"
+            for monster in monsters
+        }
+
+        return monsters, file_paths
+
+
+
+# ! CRAFT
+
+# Рецепт крафта
+def check_base_items_for_craft(item_id: int):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+        SELECT DISTINCT
+  a.RID,
+  a.RItemID0,
+  b.IName,
+  c.RItemID,
+  b1.IName AS 'CraftItems',
+  a.RSuccess,
+  a.RIsCreateCnt,
+  c.ROrderNo
+FROM
+  DT_Refine AS a
+  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
+  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
+  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID ) 
+WHERE
+  a.RItemID0 = ? 
+ORDER BY
+  a.RID, c.ROrderNo"""
+
+        cursor.execute(query, (item_id,))
+        craft_results = cursor.fetchall()
+
+        # Используем словарь для хранения уникальных записей
+        unique_results = {}
+
+        for row in craft_results:
+            # Используем RItemID как ключ для уникальности
+            key = row.RItemID
+
+            # Обновляем запись только если её ещё нет или если это первое появление
+            if key not in unique_results:
+                item_resource = get_item_resource(row.RItemID)
+
+                if item_resource:
+                    file_name = item_resource.RFileName.split('.')[0]
+                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
+                else:
+                    image_path = f"{GITHUB_URL}no_item_image.png"
+
+                unique_results[key] = {
+                    'RID': row.RID,
+                    'RItemID0': row.RItemID0,
+                    'IName': row.IName,
+                    'RItemID': row.RItemID,
+                    'CraftItems': row.CraftItems,
+                    'RSuccess': round(float(row.RSuccess), 1),
+                    'RIsCreateCnt': row.RIsCreateCnt,
+                    'ROrderNo': row.ROrderNo,
+                    'ImagePath': image_path
+                }
+
+        # Преобразуем словарь обратно в список
+        return list(unique_results.values())
+
+
+# Нужен для крафта
+def check_next_craft_item(item_id: int):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+SELECT DISTINCT
+  a.RID,
+  a.RItemID0,
+  b.IName,
+  a.RSuccess,
+  a.RIsCreateCnt
+FROM
+  DT_Refine AS a
+  INNER JOIN DT_Item AS b ON ( a.RItemID0 = b.IID )
+  INNER JOIN DT_RefineMaterial AS c ON ( a.RID = c.RID )
+  INNER JOIN DT_Item AS b1 ON ( c.RItemID = b1.IID )
+WHERE
+  c.RItemID = ?
+ORDER BY
+  a.RID"""
+        cursor.execute(query, (item_id,))
+        craft_results = cursor.fetchall()
+
+        # Используем словарь для хранения уникальных записей
+        unique_results = {}
+
+        for row in craft_results:
+            # Используем RItemID0 как ключ для уникальности
+            key = row.RItemID0
+
+            # Обновляем запись только если её ещё нет
+            if key not in unique_results:
+                item_resource = get_item_resource(row.RItemID0)
+
+                if item_resource:
+                    file_name = item_resource.RFileName.split('.')[0]
+                    image_path = f"{GITHUB_URL}{file_name}_{item_resource.RPosX}_{item_resource.RPosY}.png"
+                else:
+                    image_path = f"{GITHUB_URL}no_item_image.png"
+
+                unique_results[key] = {
+                    'RID': row.RID,
+                    'RItemID0': row.RItemID0,
+                    'IName': row.IName,
+                    'RSuccess': round(float(row.RSuccess), 1),
+                    'RIsCreateCnt': row.RIsCreateCnt,
+                    'ImagePath': image_path
+                }
+
+        # Преобразуем словарь обратно в список
+        return list(unique_results.values())
+
+
+
+# ! MERCHANTS
+
+def get_payment_type_name(payment_type):
+    payment_types = {
+        0: "Серебра",
+        1: "Очков чести",
+        2: "Очков хаоса",
+        3: "ШОПа"
+    }
+    return payment_types.get(payment_type, "Неизвестная валюта")
+
+
+def get_merchant_sell_list():
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = f"""
+            SELECT
+              a.ListID,
+              c.MID,
+              c.MName,
+              c.MClass,
+              a.ItemID,
+              d.IName,
+              a.Price,
+              b.mPaymentType 
+            FROM
+              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
+              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
+              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
+              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
+            ORDER BY
+              c.MName DESC 
+        """
+        cursor.execute(query)
+        merchants_data = [(row.ListID, row.MID, (row.MName.replace('/n', ' ') if row.MName else ''), row.MClass,
+                           row.ItemID, row.IName, row.Price, row.mPaymentType) for row in cursor.fetchall()]
+
+        # Get file paths - без проверок существования
+        file_paths = {
+            monster[0]: f"{GITHUB_URL}{monster[1]}.png"
+            for monster in merchants_data
+        }
+
+        return merchants_data, file_paths
+
+
+def get_merchant_sellers(item_id: int) -> List[Dict]:
+    """Get merchants selling a specific item"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = f"""
+            SELECT
+              a.ListID,
+              c.MID,
+              c.MName,
+              a.Price,
+              b.mPaymentType 
+            FROM
+              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
+              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
+              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
+            WHERE a.ItemID = ?
+            ORDER BY c.MName
+        """
+        cursor.execute(query, (item_id,))
+        merchants = []
+
+        for row in cursor.fetchall():
+            if row.MID:  # Проверяем, что торговец существует
+                merchants.append({
+                    "MerchantID": row.MID,
+                    "MerchantName": row.MName.replace('/n', ' ') if row.MName else '',
+                    "Price": row.Price,
+                    "PaymentType": get_payment_type_name(row.mPaymentType)
+                })
+        return merchants
+
+
+
+# ! SKILLS
+
+def get_skill_icon_path(sprite_file, sprite_x, sprite_y, default_icon="no_monster/no_monster_image.png"):
+    """
+    Формирует путь к файлу иконки на основе данных спрайта
+
+    Args:
+        sprite_file (str): Имя файла спрайта
+        sprite_x (int): X координата в спрайте
+        sprite_y (int): Y координата в спрайте
+        default_icon (str): Имя файла дефолтной иконки
+
+    Returns:
+        str: Полный путь к файлу иконки
+    """
+    try:
+        if not sprite_file:
+            return f"{GITHUB_URL}{default_icon}"
+
+        # Убираем расширение .dds если оно есть
+        if sprite_file.endswith(".dds"):
+            sprite_file = sprite_file[:-4]
+
+        # Проверяем наличие координат
+        if sprite_x is not None and sprite_y is not None:
+            return f"{GITHUB_URL}{sprite_file}_{sprite_x}_{sprite_y}.png"
+        else:
+            return f"{GITHUB_URL}{default_icon}"
+
+    except Exception as e:
+        print(f"Error creating icon path: {e}")
+        return f"{GITHUB_URL}{default_icon}"
+
+def get_skills_list():
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = f"""
+                SELECT
+                  c.SID,
+                  c.SName,
+                  a.mSPID,
+                  a.mName,
+                  a.mDesc,
+                  a.mSpriteFile,
+                  a.mSpriteX,
+                  a.mSpriteY 
+                FROM
+                  DT_SkillPack AS a
+                  LEFT JOIN DT_SkillPackSkill AS b ON ( a.mSPID = b.mSPID )
+                  LEFT JOIN DT_Skill AS c ON ( b.mSID = c.SID ) 
+                ORDER BY
+                  c.SID
+        """
+        cursor.execute(query)
+        # Преобразуем в список кортежей, как в рабочем примере
+        skills_data = [(row.SID,
+                       (row.SName.replace('/n', ' ') if row.SName else ''),
+                       row.mSPID,
+                        row.mName,
+                       (row.mDesc.replace('/n', ' ') if row.mDesc else ''),
+                       row.mSpriteFile,
+                       row.mSpriteX,
+                       row.mSpriteY) for row in cursor.fetchall()]
+
+        # Формируем пути к файлам
+        file_paths = {
+            skill[0]: get_skill_icon_path(
+                skill[5],  # mSpriteFile
+                skill[6],  # mSpriteX
+                skill[7]   # mSpriteY
+            )
+            for skill in skills_data
+        }
+
+        return skills_data, file_paths
+
+
+def get_skill_detail(skill_id: int) -> Optional[Skill]:
+    """Get skill details by ID"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+            SELECT
+                a.SID,
+                a.SName,
+                a.SDesc,
+                a.SHitPlus,
+                a.SMPPerUse,
+                a.SType,
+                b.SName as 'STypeDesc',
+                a.SHPPerUse,
+                a.SChaoUse,
+                a.mApplyRadius,
+                a.mApplyRace,
+                a.mCastingDelay,
+                a.mConsumeItem,
+                a.mActiveType,
+                a.mAnimation,
+                a.mCastingSpeed,
+                a.mSkillEffect,
+                a.mCoolTime,
+                a.mConsumeItem2,
+                a.mConsumeItemCnt2,
+                c1.IID,
+                c1.IName,
+                c1.IUseLevel,
+                c1.IUseClass,
+                d1.mSPID,
+                d1.mDesc,
+                
+                
+                e.[AbnormalID],
+                e1.ADesc,
+                e1.AType,
+                e1.ALevel,
+                e2.AEffect,
+                
+                
+                f.[MID],
+                g.MType,
+                g1.MName,
+                g.Mlevel,
+                g.MAParam,
+                g1.MAParamName,
+                g.MBParam,
+                g1.MBParamName,
+                g.MCParam,
+                g1.MCParamName 
+                
+            FROM DT_SKill as a
+            
+            
+            
+            
+            LEFT JOIN TP_SkillType as b ON (a.SType = b.SType)
+            LEFT OUTER JOIN dbo.DT_ItemSkill as c ON (c.SID = a.SID)
+            LEFT OUTER JOIN dbo.DT_Item as c1 ON (c1.IID = c.IID)
+            LEFT OUTER JOIN dbo.DT_SkillPackSkill AS d ON (a.SID = d.mSID)
+            LEFT OUTER JOIN dbo.DT_SkillPack AS d1 ON (d1.mSPID = d.mSPID)
+            
+            LEFT OUTER JOIN DT_SkillAbnormal AS e ON ( e.[SID] = a.[SID] ) 
+            LEFT OUTER JOIN DT_Abnormal as e1 on ( e1.AID = e.AbnormalID )
+            LEFT OUTER JOIN TP_AbnormalType as e2 on ( e2.AType = e1.AType )
+
+
+            LEFT OUTER JOIN DT_AbnormalModule AS f ON ( e.[AbnormalID] = f.[AID] )
+            LEFT OUTER JOIN DT_Module AS g ON ( f.[MID] = g.[MID] )
+            LEFT OUTER JOIN TP_ModuleType AS g1 ON ( g1.MType = g.MType )
+
+            WHERE a.SID = ?
+        """
+        cursor.execute(query, (skill_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        item_id = row.IID
+        item_pic = get_item_resource(item_id)
+
+        def clean_dict(d):
+            return {k: v for k, v in d.items() if v is not None}
+
+        abnormal_data = clean_dict({
+            "AbnormalID": row.AbnormalID,
+            "ADesc": row.ADesc,
+            "AType": row.AType,
+            "ALevel": row.ALevel,
+            "AEffect": row.AEffect,
+        })
+
+        module_params = [
+            {"name": name, "value": value}
+            for name, value in [
+                (row.MAParamName, row.MAParam),
+                (row.MBParamName, row.MBParam),
+                (row.MCParamName, row.MCParam)
+            ]
+            if name is not None and value is not None
+        ]
+
+        module_data = clean_dict({
+            "module_id": row.MID,
+            "type": row.MType,
+            "type_name": row.MName,
+            "level": row.Mlevel,
+            "params": module_params if module_params else None
+        })
+
+
+
+        #print(module_data)
+        return Skill(
+            sid=row.SID,
+            name=row.SName,
+            desc=row.SDesc,
+            hit_plus=row.SHitPlus,
+            mp_per_use=row.SMPPerUse,
+            skill_type=row.SType,
+            type_desc=row.STypeDesc,
+            hp_per_use=row.SHPPerUse,
+            chao_use=row.SChaoUse,
+            apply_radius=row.mApplyRadius,
+            apply_race=row.mApplyRace,
+            casting_delay=row.mCastingDelay,
+            consume_item=row.mConsumeItem,
+            active_type=row.mActiveType,
+            animation=row.mAnimation,
+            casting_speed=row.mCastingSpeed,
+            skill_effect=row.mSkillEffect,
+            cool_time=row.mCoolTime,
+            consume_item2=row.mConsumeItem2,
+            consume_item_cnt2=row.mConsumeItemCnt2,
+            item_id=row.IID,
+            item_pic=item_pic,
+            item_name=row.IName,
+            item_use_level=row.IUseLevel,
+            item_use_class=row.IUseClass,
+            skill_pack_id=row.mSPID,
+            skill_pack_desc=row.mDesc,
+            abnormal_data=abnormal_data,
+            module_data=module_data
+        )
+
+
+# Получить предметы на которых скилл
+def get_skill_use_by_spid_items(spid_id: int) -> Optional[Tuple]:
+    """Get skill details by ID"""
+    if spid_id is None:
+        return None
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+        SELECT
+        a.MID,
+        b1.AID,
+        c1.SID,
+        c1.SName,
+        d1.IID,
+        d1.IName
+        FROM DT_Module AS a
+        INNER JOIN DT_AbnormalModule AS b ON (a.MID = b.MID)
+        INNER JOIN DT_Abnormal AS b1 ON (b.AID = b1.AID)
+        INNER JOIN DT_SkillAbnormal AS c ON (b1.AID = c.AbnormalID)
+        INNER JOIN DT_Skill AS c1 ON (c.SID = c1.SID)
+        INNER JOIN DT_ItemSkill AS d ON (c1.SID = d.SID)
+        INNER JOIN DT_Item AS d1 ON (d.IID = d1.IID)
+        WHERE a.MType = 101 AND a.MAParam = ?
+        """
+        try:
+            cursor.execute(query, (spid_id,))
+            row = cursor.fetchone()
+            #print(row)
+            if not row:
+                return None
+
+            skill_for_item_data = (row.AID, row.SID, row.SName, row.IID, row.IName)
+
+            item_id = row.IID
+            skill_for_item_pic = get_item_resource(item_id)
+
+            if skill_for_item_pic and isinstance(skill_for_item_pic, DT_ItemResource):
+                skill_for_item_pic = skill_for_item_pic.file_path
+
+            return skill_for_item_data, skill_for_item_pic
+
+        except Exception as e:
+            print(f"Error in get_skill_use_by_spid: {e}")
+            return None
+
+# Получить скилл создания скилла
+def get_skill_use_by_sid(spid_id: int) -> Optional[Tuple]:
+    """Get skill details by ID"""
+    if spid_id is None:
+        return None
+
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # query = """
+        #     SELECT
+        #       a.SID,
+        #       a.SName,
+        #       c1.AID,
+        #       v1.MID,
+        #       v1.MType,
+        #       v1.MAParam,
+        #       g.mSPID,
+        #       g.mSpriteFile,
+        #       g.mSpriteX,
+        #       g.mSpriteY
+        #     FROM
+        #       DT_Skill AS a
+        #       INNER JOIN DT_SkillAbnormal AS c ON ( a.SID = c.SID )
+        #       INNER JOIN DT_Abnormal AS c1 ON ( c.AbnormalID = c1.AID )
+        #       INNER JOIN DT_AbnormalModule AS v ON ( c1.AID = v.AID )
+        #       INNER JOIN DT_Module AS v1 ON ( v.MID = v1.MID )
+        #       INNER JOIN DT_SkillPack AS g ON ( v1.MAParam = g.mSPID )
+        #     WHERE
+        #       a.SID = ?
+        # """
+        query = """
+            SELECT
+              a.MID,
+              b1.AID,
+              c1.SID,
+              c1.SName,
+              e1.mSPID,
+              e1.mSpriteFile,
+              e1.mSpriteX,
+              e1.mSpriteY,
+              d1.IID,
+              d1.IName 
+            FROM
+              DT_Module AS a
+              INNER JOIN DT_AbnormalModule AS b ON ( a.MID = b.MID )
+              INNER JOIN DT_Abnormal AS b1 ON ( b.AID = b1.AID )
+              INNER JOIN DT_SkillAbnormal AS c ON ( b1.AID = c.AbnormalID )
+              INNER JOIN DT_Skill AS c1 ON ( c.SID = c1.SID )
+              LEFT JOIN DT_SkillPackSkill AS e ON ( c1.SID = e.mSID )
+              LEFT JOIN DT_SkillPack AS e1 ON ( e.mSPID = e1.mSPID )
+              INNER JOIN DT_ItemSkill AS d ON ( c1.SID = d.SID )
+              INNER JOIN DT_Item AS d1 ON ( d.IID = d1.IID ) 
+            WHERE
+              a.MType = 101 
+              AND a.MAParam = ?
+        """
+        try:
+            cursor.execute(query, (spid_id,))
+            row = cursor.fetchone()
+            print(row)
+            if not row:
+                return None
+
+            #skill_for_skill_data = (row.SID, row.SName, row.AID, row.MID, row.MType, row.MAParam, row.mSPID, row.mSpriteFile, row.mSpriteX, row.mSpriteY)
+            skill_for_skill_data = (row.AID, row.SID, row.SName, row.mSPID, row.mSpriteFile, row.mSpriteX, row.mSpriteY, row.IID, row.IName)
+
+            skill_for_skill_pic = get_skill_icon_path(row.mSpriteFile, row.mSpriteX, row.mSpriteY)
+
+
+            return skill_for_skill_data, skill_for_skill_pic
+
+        except Exception as e:
+            print(f"Error in get_skill_use_by_sid: {e}")
+            return None
+
+
+
+# *Routes
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+
+@app.route('/item/<int:item_id>')
+def item_detail(item_id: int):
+    """Item detail page"""
+    item = get_item_by_id(item_id)
+    use_class = item.IUseClass.split('/')[-1].replace('.png', '')
+    use_class = int(use_class)
+    #print(f"{item.IType} {use_class}")
+
+    if not item:
+        return "Item not found", 404
+
+    item_resource = get_item_resource(item_id)
+    if not item_resource:
+        return "Item resource not found", 404
+
+    mondropinfo = get_monster_drop_info(item_id)
+    merchant_sellers = get_merchant_sellers(item_id)
+    craft_items = check_base_items_for_craft(item_id)
+    craft_next_item = check_next_craft_item(item_id)
+
+    skill_data = get_item_skill(item_id)
+    if skill_data:
+        itemdskill_data, itemskill_pic = skill_data
+    else:
+        itemdskill_data, itemskill_pic = None, None
+
+    # Get item model number
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        query = "SELECT RPosX, RPosY FROM DT_ItemResource WHERE ROwnerID = ? AND RType = 0"
+        cursor.execute(query, (item_id,))
+        model_result = cursor.fetchone()
+        item_model_no = None
+        prefix = None  # Добавляем переменную для префикса
+
+        if model_result:
+            base = f"{int(model_result.RPosX):03}{int(model_result.RPosY):03}"
+            final = base
+
+            if item.IType == 3:  # Armor
+                prefix = 'p'  # Используем одну букву вместо кортежа
+                replace_dict = {
+                    1: [0, 1],
+                    2: [2, 3],
+                    4: [4, 5],
+                    5: [0, 1, 4, 5],
+                    7: [4, 5, 0, 1, 2, 3],
+                    8: [6, 7],  # Ассасин
+                    15: [0, 1, 2, 3, 4, 5, 6, 7],
+                    16: [8, 9],
+                    18: [8, 9, 2, 3],
+                    19: [8, 9, 2, 3, 0, 1],
+                    20: [8, 9, 4, 5],
+                    22: [8, 9, 4, 5, 2, 3],
+                    23: [0, 1, 2, 3, 4, 5, 8, 9],
+                    0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    255: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+                }
+                if use_class in replace_dict:
+                    for index in replace_dict[use_class]:
+                        final = f"0{index}0{base[3:]}"
+                        #print(f"FINAL:{final}")
+
+                        #model_url = f"https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/{prefix}{final}/{prefix}{final}.glb"
+                        #print(f"Model URL: {model_url}")
+
+                    item_model_no = final
+            elif item.IType in [1, 18, 20, 2, 19]:  # Weapons / Shield / Arrows
+                prefix = 'i'  # Используем одну букву вместо кортежа
+                item_model_no = base
+            else:
+                prefix = 'i'  # TODO: ЗАГЛУШКА ДЛЯ ОСТАЛЬНОГО!
+                item_model_no = base
+
+    return render_template(
+        'item_core/item_page_detail.html',
+        item=item,
+        file_path=item_resource.file_path,
+        mondropinfo=mondropinfo,
+        merchant_sellers=merchant_sellers,
+        monstermodelno_result=item_model_no,
+        prefix=prefix,  # Добавляем префикс в рендер
+        use_class=use_class,
+        craft_result=craft_items,  # Рецепт
+        craft_next=craft_next_item,  # Next item
+        itemdskill_data=itemdskill_data, # Skill
+        itemskill_pic=itemskill_pic # Skill Picture
+    )
+
 
 # @app.route('/monster/<int:monster_id>')
 # def monster_detail(monster_id: int):
@@ -910,7 +1521,6 @@ def monster_detail(monster_id: int):
                     "LocationLevel": location_level
                 }
 
-
         # Get Merchant items
         merchant_items = []
         cursor.execute(
@@ -991,7 +1601,82 @@ def monster_detail(monster_id: int):
     )
 
 
+@app.route('/skill/<int:skill_id>')
+def skill_detail(skill_id: int):
+    """Skill detail page"""
+    skill = get_skill_detail(skill_id)
 
+
+
+    spid_id = skill.skill_pack_id
+
+    skill_for_item = get_skill_use_by_spid_items(spid_id)
+    if skill_for_item:
+        skill_for_item_data, skill_for_item_pic = skill_for_item
+    else:
+        skill_for_item_data, skill_for_item_pic = None, None
+
+    skill_for_skill = get_skill_use_by_sid(spid_id)
+    if skill_for_skill:
+        skill_for_skill_data, skill_for_skill_pic = skill_for_skill
+    else:
+        skill_for_skill_data, skill_for_skill_pic = None, None
+
+    if not skill:
+        return "Skill not found", 404
+
+    # Получаем информацию о классах использования
+    use_class = None
+    if skill.item_use_class:
+        try:
+            use_class = int(skill.item_use_class.split('/')[-1].replace('.png', ''))
+        except (ValueError, AttributeError):
+            pass
+
+    # Получаем информацию о расах (из Google Sheets)
+    skill_apply_race_df = get_google_sheets_data(SKILLAPPLYRACE_LOCATION_URL)
+    race_info = None
+    if not skill_apply_race_df.empty and skill.apply_race is not None:
+        race_match = skill_apply_race_df[skill_apply_race_df['mApplyRace'] == skill.apply_race]
+        if not race_match.empty:
+            race_info = race_match.iloc[0]['mDesc']
+
+    # Получаем иконку скилла
+    skill_icon = None
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT mSpriteFile, mSpriteX, mSpriteY 
+            FROM DT_SkillPack a
+            LEFT JOIN DT_SkillPackSkill b ON (a.mSPID = b.mSPID)
+            WHERE b.mSID = ?
+        """, (skill_id,))
+        icon_data = cursor.fetchone()
+        if icon_data:
+            skill_icon = get_skill_icon_path(
+                icon_data.mSpriteFile,
+                icon_data.mSpriteX,
+                icon_data.mSpriteY
+            )
+
+    return render_template(
+        'skill_core/skill_page_detail.html',
+        skill=skill,
+        use_class=use_class,
+        race_info=race_info,
+        skill_icon=skill_icon,
+        skill_for_item_data=skill_for_item_data,
+        skill_for_item_pic=skill_for_item_pic,
+        skill_for_skill_data=skill_for_skill_data,
+        skill_for_skill_pic=skill_for_skill_pic
+    )
+
+
+
+
+
+
+# *Weapon and items routes
 @app.route('/weapon')
 def weapon():
     search_term = request.args.get('search', '')
@@ -1133,32 +1818,10 @@ def sphere():
     return render_template('sphere.html', items_wep=items, item_resources=file_paths)
 
 
-# Monster routes with class filters
-def get_monsters_by_class(class_ids: List[int]) -> Tuple[List[Tuple], Dict]:
-    """Get monsters by class IDs"""
-    base_github_url = "https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/"
-
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        class_str = ','.join(str(c) for c in class_ids)
-        query = f"""
-            SELECT MID, MName, MClass 
-            FROM DT_Monster 
-            WHERE MClass IN ({class_str}) 
-            ORDER BY MID
-        """
-        cursor.execute(query)
-        monsters = [(row.MID, row.MName, row.MClass) for row in cursor.fetchall()]
-
-        # Get file paths - без проверок существования
-        file_paths = {
-            monster[0]: f"{base_github_url}{monster[0]}.png"
-            for monster in monsters
-        }
-
-        return monsters, file_paths
 
 
+
+# *Monster routes with class filters
 @app.route('/monster_regular')
 def monster_regular():
     monsters, file_paths = get_monsters_by_class(
@@ -1197,101 +1860,24 @@ def monster_npc():
     return render_template('monster_npc.html', items=monsters, item_resources=file_paths)
 
 
-# Sell Items
-def get_payment_type_name(payment_type):
-    payment_types = {
-        0: "Серебра",
-        1: "Очков чести",
-        2: "Очков хаоса",
-        3: "ШОПа"
-    }
-    return payment_types.get(payment_type, "Неизвестная валюта")
 
-
-def get_merchant_sell_list():
-    """Get monsters by class IDs"""
-    base_github_url = "https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/"
-
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = f"""
-            SELECT
-              a.ListID,
-              c.MID,
-              c.MName,
-              c.MClass,
-              a.ItemID,
-              d.IName,
-              a.Price,
-              b.mPaymentType 
-            FROM
-              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Item] AS d ON ( a.ItemID = d.IID ) 
-            ORDER BY
-              c.MName DESC 
-        """
-        cursor.execute(query)
-        merchants_data = [(row.ListID, row.MID, (row.MName.replace('/n', ' ') if row.MName else ''), row.MClass,
-                           row.ItemID, row.IName, row.Price, row.mPaymentType) for row in cursor.fetchall()]
-
-        # Get file paths - без проверок существования
-        file_paths = {
-            monster[0]: f"{base_github_url}{monster[1]}.png"
-            for monster in merchants_data
-        }
-
-        return merchants_data, file_paths
-
-
-def get_merchant_sellers(item_id: int) -> List[Dict]:
-    """Get merchants selling a specific item"""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        query = f"""
-            SELECT
-              a.ListID,
-              c.MID,
-              c.MName,
-              a.Price,
-              b.mPaymentType 
-            FROM
-              {DATABASE_NAME}.[dbo].[TblMerchantSellList] AS a
-              LEFT JOIN {DATABASE_NAME}.[dbo].[TblMerchantName] AS b ON ( a.ListID = b.mID )
-              LEFT JOIN {DATABASE_NAME}.[dbo].[DT_Monster] AS c ON ( b.mID = c.mSellMerchanID )
-            WHERE a.ItemID = ?
-            ORDER BY c.MName
-        """
-        cursor.execute(query, (item_id,))
-        merchants = []
-
-        for row in cursor.fetchall():
-            if row.MID:  # Проверяем, что торговец существует
-                merchants.append({
-                    "MerchantID": row.MID,
-                    "MerchantName": row.MName.replace('/n', ' ') if row.MName else '',
-                    "Price": row.Price,
-                    "PaymentType": get_payment_type_name(row.mPaymentType)
-                })
-        return merchants
-
-
+# *Merchants Route
 @app.route('/merchants')
 def merchants_list():
     merchants_data, file_paths = get_merchant_sell_list()
     return render_template('merchants.html', items=merchants_data, item_resources=file_paths)
 
 
-# Template filters
-@app.template_filter('remove_extension')
-def remove_extension(value):
-    """Remove file extension from string"""
-    return splitext(value)[0]
+
+# *Skills Route
+@app.route('/skills')
+def skills_list():
+    skills_data, file_paths = get_skills_list()
+    return render_template('skills.html', skills=skills_data, item_resources=file_paths)
 
 
 
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=500)

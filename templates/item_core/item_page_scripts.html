@@ -10,6 +10,21 @@
         "autoWidth": false,
         "pageLength": 25,
         "order": [[ 0, "asc" ]],
+        "columnDefs": [
+                        {
+                            "targets": 0,
+                            "orderable": true,
+                            "type": "num",
+                            "render": function(data, type, row) {
+                                if (type === 'sort') {
+                                    // Извлекаем data-sort-id для сортировки
+                                    var sortId = $(data).find('.hover-text-wrapper').data('sort-id');
+                                    return sortId || 0;
+                                }
+                                return data;
+                            }
+                        }
+                    ],
         "dom": '<"top"lf>rt<"bottom"ip>',
         "processing": true,
         "language": {

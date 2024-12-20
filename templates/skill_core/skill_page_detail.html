@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>[{{ skill.skill_type }}] {{ skill.name }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Didact+Gothic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/bg/css/detail_css.css">
+</head>
+<body>
+    <!-- Контейнер для sticky-кнопки -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Назад
+        </button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+
+    <main>
+        <div class="container text-center">
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <h2 class="fadeIn">Информация</h2>
+
+                    <p class="fadeIn">
+                        <img src="{{ skill_icon }}"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                    </p>
+
+                    <p class="fadeIn"><img src="{{ skill.item_use_class }}" alt="Class icon"></p>
+
+                    <p class="fadeIn">{{ skill.desc }}</p>
+
+                    <div class="skill-stats fadeIn">
+                        <p class="fadeIn">Тип скилла: {{ skill.type_desc }}</p>
+                        {% if skill.mp_per_use != 0 %}
+                            <p class="fadeIn">MP: {{ skill.mp_per_use }}</p>
+                        {% endif %}
+                        {% if skill.hp_per_use != 0 %}
+                            <p class="fadeIn">HP: {{ skill.hp_per_use }}</p>
+                        {% endif %}
+                        {% if skill.hit_plus != 0 %}
+                            <p class="fadeIn">Точность: +{{ skill.hit_plus }}</p>
+                        {% endif %}
+                        {% if skill.casting_delay != 0 %}
+                            <p class="fadeIn">Время каста: {{ skill.casting_delay }} мс</p>
+                        {% endif %}
+                        {% if skill.cool_time != 0 %}
+                            <p class="fadeIn">Перезарядка: {{ skill.cool_time }} мс</p>
+                        {% endif %}
+                        {% if skill.apply_radius != 0 %}
+                            <p class="fadeIn">Радиус действия: {{ skill.apply_radius }}</p>
+                        {% endif %}
+                        {% if race_info %}
+                            <p class="fadeIn">{{ race_info }}</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <h1 class="monster-title fadeIn" style="
+                        font-size: 3rem;
+                        font-weight: 800;
+                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;
+                        padding: 20px 30px;
+                        margin: 20px 0;
+                        position: relative;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        display: inline-block;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                    ">
+                        <span style="
+                            position: relative;
+                            z-index: 1;
+                            text-shadow:
+                                2px 2px 0px rgba(0,0,0,0.1),
+                                -1px -1px 0px rgba(255,255,255,0.1);
+                        ">{{ skill.name }}</span>
+                        <div style="
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 110%;
+                            height: 110%;
+                            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+                            filter: blur(5px);
+                            z-index: 0;
+                        "></div>
+                    </h1>
+
+
+                    {% if skill.item_id %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">На предмете</h2>
+                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <img style="width: 32px;"
+                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                             src="{{ skill.item_pic }}">
+                            <a href="{{ url_for('item_detail', item_id=skill.item_id) }}"
+                               style="width: 200px; text-align: left;">{{ skill.item_name }}</a>
+                            {% if skill.item_use_level %}
+                                <span style="width: 80px;">Уровень: {{ skill.item_use_level }}</span>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+
+                    {% if skill_for_item_data and skill_for_item_pic %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Используется с</h2>
+                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <img style="width: 32px;"
+                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                 src="{{ skill_for_item_pic }}">
+                            <a href="{{ url_for('item_detail', item_id=skill_for_item_data[3]) }}"
+                               style="width: 200px; text-align: left;">{{ skill_for_item_data[4] }}</a>
+                        </p>
+                    {% endif %}
+
+                    {% if skill_for_skill_data and skill_for_skill_pic %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Взаимодействует со скиллом</h2>
+                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <img style="width: 32px;"
+                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                 src="{{ skill_for_skill_pic }}">
+                            <a href="{{ url_for('skill_detail', skill_id=skill_for_skill_data[1]) }}"
+                               style="width: 200px; text-align: left;">{{ skill_for_skill_data[2] }}</a>
+                        </p>
+                    {% endif %}
+
+
+
+                    {% if skill.skill_pack_desc %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Эффект умения</h2>
+                        <p class="fadeIn">{{ skill.skill_pack_desc }}</p>
+                    {% endif %}
+
+
+                    {% if skill.abnormal_data %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Абнормал</h2>
+                        <ul class="fadeIn">
+                            {% for key, value in skill.abnormal_data.items() %}
+                                <li>{{ key }}: {{ value }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    {% if skill.module_data %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Модули</h2>
+                        <ul class="fadeIn">
+                            {% for param in skill.module_data.params %}
+                                <li>{{ param.name }}: {{ param.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+    .monster-title {
+        position: relative;
+        overflow: visible;
+    }
+
+    .monster-title::before,
+    .monster-title::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 30px;
+        height: 2px;
+        background: linear-gradient(90deg, #1e3c72, transparent);
+    }
+
+    .monster-title::before {
+        left: -40px;
+        transform: translateY(-50%);
+    }
+
+    .monster-title::after {
+        right: -40px;
+        transform: translateY(-50%) rotate(180deg);
+    }
+
+    .skill-stats {
+        background: rgba(30, 60, 114, 0.05);
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .skill-stats p {
+        margin: 10px 0;
+        padding: 5px;
+        border-bottom: 1px solid rgba(30, 60, 114, 0.1);
+    }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        // Проверка сохранённой темы при загрузке
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+</body>
+</html>

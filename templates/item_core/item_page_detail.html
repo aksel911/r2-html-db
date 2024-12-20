@@ -101,7 +101,21 @@
                     </p>
                     {% endfor %}
                     {% endif %}
-                    
+
+
+                    {% if itemdskill_data and itemskill_pic %}
+                        <p class="fadeIn">★</p>
+                        <h2 class="fadeIn">Скилл</h2>
+                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <img style="width: 32px;"
+                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                 src="{{ itemskill_pic }}">
+                            <a href="{{ url_for('skill_detail', skill_id=itemdskill_data[10]) }}"
+                               style="width: 200px; text-align: left;">{{ itemdskill_data[6] }}</a>
+                        </p>
+                    {% endif %}
+
+
                     {% if merchant_sellers %}
                     <p class="fadeIn">★</p>
                     <h2 class="fadeIn">Можно купить у</h2>

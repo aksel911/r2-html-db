@@ -155,11 +155,11 @@
     }
 
     /* Image zoom */
-    .monster-image {
+    .item-image {
         transition: transform 0.3s, box-shadow 0.3s;
     }
 
-    .monster-image:hover {
+    .item-image:hover {
         transform: scale(2);
         z-index: 100;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -215,12 +215,10 @@
             display: none;
         }
     }
-
 </style>
 
 
 <style>
-
     /* Dark Theme */
     :root {
         --bg-light: #ffffff;
@@ -355,11 +353,13 @@
 </style>
 
 
-
 <style>
     /* Skill image and hover text */
+    .skill-image-container {
+        position: relative;
+    }
 
-    .hover-text-wrapper {
+    .skill-wrapper {
         position: relative;
         display: inline-block;
     }
@@ -367,14 +367,8 @@
     .skill-image {
         transition: transform 0.3s, box-shadow 0.3s;
     }
-    .item-image {
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
-        .monster-image {
-        transition: transform 0.3s, box-shadow 0.3s;
-    }
 
-    .hover-text {
+    .skill-hover-text {
         position: absolute;
         top: 100%;
         left: 50%;
@@ -395,29 +389,19 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    .hover-text-wrapper:hover .skill-image {
-        transform: scale(2);
-        z-index: 1000;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .hover-text-wrapper:hover .item-image {
-        transform: scale(2);
-        z-index: 1000;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .hover-text-wrapper:hover .monster-image {
+    .skill-wrapper:hover .skill-image {
         transform: scale(2);
         z-index: 1000;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
-    .hover-text-wrapper:hover .hover-text {
+    .skill-wrapper:hover .skill-hover-text {
         opacity: 1;
         visibility: visible;
     }
 
     /* Dark theme support for hover text */
-    .dark-theme .hover-text {
+    .dark-theme .skill-hover-text {
         background: rgba(44, 62, 80, 0.95);
         color: white;
     }

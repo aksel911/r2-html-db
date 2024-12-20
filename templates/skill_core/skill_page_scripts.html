@@ -1,7 +1,7 @@
     <!-- DataTables Initialization Script -->
     <script>
     $(document).ready(function() {
-        window.table = $('#items-table').DataTable({
+        window.table = $('#skill-table').DataTable({
             "paging": true,
             "lengthChange": true,
             "searching": true,
@@ -19,7 +19,7 @@
                                 "render": function(data, type, row) {
                                     if (type === 'sort') {
                                         // Извлекаем data-sort-id для сортировки
-                                        var sortId = $(data).find('.hover-text-wrapper').data('sort-id');
+                                        var sortId = $(data).find('.skill-wrapper').data('sort-id');
                                         return sortId || 0;
                                     }
                                     return data;
@@ -32,10 +32,10 @@
                 "processing": '<div class="loading-spinner"></div>',
                 "search": "_INPUT_",
                 "searchPlaceholder": "Быстрый фильтр...",
-                "lengthMenu": "Показать _MENU_ монстров",
-                "info": "Монстры с _START_ по _END_ из _TOTAL_",
-                "infoEmpty": "Нет монстров",
-                "zeroRecords": "Монстры не найдены",
+                "lengthMenu": "Показать _MENU_ скилы",
+                "info": "Скилы с _START_ по _END_ из _TOTAL_",
+                "infoEmpty": "Нет скилов",
+                "zeroRecords": "Скилы не найдены",
                 "paginate": {
                     "first": "Первая",
                     "last": "Последняя",
@@ -61,7 +61,7 @@
     <!-- Image Handling Script -->
     <script>
     function initializeImageZoom() {
-        $('.monster-image').each(function() {
+        $('.skill-image').each(function() {
             var $img = $(this);
             $img.off('mouseenter mouseleave');
 
