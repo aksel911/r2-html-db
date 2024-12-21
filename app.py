@@ -6,7 +6,6 @@ import pyodbc
 from os.path import splitext
 from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
 from contextlib import contextmanager
 from dotenv import load_dotenv
 from dataclasses import dataclass, field

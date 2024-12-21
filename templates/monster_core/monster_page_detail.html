@@ -41,7 +41,7 @@
             <div class="row">
                 <div class="col-12 col-md-6">
                     <!-- Информация -->
-                    <div class="skill-section fadeIn">
+                    <div class="skill-section fadeIn ">
                         <h2 class="section-title">Информация</h2>
                         {% if file_path %}
                             <p class="fadeIn mb-4">
@@ -54,7 +54,7 @@
 
                         <div class="skill-content">
 
-                            <div class="skill-stats">
+                            <div class="stat-grid">
                                 <div class="stat-row">
                                     <span class="stat-label">Уровень</span>
                                     <span class="stat-value">{{ item.MLevel }}</span>
@@ -259,5 +259,8 @@
             document.body.classList.add('dark-theme');
         }
     </script>
+
+
+
 </body>
 </html>
