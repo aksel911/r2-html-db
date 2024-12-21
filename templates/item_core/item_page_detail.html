@@ -51,85 +51,122 @@
 
 			<div class="row">
                 <div class="col-12 col-md-6">
-                    <h2 class="fadeIn">Информация</h2>
+                    <!-- Информация -->
+                    <div class="skill-section fadeIn">
+                        {% if file_path %}
+                            <p class="fadeIn mb-4">
+                                <img src="{{ file_path }}"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                            </p>
+                            {% else %}
+                                <p class="fadeIn mb-4">No image available</p>
+                        {% endif %}
 
-                    {% if file_path %}
-                    <p class="fadeIn">
-                        <img src="{{ file_path }}"
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                    </p>
-                    {% else %}
-                        <p class="fadeIn">No image available</p>
-                    {% endif %}
+                        <h2 class="section-title">Информация</h2>
+                        <div class="skill-content">
 
-						<p class="fadeIn">Вес: {{ item.IWeight }}</p>
-						<p class="fadeIn">Количество ячеек для рун: {{ item.IMaxBeadHoleCount }}</p>
-						{% if item.ITermOfValidity != 10000 %}
-							<p class="fadeIn">Время использования: {{ item.ITermOfValidity }} дней</p>
-						{% endif %}
+                            <div class="skill-stats">
+                                <div class="stat-row">
+                                    <span class="stat-label">Вес</span>
+                                    <span class="stat-value">{{ item.IWeight }}</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Количество ячеек для рун</span>
+                                    <span class="stat-value">{{ item.IMaxBeadHoleCount }}</span>
+                                </div>
+                                {% if item.ITermOfValidity != 10000 %}
+                                <div class="stat-row">
+                                    <span class="stat-label">Время использования</span>
+                                    <span class="stat-value">{{ item.ITermOfValidity }} дней</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
 
                     
+                    <!-- Крафт предмета -->
                     {% if craft_result %}
-                    <p class="fadeIn">★</p>
-                    <h2 class="fadeIn">Крафт предмета</h2>
-                    {% for craft in craft_result %}
-                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <img style="width: 32px;"
-                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                src="{{ craft.ImagePath }}">
-                        <a href="{{ url_for('item_detail', item_id=craft.RItemID) }}"
-                            style="width: 200px; text-align: left;">{{ craft.CraftItems }}</a>
-                        <span class="font-weight-bold" style="width: 80px;">{% if craft.RSuccess is not none %}{{ craft.RSuccess }} %{% endif %}</span>
-                        <span style="width: 80px;">{{ craft.RIsCreateCnt }} шт.</span>
-                    </p>
-                    {% endfor %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Крафт предмета</h2>
+                        <div class="skill-content">
+                            {% for craft in craft_result %}
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="{{ craft.ImagePath }}">
+                                <a href="{{ url_for('item_detail', item_id=craft.RItemID) }}"
+                                   class="item-name">{{ craft.CraftItems }}</a>
+                                <span class="stat-value">{% if craft.RSuccess is not none %}{{ craft.RSuccess }} %{% endif %}</span>
+                                <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% endif %}
 
 
+
+                    <!-- Нужен для крафта -->
                     {% if craft_next %}
-                    <p class="fadeIn">★</p>
-                    <h2 class="fadeIn">Нужен для крафта</h2>
-                    {% for craft in craft_next %}
-                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <img style="width: 32px;"
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                             src="{{ craft.ImagePath }}">
-                        <a href="{{ url_for('item_detail', item_id=craft.RItemID0) }}"
-                           style="width: 200px; text-align: left;">{{ craft.IName }}</a>
-                        <span class="font-weight-bold" style="width: 80px;">{{ craft.RSuccess }} %</span>
-                        <span style="width: 80px;">{{ craft.RIsCreateCnt }} шт.</span>
-                    </p>
-                    {% endfor %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Нужен для крафта</h2>
+                        <div class="skill-content">
+                            {% for craft in craft_next %}
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="{{ craft.ImagePath }}">
+                                <a href="{{ url_for('item_detail', item_id=craft.RItemID0) }}"
+                                   class="item-name">{{ craft.IName }}</a>
+                                <span class="stat-value">{{ craft.RSuccess }} %</span>
+                                <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% endif %}
 
 
+                    <!-- Скилл -->
                     {% if itemdskill_data and itemskill_pic %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Скилл</h2>
-                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                            <img style="width: 32px;"
-                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                 src="{{ itemskill_pic }}">
-                            <a href="{{ url_for('skill_detail', skill_id=itemdskill_data[10]) }}"
-                               style="width: 200px; text-align: left;">{{ itemdskill_data[6] }}</a>
-                        </p>
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Скилл</h2>
+                        <div class="skill-content">
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="{{ itemskill_pic }}">
+                                <a href="{{ url_for('skill_detail', skill_id=itemdskill_data[10]) }}"
+                                   class="item-name">{{ itemdskill_data[6] }}</a>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
 
 
+                    <!-- Можно купить у -->
                     {% if merchant_sellers %}
-                    <p class="fadeIn">★</p>
-                    <h2 class="fadeIn">Можно купить у</h2>
-                    {% for merchant in merchant_sellers %}
-                    <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <img style="width: 32px;"
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                             src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/{{ merchant.MerchantID }}.png">
-                        <a href="{{ url_for('monster_detail', monster_id=merchant.MerchantID) }}"
-                           style="width: 200px; text-align: left;">{{ merchant.MerchantName }}</a>
-                        <span class="font-weight-bold" style="width: 80px;">{{ merchant.Price }}</span>
-                        <span style="width: 80px;">{{ merchant.PaymentType }}</span>
-                    </p>
-                    {% endfor %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Можно купить у</h2>
+                        <div class="skill-content">
+                            {% for merchant in merchant_sellers %}
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/{{ merchant.MerchantID }}.png">
+                                <a href="{{ url_for('monster_detail', monster_id=merchant.MerchantID) }}"
+                                   class="item-name">{{ merchant.MerchantName }}</a>
+                                <span class="stat-value">{{ merchant.Price }}</span>
+                                <span class="stat-value">{{ merchant.PaymentType }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% endif %}
 
 				</div>
@@ -169,48 +206,36 @@
                             z-index: 0;
                         "></div>
                     </h1>
-                    <style>
-                    .monster-title {
-                        position: relative;
-                        overflow: visible;
-                    }
 
-                    .monster-title::before,
-                    .monster-title::after {
-                        content: '';
-                        position: absolute;
-                        top: 50%;
-                        width: 30px;
-                        height: 2px;
-                        background: linear-gradient(90deg, #1e3c72, transparent);
-                    }
+                    <p class="fadeIn"><img src="{{ item.IUseClass }}"></p>
 
-                    .monster-title::before {
-                        left: -40px;
-                        transform: translateY(-50%);
-                    }
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <div class="skill-content">
+                            <p class="fadeIn">{{ item.IDesc }}</p>
+                        </div>
+                    </div>
 
-                    .monster-title::after {
-                        right: -40px;
-                        transform: translateY(-50%) rotate(180deg);
-                    }
-                    </style>
-
-					<p class="fadeIn">{{ item.IDesc }}</p>
-					<p class="fadeIn"><img src="{{ item.IUseClass }}"></p>
-					{% if mondropinfo %}
-					<p class="fadeIn">★</p>
-					<h2 class="fadeIn">Можно получить из</h2>
-						{% for drop in mondropinfo %}
-						<p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-							<img style="width: 32px;" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'" src="{{ drop['Pic'] }}">
-							<a href="{{ url_for('monster_detail', monster_id=drop['MID']) }}" style="width: 200px; text-align: left;">{{ drop["MName"] }}</a>
-							<span class="font-weight-bold" style="width: 80px;">{{ drop["DNumber"] }} шт.</span>
-							<span style="width: 80px;">{{ drop["DPercentItem"] }} %</span>
-						</p>
-						{% endfor %}
-					{% endif %}
-
+                    <!-- Можно получить из -->
+                    {% if mondropinfo %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Можно получить из</h2>
+                        <div class="skill-content">
+                            {% for drop in mondropinfo %}
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="{{ drop['Pic'] }}">
+                                <a href="{{ url_for('monster_detail', monster_id=drop['MID']) }}"
+                                   class="item-name">{{ drop["MName"] }}</a>
+                                <span class="stat-value">{{ drop["DNumber"] }} шт.</span>
+                                <span class="stat-value">{{ drop["DPercentItem"] }} %</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
 				</div>
 
 

@@ -1010,6 +1010,7 @@ def get_skill_detail(skill_id: int) -> Optional[Skill]:
                 f.[MID],
                 g.MType,
                 g1.MName,
+                g1.MDesc as 'ModuleDesc',
                 g.Mlevel,
                 g.MAParam,
                 g1.MAParamName,
@@ -1052,9 +1053,10 @@ def get_skill_detail(skill_id: int) -> Optional[Skill]:
         def clean_dict(d):
             return {k: v for k, v in d.items() if v is not None}
 
+
         abnormal_data = clean_dict({
             "AbnormalID": row.AbnormalID,
-            "ADesc": row.ADesc,
+            "ADesc": row.ADesc.replace('\\n', ''),
             "AType": row.AType,
             "ALevel": row.ALevel,
             "AEffect": row.AEffect,
@@ -1063,9 +1065,9 @@ def get_skill_detail(skill_id: int) -> Optional[Skill]:
         module_params = [
             {"name": name, "value": value}
             for name, value in [
-                (row.MAParamName, row.MAParam),
-                (row.MBParamName, row.MBParam),
-                (row.MCParamName, row.MCParam)
+                (row.MAParamName.replace('\\n', ''), row.MAParam),
+                (row.MBParamName.replace('\\n', ''), row.MBParam),
+                (row.MCParamName.replace('\\n', ''), row.MCParam)
             ]
             if name is not None and value is not None
         ]
@@ -1074,6 +1076,7 @@ def get_skill_detail(skill_id: int) -> Optional[Skill]:
             "module_id": row.MID,
             "type": row.MType,
             "type_name": row.MName,
+            "type_desc": row.ModuleDesc,
             "level": row.Mlevel,
             "params": module_params if module_params else None
         })

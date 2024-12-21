@@ -24,8 +24,7 @@
         <div class="container text-center">
             <div class="row">
                 <div class="col-12 col-md-6">
-                    <h2 class="fadeIn">Информация</h2>
-
+                    <h2 class="section-title">Информация</h2>
                     <p class="fadeIn">
                         <img src="{{ skill_icon }}"
                              onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
@@ -33,33 +32,68 @@
 
                     <p class="fadeIn"><img src="{{ skill.item_use_class }}" alt="Class icon"></p>
 
-                    <p class="fadeIn">{{ skill.desc }}</p>
 
-                    <div class="skill-stats fadeIn">
-                        <p class="fadeIn">Тип скилла: {{ skill.type_desc }}</p>
-                        {% if skill.mp_per_use != 0 %}
-                            <p class="fadeIn">MP: {{ skill.mp_per_use }}</p>
-                        {% endif %}
-                        {% if skill.hp_per_use != 0 %}
-                            <p class="fadeIn">HP: {{ skill.hp_per_use }}</p>
-                        {% endif %}
-                        {% if skill.hit_plus != 0 %}
-                            <p class="fadeIn">Точность: +{{ skill.hit_plus }}</p>
-                        {% endif %}
-                        {% if skill.casting_delay != 0 %}
-                            <p class="fadeIn">Время каста: {{ skill.casting_delay }} мс</p>
-                        {% endif %}
-                        {% if skill.cool_time != 0 %}
-                            <p class="fadeIn">Перезарядка: {{ skill.cool_time }} мс</p>
-                        {% endif %}
-                        {% if skill.apply_radius != 0 %}
-                            <p class="fadeIn">Радиус действия: {{ skill.apply_radius }}</p>
-                        {% endif %}
-                        {% if race_info %}
-                            <p class="fadeIn">{{ race_info }}</p>
-                        {% endif %}
+                    <div class="skill-section fadeIn">
+
+                        <div class="skill-content text-center">
+
+                            <div class="skill-stats fadeIn">
+                                <div class="stat-row">
+                                    <span class="stat-label">Тип скилла</span>
+                                    <span class="stat-value">{{ skill.type_desc }}</span>
+                                </div>
+
+                                {% if skill.mp_per_use != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">MP</span>
+                                        <span class="stat-value">{{ skill.mp_per_use }}</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if skill.hp_per_use != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">HP</span>
+                                        <span class="stat-value">{{ skill.hp_per_use }}</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if skill.hit_plus != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">Точность</span>
+                                        <span class="stat-value">+{{ skill.hit_plus }}</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if skill.casting_delay != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">Время каста</span>
+                                        <span class="stat-value">{{ skill.casting_delay }} мс</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if skill.cool_time != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">Перезарядка</span>
+                                        <span class="stat-value">{{ skill.cool_time }} мс</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if skill.apply_radius != 0 %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">Радиус действия</span>
+                                        <span class="stat-value">{{ skill.apply_radius }}</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if race_info %}
+                                    <div class="stat-row">
+                                        <span class="stat-label">Раса</span>
+                                        <span class="stat-value">{{ race_info }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -100,71 +134,128 @@
 
 
                     {% if skill.item_id %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">На предмете</h2>
-                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                            <img style="width: 32px;"
-                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                             src="{{ skill.item_pic }}">
-                            <a href="{{ url_for('item_detail', item_id=skill.item_id) }}"
-                               style="width: 200px; text-align: left;">{{ skill.item_name }}</a>
-                            {% if skill.item_use_level %}
-                                <span style="width: 80px;">Уровень: {{ skill.item_use_level }}</span>
-                            {% endif %}
-                        </p>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">На предмете</h2>
+                            <div class="skill-content">
+                                <div class="item-row">
+                                    <img class="item-icon" src="{{ skill.item_pic }}"
+                                         onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                                    <a href="{{ url_for('item_detail', item_id=skill.item_id) }}"
+                                       class="item-name">{{ skill.item_name }}</a>
+                                    {% if skill.item_use_level %}
+                                        <span class="item-level">Уровень: {{ skill.item_use_level }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
                     {% if skill_for_item_data and skill_for_item_pic %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Используется с</h2>
-                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                            <img style="width: 32px;"
-                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                 src="{{ skill_for_item_pic }}">
-                            <a href="{{ url_for('item_detail', item_id=skill_for_item_data[3]) }}"
-                               style="width: 200px; text-align: left;">{{ skill_for_item_data[4] }}</a>
-                        </p>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">Используется с</h2>
+                            <div class="skill-content">
+                                <div class="item-row">
+                                    <img class="item-icon" src="{{ skill_for_item_pic }}"
+                                         onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                                    <a href="{{ url_for('item_detail', item_id=skill_for_item_data[3]) }}"
+                                       class="item-name">{{ skill_for_item_data[4] }}</a>
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
                     {% if skill_for_skill_data and skill_for_skill_pic %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Взаимодействует со скиллом</h2>
-                        <p class="fadeIn" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                            <img style="width: 32px;"
-                                 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                 src="{{ skill_for_skill_pic }}">
-                            <a href="{{ url_for('skill_detail', skill_id=skill_for_skill_data[1]) }}"
-                               style="width: 200px; text-align: left;">{{ skill_for_skill_data[2] }}</a>
-                        </p>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">Взаимодействует со скиллом</h2>
+                            <div class="skill-content">
+                                <div class="item-row">
+                                    <img class="item-icon" src="{{ skill_for_skill_pic }}"
+                                         onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                                    <a href="{{ url_for('skill_detail', skill_id=skill_for_skill_data[1]) }}"
+                                       class="item-name">{{ skill_for_skill_data[2] }}</a>
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
 
 
                     {% if skill.skill_pack_desc %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Эффект умения</h2>
-                        <p class="fadeIn">{{ skill.skill_pack_desc }}</p>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">Эффект умения</h2>
+                            <div class="skill-content">
+                                <p class="skill-desc">{{ skill.skill_pack_desc }}</p>
+                            </div>
+                        </div>
                     {% endif %}
 
-
                     {% if skill.abnormal_data %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Абнормал</h2>
-                        <ul class="fadeIn">
-                            {% for key, value in skill.abnormal_data.items() %}
-                                <li>{{ key }}: {{ value }}</li>
-                            {% endfor %}
-                        </ul>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">Абнормал</h2>
+
+                            <div class="abnormal-content">
+                                <p class="abnormal-desc">{{ skill.abnormal_data["ADesc"] }}</p>
+                                <div class="skill-stats">
+                                    {% for key, value in skill.abnormal_data.items() %}
+                                        {% if key != 'ADesc' %}
+                                            <div class="stat-row">
+                                                <span class="stat-label">
+                                                    {% if key == 'AbnormalID' %}ID Абнормала
+                                                    {% elif key == 'AType' %}Тип
+                                                    {% elif key == 'ALevel' %}Уровень
+                                                    {% elif key == 'AEffect' %}Эффект
+                                                    {% else %}{{ key }}
+                                                    {% endif %}
+                                                </span>
+                                                <span class="stat-value">{{ value }}</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
                     {% if skill.module_data %}
-                        <p class="fadeIn">★</p>
-                        <h2 class="fadeIn">Модули</h2>
-                        <ul class="fadeIn">
-                            {% for param in skill.module_data.params %}
-                                <li>{{ param.name }}: {{ param.value }}</li>
-                            {% endfor %}
-                        </ul>
+                        <div class="skill-section fadeIn">
+                            <p class="section-star">★</p>
+                            <h2 class="section-title">Модули</h2>
+
+                            <div class="module-content">
+                                <div class="module-header">
+                                    <h3 class="module-type">{{ skill.module_data["type_name"] }}</h3>
+                                    <p class="module-desc">{{ skill.module_data["type_desc"] }}</p>
+                                </div>
+
+                                <div class="skill-stats">
+                                    <div class="stat-row">
+                                        <span class="stat-label">Тип модуля</span>
+                                        <span class="stat-value">{{ skill.module_data["type"] }}</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span class="stat-label">Уровень</span>
+                                        <span class="stat-value">{{ skill.module_data["level"] }}</span>
+                                    </div>
+
+                                    {% if skill.module_data.params %}
+                                        <div class="module-params">
+                                            <h4 class="params-title">Параметры</h4>
+                                            {% for param in skill.module_data.params %}
+                                                <div class="stat-row">
+                                                    <span class="stat-label">{{ param.name }}</span>
+                                                    <span class="stat-value">{{ param.value }}</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
 
 
@@ -173,46 +264,6 @@
             </div>
         </div>
     </main>
-
-    <style>
-    .monster-title {
-        position: relative;
-        overflow: visible;
-    }
-
-    .monster-title::before,
-    .monster-title::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 30px;
-        height: 2px;
-        background: linear-gradient(90deg, #1e3c72, transparent);
-    }
-
-    .monster-title::before {
-        left: -40px;
-        transform: translateY(-50%);
-    }
-
-    .monster-title::after {
-        right: -40px;
-        transform: translateY(-50%) rotate(180deg);
-    }
-
-    .skill-stats {
-        background: rgba(30, 60, 114, 0.05);
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px 0;
-    }
-
-    .skill-stats p {
-        margin: 10px 0;
-        padding: 5px;
-        border-bottom: 1px solid rgba(30, 60, 114, 0.1);
-    }
-    </style>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
