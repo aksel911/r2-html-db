@@ -217,10 +217,12 @@
             display: none;
         }
     }
+
 </style>
 
 
 <style>
+
     /* Dark Theme */
     :root {
         --bg-light: #ffffff;
@@ -353,6 +355,76 @@
         border-color: #2980b9 !important;
     }
 </style>
+
+
+
+<style>
+    /* Skill image and hover text */
+
+    .hover-text-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .skill-image {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .item-image {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+        .monster-image {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .hover-text {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+        width: max-content;
+        max-width: 200px;
+        z-index: 1001;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        margin-top: 10px;
+        text-align: left;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .hover-text-wrapper:hover .skill-image {
+        transform: scale(2);
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .hover-text-wrapper:hover .item-image {
+        transform: scale(2);
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .hover-text-wrapper:hover .monster-image {
+        transform: scale(2);
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .hover-text-wrapper:hover .hover-text {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Dark theme support for hover text */
+    .dark-theme .hover-text {
+        background: rgba(44, 62, 80, 0.95);
+        color: white;
+    }
+</style>
+
 
 
     <style>
@@ -504,74 +576,5 @@
             .nav-item:hover .dropdown-menu {
                 display: block;
             }
-        }
-    </style>
-
-
-
-    <style>
-        /* Skill image and hover text */
-    
-        .hover-text-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-    
-        .skill-image {
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .item-image {
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-            .monster-image {
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-    
-        .hover-text {
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-10%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-            width: max-content;
-            max-width: 200px;
-            z-index: 1001;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            margin-top: 10px;
-            text-align: left;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-    
-        .hover-text-wrapper:hover .skill-image {
-            transform: scale(2);
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .hover-text-wrapper:hover .item-image {
-            transform: scale(2);
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .hover-text-wrapper:hover .monster-image {
-            transform: scale(2);
-            z-index: 1000;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-    
-        .hover-text-wrapper:hover .hover-text {
-            opacity: 1;
-            visibility: visible;
-        }
-    
-        /* Dark theme support for hover text */
-        .dark-theme .hover-text {
-            background: rgba(44, 62, 80, 0.95);
-            color: white;
         }
     </style>

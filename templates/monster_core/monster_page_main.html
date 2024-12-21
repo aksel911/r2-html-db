@@ -10,7 +10,7 @@
 </head>
 <body>
     <h1>{% block header %}{% endblock %}</h1>
-    {% include 'monster_core/monster_page_menu.html' %}
+    {% include 'main_page_menu.html' %}
 
     <!-- Search Container -->
     <div class="search-container">
@@ -59,7 +59,7 @@
                                      class="monster-image"
                                      alt="{{ item[1] }}"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';">
-                                <div class="hover-text">{{ item[1].replace('/n', ' ') }}</div>
+                                <div class="hover-text">[{{ item[0] }}] {{ item[1].replace('/n', ' ') }}</div>
                             </div>
                             {% else %}
                                 <p>No image available</p>

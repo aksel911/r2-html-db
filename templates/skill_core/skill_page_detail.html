@@ -37,7 +37,7 @@
 
                         <div class="skill-content text-center">
 
-                            <div class="skill-stats fadeIn">
+                            <div class="stat-grid fadeIn">
                                 <div class="stat-row">
                                     <span class="stat-label">Тип скилла</span>
                                     <span class="stat-value">{{ skill.type_desc }}</span>
@@ -141,7 +141,7 @@
                                 <div class="item-row">
                                     <img class="item-icon" src="{{ skill.item_pic }}"
                                          onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                    <a href="{{ url_for('item_detail', item_id=skill.item_id) }}"
+                                    <a href="{{ url_for('items.item_detail', item_id=skill.item_id) }}"
                                        class="item-name">{{ skill.item_name }}</a>
                                     {% if skill.item_use_level %}
                                         <span class="item-level">Уровень: {{ skill.item_use_level }}</span>
@@ -159,7 +159,7 @@
                                 <div class="item-row">
                                     <img class="item-icon" src="{{ skill_for_item_pic }}"
                                          onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                    <a href="{{ url_for('item_detail', item_id=skill_for_item_data[3]) }}"
+                                    <a href="{{ url_for('items.item_detail', item_id=skill_for_item_data[3]) }}"
                                        class="item-name">{{ skill_for_item_data[4] }}</a>
                                 </div>
                             </div>
@@ -174,7 +174,7 @@
                                 <div class="item-row">
                                     <img class="item-icon" src="{{ skill_for_skill_pic }}"
                                          onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                    <a href="{{ url_for('skill_detail', skill_id=skill_for_skill_data[1]) }}"
+                                    <a href="{{ url_for('skills.skill_detail', skill_id=skill_for_skill_data[1]) }}"
                                        class="item-name">{{ skill_for_skill_data[2] }}</a>
                                 </div>
                             </div>
@@ -198,9 +198,21 @@
                             <p class="section-star">★</p>
                             <h2 class="section-title">Абнормал</h2>
 
+                            {% if skill.abnormal_type_data %}
+                                <div class="skill-content">
+                                    <div class="item-row">
+                                        <img class="item-icon" src="{{ skill.abnormal_type_pic }}"
+                                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+                                        <a href="{{ url_for('abnormals.abnormal_detail', aid=skill.abnormal_type_data[0]) }}"
+                                           class="item-name">{{ skill.abnormal_type_data[1] }}</a>
+                                    </div>
+                                </div>
+                            <p></p>
+                            {% endif %}
+
                             <div class="abnormal-content">
                                 <p class="abnormal-desc">{{ skill.abnormal_data["ADesc"] }}</p>
-                                <div class="skill-stats">
+                                <div class="stat-grid">
                                     {% for key, value in skill.abnormal_data.items() %}
                                         {% if key != 'ADesc' %}
                                             <div class="stat-row">

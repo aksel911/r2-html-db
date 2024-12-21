@@ -29,14 +29,6 @@
 
     <main>
         <div class="container text-center">
-<!--			<h1 class="my-4 fadeIn">{{ item.IName }}</h1>-->
-
-<!--			{% if file_path %}-->
-<!--				<img class="animated-img mb-4 fadeIn" src="{{ url_for('static', filename=file_path) }}">-->
-<!--			{% else %}-->
-<!--                <p class="fadeIn">No image available</p>-->
-<!--            {% endif %}-->
-
 
 			{% if monstermodelno_result %}
                 <p class="fadeIn">{{ monstermodelno_result }}</p>
@@ -65,7 +57,7 @@
                         <h2 class="section-title">Информация</h2>
                         <div class="skill-content">
 
-                            <div class="skill-stats">
+                            <div class="stat-grid">
                                 <div class="stat-row">
                                     <span class="stat-label">Вес</span>
                                     <span class="stat-value">{{ item.IWeight }}</span>
@@ -96,7 +88,7 @@
                                 <img class="item-icon"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
                                      src="{{ craft.ImagePath }}">
-                                <a href="{{ url_for('item_detail', item_id=craft.RItemID) }}"
+                                <a href="{{ url_for('items.item_detail', item_id=craft.RItemID) }}"
                                    class="item-name">{{ craft.CraftItems }}</a>
                                 <span class="stat-value">{% if craft.RSuccess is not none %}{{ craft.RSuccess }} %{% endif %}</span>
                                 <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
@@ -119,7 +111,7 @@
                                 <img class="item-icon"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
                                      src="{{ craft.ImagePath }}">
-                                <a href="{{ url_for('item_detail', item_id=craft.RItemID0) }}"
+                                <a href="{{ url_for('items.item_detail', item_id=craft.RItemID0) }}"
                                    class="item-name">{{ craft.IName }}</a>
                                 <span class="stat-value">{{ craft.RSuccess }} %</span>
                                 <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
@@ -140,7 +132,7 @@
                                 <img class="item-icon"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
                                      src="{{ itemskill_pic }}">
-                                <a href="{{ url_for('skill_detail', skill_id=itemdskill_data[10]) }}"
+                                <a href="{{ url_for('skills.skill_detail', skill_id=itemdskill_data[10]) }}"
                                    class="item-name">{{ itemdskill_data[6] }}</a>
                             </div>
                         </div>
@@ -148,6 +140,22 @@
                     {% endif %}
 
 
+                    <!-- Абнормал -->
+                    {% if abnormal_type_data and abnormal_type_pic %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Абнормал</h2>
+                        <div class="skill-content">
+                            <div class="item-row">
+                                <img class="item-icon"
+                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                     src="{{ abnormal_type_pic }}">
+                                <a href="{{ url_for('abnormals.abnormal_detail', aid=abnormal_type_data[0]) }}"
+                                   class="item-name">{{ abnormal_type_data[1] }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                     <!-- Можно купить у -->
                     {% if merchant_sellers %}
                     <div class="skill-section fadeIn">
@@ -159,7 +167,7 @@
                                 <img class="item-icon"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
                                      src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/{{ merchant.MerchantID }}.png">
-                                <a href="{{ url_for('monster_detail', monster_id=merchant.MerchantID) }}"
+                                <a href="{{ url_for('monsters.monster_detail', monster_id=merchant.MerchantID) }}"
                                    class="item-name">{{ merchant.MerchantName }}</a>
                                 <span class="stat-value">{{ merchant.Price }}</span>
                                 <span class="stat-value">{{ merchant.PaymentType }}</span>
@@ -227,7 +235,7 @@
                                 <img class="item-icon"
                                      onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
                                      src="{{ drop['Pic'] }}">
-                                <a href="{{ url_for('monster_detail', monster_id=drop['MID']) }}"
+                                <a href="{{ url_for('monsters.monster_detail', monster_id=drop['MID']) }}"
                                    class="item-name">{{ drop["MName"] }}</a>
                                 <span class="stat-value">{{ drop["DNumber"] }} шт.</span>
                                 <span class="stat-value">{{ drop["DPercentItem"] }} %</span>
