@@ -32,9 +32,18 @@
 
                     <p class="fadeIn"><img src="{{ skill.item_use_class }}" alt="Class icon"></p>
 
+                    
+                    {% if skill.skill_pack_desc %}
+                    <div class="skill-section fadeIn">
+                        <h2 class="section-title">Эффект умения</h2>
+                        <div class="skill-content">
+                            <p class="skill-desc">{{ skill.skill_pack_desc }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <div class="skill-section fadeIn">
-
+                        <p class="section-star">★</p>
                         <div class="skill-content text-center">
 
                             <div class="stat-grid fadeIn">
@@ -94,6 +103,7 @@
                             </div>
                         </div>
                     </div>
+                
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -181,17 +191,6 @@
                         </div>
                     {% endif %}
 
-
-
-                    {% if skill.skill_pack_desc %}
-                        <div class="skill-section fadeIn">
-                            <p class="section-star">★</p>
-                            <h2 class="section-title">Эффект умения</h2>
-                            <div class="skill-content">
-                                <p class="skill-desc">{{ skill.skill_pack_desc }}</p>
-                            </div>
-                        </div>
-                    {% endif %}
 
                     {% if skill.abnormal_data %}
                         <div class="skill-section fadeIn">

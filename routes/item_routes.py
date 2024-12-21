@@ -3,7 +3,8 @@ from services.item_service import (
     get_item_by_id, 
     get_item_resource,
     get_items_by_type,
-    get_item_model_resource
+    get_item_model_resource,
+    get_specific_proc_item
 )
 from services.monster_service import get_monster_drop_info
 from services.merchant_service import get_merchant_sellers
@@ -37,6 +38,8 @@ def item_detail(item_id: int):
     craft_next_item = check_next_craft_item(item_id)
     skill_data = get_item_skill(item_id)
     
+    specificproc_check = get_specific_proc_item(item_id)
+    
     itemresource_result = get_item_model_resource(item_id)
     
     # Process skill data
@@ -44,11 +47,20 @@ def item_detail(item_id: int):
     abnormal_type_pic = None
     itemdskill_data = None
     itemskill_pic = None
-
+    linked_skills = 0
+    linked_skillsaid = 0
+    #print(f"xxxxxx {skill_data}")
+    
     if skill_data:
-        itemdskill_data, itemskill_pic = skill_data
-        if itemdskill_data and len(itemdskill_data) > 3:
-            abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(itemdskill_data[3])
+        # Проверяем, что skill_data возвращает кортеж из трех элементов
+        if isinstance(skill_data, tuple) and len(skill_data) == 4:
+            itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid = skill_data
+            print(f"xxxxxx32323 {linked_skillsaid}")
+            
+            abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(linked_skillsaid)
+            # Проверяем наличие данных о скилле для получения abnormal_type
+            # if itemdskill_data and isinstance(itemdskill_data, tuple) and len(itemdskill_data) > 3:
+            #     abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(itemdskill_data[3])
 
     prefix = None
     item_model_no = None
@@ -101,8 +113,11 @@ def item_detail(item_id: int):
         craft_next=craft_next_item,
         itemdskill_data=itemdskill_data,
         itemskill_pic=itemskill_pic,
+        linked_skills=linked_skills,
+        linked_skillsaid=linked_skillsaid,
         abnormal_type_data=abnormal_type_data,
-        abnormal_type_pic=abnormal_type_pic
+        abnormal_type_pic=abnormal_type_pic,
+        specificproc_data=specificproc_check
     )
 
 # Item type routes

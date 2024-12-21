@@ -1,61 +1,61 @@
     <!-- DataTables Initialization Script -->
     <script>
-    $(document).ready(function() {
-        window.table = $('#items-table').DataTable({
-            "paging": true,
-            "lengthChange": true,
-            "searching": true,
-            "ordering": true,
-            "info": true,
-            "autoWidth": false,
-            "pageLength": 25,
-            "deferRender": true,
-            "order": [[ 0, "asc" ]],
-            "columnDefs": [
-                            {
-                                "targets": 0,
-                                "orderable": true,
-                                "type": "num",
-                                "render": function(data, type, row) {
-                                    if (type === 'sort') {
-                                        // Извлекаем data-sort-id для сортировки
-                                        var sortId = $(data).find('.hover-text-wrapper').data('sort-id');
-                                        return sortId || 0;
+        $(document).ready(function() {
+            window.table = $('#items-table').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "pageLength": 25,
+                "deferRender": true,
+                "order": [[ 0, "asc" ]],
+                "columnDefs": [
+                                {
+                                    "targets": 0,
+                                    "orderable": true,
+                                    "type": "num",
+                                    "render": function(data, type, row) {
+                                        if (type === 'sort') {
+                                            // Извлекаем data-sort-id для сортировки
+                                            var sortId = $(data).find('.hover-text-wrapper').data('sort-id');
+                                            return sortId || 0;
+                                        }
+                                        return data;
                                     }
-                                    return data;
                                 }
-                            }
-                        ],
-            "dom": '<"top"lf>rt<"bottom"ip>',
-            "processing": true,
-            "language": {
-                "processing": '<div class="loading-spinner"></div>',
-                "search": "_INPUT_",
-                "searchPlaceholder": "Быстрый фильтр...",
-                "lengthMenu": "Показать _MENU_ монстров",
-                "info": "Монстры с _START_ по _END_ из _TOTAL_",
-                "infoEmpty": "Нет монстров",
-                "zeroRecords": "Монстры не найдены",
-                "paginate": {
-                    "first": "Первая",
-                    "last": "Последняя",
-                    "next": "Следующая",
-                    "previous": "Предыдущая"
+                            ],
+                "dom": '<"top"lf>rt<"bottom"ip>',
+                "processing": true,
+                "language": {
+                    "processing": '<div class="loading-spinner"></div>',
+                    "search": "_INPUT_",
+                    "searchPlaceholder": "Быстрый фильтр...",
+                    "lengthMenu": "Показать _MENU_ монстров",
+                    "info": "Монстры с _START_ по _END_ из _TOTAL_",
+                    "infoEmpty": "Нет монстров",
+                    "zeroRecords": "Монстры не найдены",
+                    "paginate": {
+                        "first": "Первая",
+                        "last": "Последняя",
+                        "next": "Следующая",
+                        "previous": "Предыдущая"
+                    }
+                },
+                "drawCallback": function(settings) {
+                    initializeImageZoom();
+                    $('#items-table tbody tr').each(function(index) {
+                        $(this).css('animation-delay', (index * 0.05) + 's');
+                    });
+                },
+                "initComplete": function(settings, json) {
+                    $('.dataTables_filter').hide();
+                    initializeKeyboardNavigation();
+                    cacheMonsterData();
                 }
-            },
-            "drawCallback": function(settings) {
-                initializeImageZoom();
-                $('#items-table tbody tr').each(function(index) {
-                    $(this).css('animation-delay', (index * 0.05) + 's');
-                });
-            },
-            "initComplete": function(settings, json) {
-                $('.dataTables_filter').hide();
-                initializeKeyboardNavigation();
-                cacheMonsterData();
-            }
+            });
         });
-    });
     </script>
 
     <!-- Image Handling Script -->

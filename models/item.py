@@ -31,3 +31,19 @@ class DT_ItemResource:
             f"{current_app.config['GITHUB_URL']}"
             f"{self.RFileName}_{self.RPosX}_{self.RPosY}.png"
         )
+        
+@dataclass
+class TblSpecificProcItem:
+    """Data class for TblSpecificProcItem"""
+    mIID: int
+    IName: str
+    mProcNo: int
+    mProcDesc: str
+    mAParam: int
+    mAParamDesc: str
+    mBParam: int
+    mBParamDesc: str
+    mCParam: int
+    mCParamDesc: str
+    mDParam: int
+    mDParamDesc: str

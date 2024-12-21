@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Tuple
 from os.path import splitext
 from functools import lru_cache
 from flask import current_app
-from models.item import DT_Item, DT_ItemResource
+from models.item import DT_Item, DT_ItemResource, TblSpecificProcItem
 from services.database import execute_query, get_db_connection
 
 @lru_cache(maxsize=1000)
@@ -53,6 +53,51 @@ def get_item_model_resource(item_id: int) -> Optional[DT_ItemResource]:
             row.RPosY
         )
     return None
+
+
+@lru_cache(maxsize=1000)
+def get_specific_proc_item(item_id: int) -> Optional[TblSpecificProcItem]:
+    """Get TblSpecificProcItem"""
+    query = """
+    SELECT
+        a.mIID,
+        c.IName,
+        a.mProcNo,
+        b.mProcDesc,
+        a.mAParam,
+        b.mAParamDesc,
+        a.mBParam,
+        b.mBParamDesc,
+        a.mCParam,
+        b.mCParamDesc,
+        a.mDParam,
+        b.mDParamDesc 
+    FROM
+        TblSpecificProcItem AS a
+    LEFT JOIN TP_SpecificProcItemType AS b ON ( b.mProcNo = a.mProcNo )
+    LEFT JOIN DT_Item AS c ON ( c.IID = a.mIID )
+        
+    WHERE a.mIID = ?
+    """
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return TblSpecificProcItem(
+            row.mIID,
+            row.IName,
+            row.mProcNo,
+            row.mProcDesc,
+            row.mAParam,
+            row.mAParamDesc,
+            row.mBParam,
+            row.mBParamDesc,
+            row.mCParam,
+            row.mCParamDesc,
+            row.mDParam,
+            row.mDParamDesc
+            )
+    return None
+
 
 
 def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:

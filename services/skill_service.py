@@ -4,6 +4,10 @@ from models.skill import Skill
 from services.database import execute_query
 from services.utils import get_skill_icon_path, clean_dict
 from services.item_service import get_item_resource
+from services.abnormal_service import (
+    get_abnormal_skills
+)
+
 
 def get_skills_list() -> Tuple[List[Tuple], Dict[int, str]]:
     """Get list of all skills"""
@@ -244,7 +248,11 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
         v.mSpriteX,
         v.mSpriteY,
         v2.SID AS v2_SID,
-        v2.SName AS v2_SName
+        v2.SName AS v2_SName,
+        d1.MType,
+        d1.MAParam,
+        d1.MBParam,
+        d1.MCParam
     FROM DT_Item a
         INNER JOIN DT_ItemSkill b 
             ON a.IID = b.IID AND a.IID = ?
@@ -266,6 +274,7 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
             ON v1.mSID = v2.SID
     """
     
+
     try:
         row = execute_query(query, (item_id,), fetch_one=True)
         if not row:
@@ -275,16 +284,26 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
             row.IID, row.IName, row.SID, row.AID, 
             row.MID, row.mSPID, row.mName, 
             row.mSpriteFile, row.mSpriteX, 
-            row.mSpriteY, row.v2_SID, row.v2_SName
-        )
-
+            row.mSpriteY, row.v2_SID, row.v2_SName, row.MType, row.MAParam, row.MBParam, row.MCParam
+        ) 
+        
         itemskill_pic = get_skill_icon_path(
             row.mSpriteFile,
             row.mSpriteX,
             row.mSpriteY
         )
+        
+        linked_skills = 0
+        linked_skillsaid = 0
+        linked_skillsaid = itemdskill_data[3]
+        
+        if row.MType != 101:
+            itemdskill_data , itemskill_pic = None, None
+            linked_skills = get_abnormal_skills(row.AID)
 
-        return itemdskill_data, itemskill_pic
+        print(f"ITEMDSK2ILL: {linked_skillsaid}")
+        
+        return itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid
 
     except Exception as e:
         print(f"Error in get_item_skill: {e}")
