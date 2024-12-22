@@ -4,7 +4,8 @@ from services.item_service import (
     get_item_resource,
     get_items_by_type,
     get_item_model_resource,
-    get_specific_proc_item
+    get_specific_proc_item,
+    get_itemabnormalResist_data
 )
 from services.monster_service import get_monster_drop_info
 from services.merchant_service import get_merchant_sellers
@@ -99,7 +100,14 @@ def item_detail(item_id: int):
             prefix = 'i'  # TODO: ЗАГЛУШКА ДЛЯ ОСТАЛЬНОГО!
             item_model_no = base
 
-    print(transform_list, monster_pic_url)
+    # DT_ItemAbnormalResist Check
+    item_abnormalResist_data = get_itemabnormalResist_data(item_id)
+    if item_abnormalResist_data:
+        item_abnormalResist_data = item_abnormalResist_data
+    else:
+        item_abnormalResist_data = None
+    
+    print(f"PIZDAAAAAA: {item_abnormalResist_data}")
     return render_template(
         'item_core/item_page_detail.html',
         item=item,
@@ -119,7 +127,8 @@ def item_detail(item_id: int):
         abnormal_type_pic=abnormal_type_pic,
         specificproc_data=specificproc_check,
         transform_list=transform_list,
-        monster_pic_url=monster_pic_url
+        monster_pic_url=monster_pic_url,
+        item_abnormalResist_data=item_abnormalResist_data
     )
 
 # Item type routes

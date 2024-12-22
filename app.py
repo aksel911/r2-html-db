@@ -18,6 +18,27 @@ def remove_extension(value):
     """Remove file extension from string"""
     return splitext(value)[0]
 
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html', error=error), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('errors/500.html', error=error), 500
+
+@app.errorhandler(400)
+def bad_request_error(error):
+    return render_template('errors/400.html', error=error), 400
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html', error=error), 403
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return render_template('errors/405.html', error=error), 405
+
 @app.route('/')
 def home():
     return render_template('home.html')

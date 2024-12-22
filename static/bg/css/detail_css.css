@@ -724,6 +724,7 @@ body.dark-theme {
 .skill-section.collapsed {
     .skill-content-wrapper {
         height: 0 !important;
+        overflow: hidden;
     }
     
     .skill-content {

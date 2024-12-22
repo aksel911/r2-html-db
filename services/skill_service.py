@@ -57,7 +57,30 @@ def get_skills_list() -> Tuple[List[Tuple], Dict[int, str]]:
 
     return skills_data, file_paths
 
-def get_skill_detail(skill_id: int) -> Optional[Skill]:
+
+def get_monster_reget_skill_pic_icon_datasource(skill_id: int) -> Optional[str]:
+    query ="""
+    SELECT 
+        mSpriteFile, 
+        mSpriteX, 
+        mSpriteY 
+    FROM DT_SkillPack a
+        LEFT JOIN DT_SkillPackSkill b ON (a.mSPID = b.mSPID)
+    WHERE b.mSID = ?
+    """
+    icon_data = execute_query(query, (skill_id,), fetch_one=True)
+    
+    if icon_data:
+        return icon_data
+    else:
+        return None
+
+
+
+
+
+
+def get_skill_detail(skill_id: int) -> List[Optional[Skill]]:
     """Get detailed skill information"""
     query = """
         SELECT
@@ -118,78 +141,92 @@ def get_skill_detail(skill_id: int) -> Optional[Skill]:
         WHERE a.SID = ?
     """
     
-    row = execute_query(query, (skill_id,), fetch_one=True)
-    if not row:
+    rows = execute_query(query, (skill_id,), fetch_one=False)
+    if not rows:
         return None
 
-    item_id = row.IID
-    item_pic = get_item_resource(item_id)
+    skills = []
+    
+    for row in rows:
+        item_id = row.IID
+        item_pic = get_item_resource(item_id) if item_id else None
 
-    abnormal_data = clean_dict({
-        "AbnormalID": row.AbnormalID,
-        "ADesc": row.ADesc,
-        "AType": row.AType,
-        "ALevel": row.ALevel,
-        "AEffect": row.AEffect,
-    })
+        abnormal_data = clean_dict({
+            "AbnormalID": row.AbnormalID,
+            "ADesc": row.ADesc,
+            "AType": row.AType,
+            "ALevel": row.ALevel,
+            "AEffect": row.AEffect,
+        })
 
-    module_params = [
-        {"name": name, "value": value}
-        for name, value in [
-            (row.MAParamName, row.MAParam),
-            (row.MBParamName, row.MBParam),
-            (row.MCParamName, row.MCParam)
+        module_params = [
+            {"name": name, "value": value}
+            for name, value in [
+                (row.MAParamName, row.MAParam),
+                (row.MBParamName, row.MBParam),
+                (row.MCParamName, row.MCParam)
+            ]
+            if name is not None and value is not None
         ]
-        if name is not None and value is not None
-    ]
 
-    module_data = clean_dict({
-        "module_id": row.MID,
-        "type": row.MType,
-        "type_name": row.MName,
-        "type_desc": row.ModuleDesc,
-        "level": row.Mlevel,
-        "params": module_params if module_params else None
-    })
+        module_data = clean_dict({
+            "module_id": row.MID,
+            "type": row.MType,
+            "type_name": row.MName,
+            "type_desc": row.ModuleDesc,
+            "level": row.Mlevel,
+            "params": module_params if module_params else None
+        })
 
-    abnormal_type_data = None
-    abnormal_type_pic = None
-    if abnormal_data.get("AbnormalID"):
-        abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(abnormal_data["AbnormalID"])
+        abnormal_type_data = None
+        abnormal_type_pic = None
+        if abnormal_data.get("AbnormalID"):
+            abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(abnormal_data["AbnormalID"])
 
-    return Skill(
-        sid=row.SID,
-        name=row.SName,
-        desc=row.SDesc,
-        hit_plus=row.SHitPlus,
-        mp_per_use=row.SMPPerUse,
-        skill_type=row.SType,
-        type_desc=row.STypeDesc,
-        hp_per_use=row.SHPPerUse,
-        chao_use=row.SChaoUse,
-        apply_radius=row.mApplyRadius,
-        apply_race=row.mApplyRace,
-        casting_delay=row.mCastingDelay,
-        consume_item=row.mConsumeItem,
-        active_type=row.mActiveType,
-        animation=row.mAnimation,
-        casting_speed=row.mCastingSpeed,
-        skill_effect=row.mSkillEffect,
-        cool_time=row.mCoolTime,
-        consume_item2=row.mConsumeItem2,
-        consume_item_cnt2=row.mConsumeItemCnt2,
-        item_id=row.IID,
-        item_pic=item_pic,
-        item_name=row.IName,
-        item_use_level=row.IUseLevel,
-        item_use_class=row.IUseClass,
-        skill_pack_id=row.mSPID,
-        skill_pack_desc=row.mDesc,
-        abnormal_data=abnormal_data,
-        module_data=module_data,
-        abnormal_type_data=abnormal_type_data,
-        abnormal_type_pic=abnormal_type_pic
-    )
+        skill = Skill(
+            sid=row.SID,
+            name=row.SName,
+            desc=row.SDesc,
+            hit_plus=row.SHitPlus,
+            mp_per_use=row.SMPPerUse,
+            skill_type=row.SType,
+            type_desc=row.STypeDesc,
+            hp_per_use=row.SHPPerUse,
+            chao_use=row.SChaoUse,
+            apply_radius=row.mApplyRadius,
+            apply_race=row.mApplyRace,
+            casting_delay=row.mCastingDelay,
+            consume_item=row.mConsumeItem,
+            active_type=row.mActiveType,
+            animation=row.mAnimation,
+            casting_speed=row.mCastingSpeed,
+            skill_effect=row.mSkillEffect,
+            cool_time=row.mCoolTime,
+            consume_item2=row.mConsumeItem2,
+            consume_item_cnt2=row.mConsumeItemCnt2,
+            item_id=row.IID,
+            item_pic=item_pic,
+            item_name=row.IName,
+            item_use_level=row.IUseLevel,
+            item_use_class=row.IUseClass,
+            skill_pack_id=row.mSPID,
+            skill_pack_desc=row.mDesc,
+            abnormal_data=abnormal_data,
+            module_data=module_data,
+            abnormal_type_data=abnormal_type_data,
+            abnormal_type_pic=abnormal_type_pic
+        )
+        
+        skills.append(skill)
+
+    return skills
+
+
+
+
+
+
+
 
 def get_abnormal_in_skill(aid: int) -> Optional[Tuple]:
     """Get abnormal information for a skill"""

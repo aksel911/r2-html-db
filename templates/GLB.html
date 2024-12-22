@@ -6,10 +6,22 @@
     <title>R2 Model Viewer - Optimized</title>
     <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
-        body {
+        :root {
+            --control-bg: rgba(0, 0, 0, 0.8);
+            --button-primary: #2196F3;
+            --button-hover: #1976D2;
+            --button-disabled: #cccccc;
+            --animation-name: #4CAF50;
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
         .container {
@@ -23,13 +35,15 @@
         }
 
         .container.hidden {
-            display: none;
+            opacity: 0;
+            visibility: hidden;
         }
 
         model-viewer {
             width: 100%;
             height: 100%;
             background-color: transparent;
+            pointer-events: none;
         }
 
         .controls {
@@ -37,90 +51,25 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: var(--control-bg);
             padding: 15px;
             border-radius: 8px;
             display: flex;
             gap: 10px;
             flex-direction: row;
             align-items: center;
-            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
-            visibility: visible; /* Initially visible */
-            opacity: 1; /* Initially visible */
+            transition: all 0.3s ease;
+            visibility: visible;
+            opacity: 1;
         }
 
         .controls.hidden {
-            opacity: 0; /* Fade out */
-            visibility: hidden; /* Make non-interactive */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
-        .toggle-menu {
-            position: absolute;
-            top: 110px; /* Position the button at the bottom */
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            border: none;
-            border-radius: 8px 8px 0 0;
-            padding: 8px 16px;
-            cursor: pointer;
-            z-index: 1000;
-            transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition for opacity and visibility */
-        }
-
-        .toggle-menu.hidden {
-            opacity: 0; /* Fade out */
-            visibility: hidden; /* Ensure it's not interactive when hidden */
-        }
-
-        .animation-controls, .model-controls {
-            display: flex;
-            gap: 10px;
-            margin: 5px 0;
-        }
-
-        button {
-            padding: 8px 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            background: #2196F3;
-            color: white;
-            font-weight: bold;
-            min-width: 80px;
-        }
-
-        button:hover:not(:disabled) {
-            background: #1976D2;
-        }
-
-        button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .info {
-            color: white;
-            text-align: center;
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        #modelInfo {
-            margin-bottom: 10px;
-        }
-
-        .animation-name {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-
-
-        /* GLB Container */
-        .toggle-menu, .toggle-lock {
+        .toggle-button {
             position: absolute;
             top: 110px;
             background: rgba(0, 0, 0, 0.2);
@@ -130,7 +79,7 @@
             padding: 8px 16px;
             cursor: pointer;
             z-index: 1000;
-            transition: opacity 0.3s ease, visibility 0.3s ease, background 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .toggle-menu {
@@ -143,11 +92,10 @@
             transform: translateX(5px);
         }
 
-        .toggle-menu:hover {
+        .toggle-button:hover {
             background: rgba(0, 0, 0, 0.4);
         }
 
-        /* Стили для заблокированного состояния */
         .toggle-lock.locked {
             background: rgba(255, 0, 0, 0.2);
         }
@@ -156,7 +104,6 @@
             background: rgba(0, 255, 0, 0.4);
         }
 
-        /* Стили для разблокированного состояния */
         .toggle-lock:not(.locked) {
             background: rgba(0, 255, 0, 0.2);
         }
@@ -165,11 +112,44 @@
             background: rgba(255, 0, 0, 0.4);
         }
 
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            background-color: transparent;
-            pointer-events: none;
+        .control-group {
+            display: flex;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background: var(--button-primary);
+            color: white;
+            font-weight: bold;
+            min-width: 80px;
+            transition: background 0.2s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--button-hover);
+        }
+
+        button:disabled {
+            background: var(--button-disabled);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .info {
+            color: white;
+            text-align: center;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .animation-name {
+            color: var(--animation-name);
+            font-weight: bold;
         }
     </style>
 </head>
@@ -179,521 +159,361 @@
             id="modelViewer"
             camera-controls
             autoplay
-
             alpha-mode="blend"
             shadow-intensity="1"
             exposure="1"
             shadow-softness="0.5"
             environment-image="neutral"
-
             camera-orbit="180deg 75deg 105%"
             min-camera-orbit="auto auto auto"
             max-camera-orbit="auto auto 400%"
-
             interaction-prompt="auto"
-
             auto-rotate
             rotation-per-second="3deg"
             auto-rotate-delay="0"
-
             alt="R2 Online 3D model viewer with animation">
         </model-viewer>
-        <button class="toggle-menu" onclick="toggleMenu()">☰ Show Menu</button>
-        <button class="toggle-lock locked" onclick="toggleLock()">🔓 Unlock</button>
+        <button class="toggle-button toggle-menu" id="menuToggle">☰ Show Menu</button>
+        <button class="toggle-button toggle-lock locked" id="lockToggle">🔓 Unlock</button>
         <div class="controls hidden">
             <div class="info" id="animInfo">Loading animations...</div>
-            <div class="animation-controls">
-                <button id="playBtn" onclick="togglePlay()">▶️</button>
-                <button id="resetBtn" onclick="resetAnimation()">🔄</button>
+            <div class="control-group animation-controls">
+                <button id="playBtn">▶️</button>
+                <button id="resetBtn">🔄</button>
             </div>
-            <div class="model-controls">
-                <button id="prevModel" onclick="previousModel()">◀️</button>
-                <button id="nextModel" onclick="nextModel()">▶️</button>
+            <div class="control-group model-controls">
+                <button id="prevModel" disabled>◀️</button>
+                <button id="nextModel" disabled>▶️</button>
             </div>
             <div class="info" id="modelInfo">Animation: Loading...</div>
         </div>
     </div>
 
-    <!-- Constants and Configuration -->
     <script>
-        // Определение основных констант
-        const animationVariants = [
-            'AttackArms',
-            'AttackLeg',
-            'ChargeAttack',
-            'Cidle',
-            'Die',
-            'EarthQuake',
-            'FireDestroyer',
-            'Regen',
-            'Walk'
-        ];
-
-        const modelViewer = document.getElementById('modelViewer');
+        // Constants and Configuration
         const baseUrl = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/{{ monstermodelno_result }}/{{ monstermodelno_result }}_';
-        const prefix = '{{ prefix }}';
-        let availableModels = [];
-        let currentModelIndex = 0;
-        let isPlaying = true;
-        let modelCache = new Map();
-    </script>
 
-    <!-- Utilities and Helpers -->
-    <script>
-        // Вспомогательные функции
-        async function checkFileExists(url) {
-            if (modelCache.has(url)) {
-                return true;
-            }
-            try {
-                const response = await fetch(url, { method: 'HEAD' });
-                const exists = response.status === 200;
-                if (exists) {
-                    modelCache.set(url, true);
-                }
-                return exists;
-            } catch (e) {
-                return false;
-            }
-        }
-    </script>
+        // State management
+        const state = {
+            isPlaying: true,
+            isLocked: true,
+            currentModelIndex: 0,
+            availableModels: [],
+            modelCache: new Map(),
+            animationVariants: [
+                'AttackArms', 'AttackLeg', 'ChargeAttack', 'Cidle',
+                'Die', 'EarthQuake', 'FireDestroyer', 'Regen', 'Walk'
+            ]
+        };
 
-    <!-- Model Search and Loading -->
-    <script>
-        async function loadModel(index) {
-            if (index >= 0 && index < availableModels.length) {
-                const model = availableModels[index];
-                console.log('Loading model:', model); // Для отладки
-                modelViewer.src = model.url;
-                currentModelIndex = index;
-                updateModelInfo();
-            }
-        }
-    </script>
+        // DOM Elements
+        const elements = {
+            modelViewer: document.getElementById('modelViewer'),
+            container: document.getElementById('modelContainer'),
+            controls: document.querySelector('.controls'),
+            menuToggle: document.getElementById('menuToggle'),
+            lockToggle: document.getElementById('lockToggle'),
+            playBtn: document.getElementById('playBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            prevModel: document.getElementById('prevModel'),
+            nextModel: document.getElementById('nextModel'),
+            modelInfo: document.getElementById('modelInfo'),
+            animInfo: document.getElementById('animInfo')
+        };
 
-
-    <!-- Model GitHub Finding -->
-    <script>
-    async function findAvailableModels() {
-        document.getElementById('modelInfo').textContent = 'Scanning for models...';
-        const models = [];
-
-        // Определяем маппинг классов
+        // Class mapping
         const classMapping = {
-            0: {}, // Нет класса (пустой объект)
-            1: { // Рыцарь
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина'
+            0: {}, 
+            1: { '00': 'Рыцарь М', '01': 'Рыцарь Ж' },
+            2: { '02': 'Рейнджер М', '03': 'Рейнджер Ж' },
+            4: { '04': 'Маг М', '05': 'Маг Ж' },
+            5: { '00': 'Рыцарь М', '01': 'Рыцарь Ж', '04': 'Маг М', '05': 'Маг Ж' },
+            7: {
+                '00': 'Рыцарь М', '01': 'Рыцарь Ж',
+                '02': 'Рейнджер М', '03': 'Рейнджер Ж',
+                '04': 'Маг М', '05': 'Маг Ж'
             },
-            2: { // Рейнджер
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина'
+            8: { '06': 'Ассасин М', '07': 'Ассасин Ж' },
+            15: {
+                '00': 'Рыцарь М', '01': 'Рыцарь Ж',
+                '02': 'Рейнджер М', '03': 'Рейнджер Ж',
+                '04': 'Маг М', '05': 'Маг Ж',
+                '06': 'Ассасин М', '07': 'Ассасин Ж'
             },
-            4: { // Маг
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина'
+            16: { '08': 'Призыватель М', '09': 'Призыватель Ж' },
+            18: {
+                '02': 'Рейнджер М', '03': 'Рейнджер Ж',
+                '08': 'Призыватель М', '09': 'Призыватель Ж'
             },
-            5: { // Рыцарь, Маг
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина'
-            },
-            7: { // Рыцарь, Рейнджер, Маг
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина'
-            },
-            8: { // Ассасин
-                '06': 'Ассасин Мужчина',
-                '07': 'Ассасин Женщина'
-            },
-            15: { // Рыцарь, Рейнджер, Маг, Ассасин
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина',
-                '06': 'Ассасин Мужчина',
-                '07': 'Ассасин Женщина'
-            },
-            16: { // Призыватель
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            18: { // Рейнджер, Призыватель
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            19: { // Рыцарь, Рейнджер, Призыватель
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            20: { // Маг, Призыватель
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            22: { // Рейнджер, Маг, Призыватель
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            23: { // Рыцарь, Рейнджер, Маг, Призыватель
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
-            },
-            255: { // Все классы
-                '00': 'Рыцарь Мужчина',
-                '01': 'Рыцарь Женщина',
-                '02': 'Рейнджер Мужчина',
-                '03': 'Рейнджер Женщина',
-                '04': 'Маг Мужчина',
-                '05': 'Маг Женщина',
-                '06': 'Ассасин Мужчина',
-                '07': 'Ассасин Женщина',
-                '08': 'Призыватель Мужчина',
-                '09': 'Призыватель Женщина'
+            255: {
+                '00': 'Рыцарь М', '01': 'Рыцарь Ж',
+                '02': 'Рейнджер М', '03': 'Рейнджер Ж',
+                '04': 'Маг М', '05': 'Маг Ж',
+                '06': 'Ассасин М', '07': 'Ассасин Ж',
+                '08': 'Призыватель М', '09': 'Призыватель Ж'
             }
         };
 
-        // Функция для создания вариантов регистра
+        // Utility functions
+        async function checkFileExists(url) {
+            if (state.modelCache.has(url)) return true;
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                const exists = response.status === 200;
+                if (exists) state.modelCache.set(url, true);
+                return exists;
+            } catch {
+                return false;
+            }
+        }
+
         function getCaseVariants(prefix, number) {
             const variants = [];
-            const prefixCases = [prefix.toLowerCase(), prefix.toUpperCase()];
-
-            for (const folderPrefix of prefixCases) {
-                for (const filePrefix of prefixCases) {
+            [prefix.toLowerCase(), prefix.toUpperCase()].forEach(folderPrefix => {
+                [prefix.toLowerCase(), prefix.toUpperCase()].forEach(filePrefix => {
                     variants.push({
                         folder: `${folderPrefix}${number}`,
                         file: `${filePrefix}${number}`
                     });
-                }
-            }
+                });
+            });
             return variants;
         }
 
-        // Функция для проверки брони с учетом класса персонажа
+        // Model loading and checking functions
+        async function loadModel(index) {
+            if (index >= 0 && index < state.availableModels.length) {
+                const model = state.availableModels[index];
+                elements.modelViewer.src = model.url;
+                state.currentModelIndex = index;
+                updateModelInfo();
+            }
+        }
+
         async function checkArmorModels(prefix, baseNumber, useClass) {
-            const checkPromises = [];
-
-            // Получаем список классов для проверки из маппинга
+            const models = [];
             const classesToCheck = classMapping[useClass] || {};
-            console.log(`Checking armor models for class ${useClass}:`, classesToCheck);
-
-            // Проверяем все варианты регистра префикса
             const prefixCases = [prefix.toLowerCase(), prefix.toUpperCase()];
-
-            for (const prefixCase of prefixCases) {
-                // Получаем последние 3 цифры из baseNumber
-                const lastThreeDigits = baseNumber.slice(-3);
-
-                // Проверяем только классы из маппинга
-                for (const [classIndex, className] of Object.entries(classesToCheck)) {
-                    // Формируем номер модели: 0X0YYY, где X - индекс класса, YYY - последние 3 цифры
+            const lastThreeDigits = baseNumber.slice(-3);
+            
+            const checkPromises = Object.entries(classesToCheck).flatMap(([classIndex, className]) => 
+                prefixCases.map(async prefixCase => {
                     const modelNumber = `0${classIndex[1]}0${lastThreeDigits}`;
-
-                    // Проверяем модель
                     const folder = `${prefixCase}${modelNumber}`;
                     const file = `${prefixCase}${modelNumber}`;
                     const url = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}.glb`;
-
-                    console.log(`Checking armor for ${className}:`, url);
-
-                    checkPromises.push(
-                        checkFileExists(url).then(exists => {
-                            if (exists) {
-                                console.log(`Found armor model for ${className}:`, url);
-                                models.push({
-                                    index: classIndex,
-                                    variant: className,
-                                    url: url
-                                });
-                            }
-                        })
-                    );
-                }
-            }
+                    
+                    const exists = await checkFileExists(url);
+                    if (exists) {
+                        models.push({ index: classIndex, variant: className, url });
+                    }
+                })
+            );
 
             await Promise.all(checkPromises);
-            return models.length > 0;
+            return models;
         }
 
-        // Функция для проверки моделей монстров (с анимациями)
         async function checkMonsterModel(folder, file) {
-            const checkPromises = [];
-            let foundModels = false;
+            const models = [];
+            const baseUrl = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}`;
 
-            // Сначала проверяем варианты с постфиксами (00-35 и анимации)
-            for (let i = 0; i <= 35; i++) {
-                const index = i.toString().padStart(2, '0');
-                const url = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}_${index}.glb`;
-
-                checkPromises.push(
-                    checkFileExists(url).then(exists => {
-                        if (exists) {
-                            console.log('Found monster model with index:', url);
-                            models.push({
-                                index: index,
-                                variant: null,
-                                url: url
-                            });
-                            foundModels = true;
-                        }
-                    })
-                );
-            }
-
-            for (const variant of animationVariants) {
-                const url = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}_${variant}.glb`;
-
-                checkPromises.push(
-                    checkFileExists(url).then(exists => {
-                        if (exists) {
-                            console.log('Found animation:', url);
-                            models.push({
-                                variant: variant,
-                                url: url
-                            });
-                            foundModels = true;
-                        }
-                    })
-                );
-            }
-
-            await Promise.all(checkPromises);
-
-            // Если не нашли модели с постфиксами, проверяем базовую модель
-            if (!foundModels) {
-                const baseUrl = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}.glb`;
-                const exists = await checkFileExists(baseUrl);
-                if (exists) {
-                    console.log('[NO ANIMATIONS FOUND!] Loading base monster model:', baseUrl);
-                    models.push({
-                        index: '00',
-                        variant: null,
-                        url: baseUrl
-                    });
-                    return true;
+            // Сначала проверяем варианты анимаций, так как нам нужно начать с них
+            const animPromises = state.animationVariants.map(async variant => {
+                const url = `${baseUrl}_${variant}.glb`;
+                if (await checkFileExists(url)) {
+                    models.push({ variant, url });
                 }
-            }
+            });
 
-            return foundModels;
+            // Параллельно проверяем пронумерованные варианты
+            const numberPromises = Array.from({ length: 36 }, async (_, i) => {
+                const index = i.toString().padStart(2, '0');
+                const url = `${baseUrl}_${index}.glb`;
+                if (await checkFileExists(url)) {
+                    models.push({ index, variant: null, url });
+                }
+            });
+
+            // Проверяем базовую модель тоже параллельно
+            const basePromise = (async () => {
+                const baseModelUrl = `${baseUrl}.glb`;
+                if (await checkFileExists(baseModelUrl)) {
+                    models.push({ index: '00', variant: null, url: baseModelUrl });
+                }
+            })();
+
+            // Запускаем все проверки параллельно для ускорения
+            await Promise.all([
+                Promise.all(animPromises),
+                Promise.all(numberPromises),
+                basePromise
+            ]);
+
+            // Сортируем так, чтобы анимации были первыми
+            return models.sort((a, b) => {
+                if (a.variant && !b.variant) return -1;
+                if (!a.variant && b.variant) return 1;
+                return 0;
+            });
         }
 
-        // Функция для проверки моделей предметов (без анимаций)
         async function checkItemModel(folder, file) {
             const url = `https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/models/${folder}/${file}.glb`;
-            console.log('Checking URL:', url);
             const exists = await checkFileExists(url);
-            if (exists) {
-                console.log('Found item model:', url);
-                models.push({
-                    index: '00',
-                    variant: null,
-                    url: url
-                });
-                return true;
-            }
-            return false;
+            return exists ? [{ index: '00', variant: null, url }] : [];
         }
 
-        const monsterNumber = baseUrl.match(/models\/([^\/]+)\//)[1];
-        console.log('Search started for:', monsterNumber);
-        const prefix = '{{ prefix }}' || '';
-        const useClass = {{ use_class|default(0) }};
-
-        if (window.location.href.includes('/monster/')) {
-            // Для монстров проверяем модели и анимации
-            console.log('Checking monster models with prefix:', prefix);
-            const variants = getCaseVariants(prefix, monsterNumber);
-            await Promise.all(
-                variants.map(v => checkMonsterModel(v.folder, v.file))
-            );
-        } else if (prefix.toLowerCase() === 'p') {
-            // Для брони проверяем варианты в зависимости от класса
-            console.log('Checking armor models for class:', useClass);
-            await checkArmorModels(prefix, monsterNumber, useClass);
-        } else {
-            // Для остальных предметов проверяем только модель
-            console.log('Checking item model with prefix:', prefix);
-            const variants = getCaseVariants(prefix, monsterNumber);
-            await Promise.all(
-                variants.map(v => checkItemModel(v.folder, v.file))
-            );
-        }
-
-        console.log(`Found ${models.length} models`);
-        return models.sort((a, b) => {
-            if (a.index !== b.index) {
-                return parseInt(a.index || '0') - parseInt(b.index || '0');
-            }
-            if (!a.variant) return -1;
-            if (!b.variant) return 1;
-            return a.variant.localeCompare(b.variant);
-        });
-    }
-    </script>
-
-
-
-
-    <!-- UI Controls and Updates -->
-    <script>
-        // Функции управления интерфейсом
+        // UI update functions
         function updateModelInfo() {
-            const currentModel = availableModels[currentModelIndex];
+            const currentModel = state.availableModels[state.currentModelIndex];
             const modelName = currentModel.variant
                 ? `${currentModel.index}_${currentModel.variant}`
                 : currentModel.index;
 
-            document.getElementById('modelInfo').textContent =
-                `File: ${modelName} (${currentModelIndex + 1}/${availableModels.length})`;
-
-            document.getElementById('prevModel').disabled = currentModelIndex <= 0;
-            document.getElementById('nextModel').disabled = currentModelIndex >= availableModels.length - 1;
+            elements.modelInfo.textContent = `File: ${modelName} (${state.currentModelIndex + 1}/${state.availableModels.length})`;
+            elements.prevModel.disabled = state.currentModelIndex <= 0;
+            elements.nextModel.disabled = state.currentModelIndex >= state.availableModels.length - 1;
         }
 
+        // Event handlers
         function togglePlay() {
-            const playBtn = document.getElementById('playBtn');
-            if (isPlaying) {
-                modelViewer.pause();
-                playBtn.textContent = '▶️';
+            state.isPlaying = !state.isPlaying;
+            if (state.isPlaying) {
+                elements.modelViewer.play();
+                elements.playBtn.textContent = '⏹️';
             } else {
-                modelViewer.play();
-                playBtn.textContent = '⏹️';
+                elements.modelViewer.pause();
+                elements.playBtn.textContent = '▶️';
             }
-            isPlaying = !isPlaying;
         }
 
         function resetAnimation() {
-            modelViewer.currentTime = 0;
-            modelViewer.play();
-            isPlaying = true;
-            document.getElementById('playBtn').textContent = '⏹️';
-        }
-
-        function previousModel() {
-            if (currentModelIndex > 0) {
-                loadModel(currentModelIndex - 1);
-            }
-        }
-
-        function nextModel() {
-            if (currentModelIndex < availableModels.length - 1) {
-                loadModel(currentModelIndex + 1);
-            }
+            elements.modelViewer.currentTime = 0;
+            elements.modelViewer.play();
+            state.isPlaying = true;
+            elements.playBtn.textContent = '⏹️';
         }
 
         function toggleMenu() {
-            const controls = document.querySelector('.controls');
-            const toggleBtn = document.querySelector('.toggle-menu');
-            controls.classList.toggle('hidden');
-            toggleBtn.textContent = controls.classList.contains('hidden') ? '☰ Show Menu' : '👁️Hide Menu';
+            elements.controls.classList.toggle('hidden');
+            elements.menuToggle.textContent = elements.controls.classList.contains('hidden') 
+                ? '☰ Show Menu' 
+                : '👁️ Hide Menu';
         }
-    </script>
 
-    <!-- Event Listeners -->
-    <script>
-        // Обработчики событий
-        modelViewer.addEventListener('load', () => {
-            console.log('Model loaded');
-            const animations = modelViewer.availableAnimations;
-            const animationsList = animations.map(anim =>
-                `<span class="animation-name">${anim}</span>`).join(', ');
+        function toggleLock() {
+            state.isLocked = !state.isLocked;
+            elements.lockToggle.textContent = state.isLocked ? '🔓 Unlock' : '🔒 Lock';
+            elements.lockToggle.classList.toggle('locked', state.isLocked);
+            elements.modelViewer.style.pointerEvents = state.isLocked ? 'none' : 'auto';
+        }
 
-            document.getElementById('animInfo').innerHTML =
-                animations.length > 0 ?
-                `Animation name: ${animationsList}` :
-                'No animations available';
+        // Initialize
+        async function findAvailableModels() {
+            elements.modelInfo.textContent = 'Scanning for models...';
+            
+            // Получаем номер модели из baseUrl
+            const monsterNumber = baseUrl.match(/models\/([^\/]+)\//)[1];
+            console.log('Monster number from baseUrl:', monsterNumber);
+            
+            const prefix = '{{ prefix }}' || '';
+            const useClass = {{ use_class|default(0) }};
+            let models = [];
+
+            console.log('Monster number:', monsterNumber);
+
+            // Проверяем, находимся ли мы на странице монстра
+            if (window.location.pathname.includes('/monster/')) {
+                const variants = getCaseVariants(prefix, monsterNumber);
+                console.log('Checking variants:', variants);
+                
+                for (const variant of variants) {
+                    const monsterModels = await checkMonsterModel(variant.folder, variant.file);
+                    if (monsterModels.length > 0) {
+                        models.push(...monsterModels);
+                        break; // Прекращаем поиск, если нашли модели
+                    }
+                }
+            } else if (prefix.toLowerCase() === 'p') {
+                models = await checkArmorModels(prefix, monsterNumber, useClass);
+            } else {
+                const variants = getCaseVariants(prefix, monsterNumber);
+                const results = await Promise.all(
+                    variants.map(v => checkItemModel(v.folder, v.file))
+                );
+                models = results.flat();
+            }
+
+            return models.sort((a, b) => {
+                if (a.index !== b.index) {
+                    return parseInt(a.index || '0') - parseInt(b.index || '0');
+                }
+                if (!a.variant) return -1;
+                if (!b.variant) return 1;
+                return a.variant.localeCompare(b.variant);
+            });
+        }
+
+        async function initialize() {
+            try {
+                console.log('Starting initialization...');
+                console.log('Base URL:', baseUrl);
+                
+                state.availableModels = await findAvailableModels();
+                console.log('Found models:', state.availableModels);
+                
+                if (state.availableModels.length > 0) {
+                    elements.container.classList.remove('hidden');
+                    console.log('Loading first model...');
+                    await loadModel(0);
+                } else {
+                    elements.container.classList.add('hidden');
+                    console.log('No models found - hiding viewer');
+                }
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                elements.modelInfo.textContent = 'Error loading models';
+            }
+        }
+
+        // Event listeners
+        elements.modelViewer.addEventListener('load', () => {
+            const animations = elements.modelViewer.availableAnimations;
+            elements.animInfo.innerHTML = animations.length > 0
+                ? `Animation name: ${animations.map(anim => 
+                    `<span class="animation-name">${anim}</span>`).join(', ')}`
+                : 'No animations available';
         });
 
         document.addEventListener('keydown', (event) => {
             switch(event.key) {
                 case 'ArrowLeft':
-                    previousModel();
+                    if (!elements.prevModel.disabled) loadModel(state.currentModelIndex - 1);
                     break;
                 case 'ArrowRight':
-                    nextModel();
+                    if (!elements.nextModel.disabled) loadModel(state.currentModelIndex + 1);
                     break;
                 case ' ':
-                    togglePlay();
                     event.preventDefault();
+                    togglePlay();
                     break;
                 case 'Escape':
                     toggleMenu();
                     break;
             }
         });
-    </script>
 
-    <!-- Initialization -->
-    <script>
-        async function initialize() {
-            availableModels = await findAvailableModels();
-            console.log('Available models:', availableModels);
+        // Attach event handlers
+        elements.playBtn.addEventListener('click', togglePlay);
+        elements.resetBtn.addEventListener('click', resetAnimation);
+        elements.prevModel.addEventListener('click', () => loadModel(state.currentModelIndex - 1));
+        elements.nextModel.addEventListener('click', () => loadModel(state.currentModelIndex + 1));
+        elements.menuToggle.addEventListener('click', toggleMenu);
+        elements.lockToggle.addEventListener('click', toggleLock);
 
-            const container = document.getElementById('modelContainer');
-
-            if (availableModels.length > 0) {
-                container.classList.remove('hidden');
-                loadModel(0);
-            } else {
-                container.classList.add('hidden');
-                console.log('No models found - hiding viewer');
-            }
-        }
-
+        // Start the application
         initialize();
-    </script>
-
-    <!-- Lock / Unlock -->
-    <script>
-        // Начальное состояние - заблокировано
-        let isLocked = true;
-
-        function toggleLock() {
-            const lockBtn = document.querySelector('.toggle-lock');
-            const modelViewer = document.getElementById('modelViewer');
-            isLocked = !isLocked;
-
-            if (isLocked) {
-                lockBtn.textContent = '🔓 Unlock';
-                lockBtn.classList.add('locked');
-                modelViewer.style.pointerEvents = 'none';
-            } else {
-                lockBtn.textContent = '🔒 Lock';
-                lockBtn.classList.remove('locked');
-                modelViewer.style.pointerEvents = 'auto';
-            }
-        }
-
-        function toggleMenu() {
-            const controls = document.querySelector('.controls');
-            const toggleBtn = document.querySelector('.toggle-menu');
-            controls.classList.toggle('hidden');
-            toggleBtn.textContent = controls.classList.contains('hidden') ? '☰ Show Menu' : '👁️ Hide Menu';
-        }
     </script>
 </body>
 </html>

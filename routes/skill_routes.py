@@ -3,7 +3,8 @@ from services.skill_service import (
     get_skill_detail,
     get_skills_list,
     get_skill_use_by_spid_items,
-    get_skill_use_by_sid
+    get_skill_use_by_sid,
+    get_monster_reget_skill_pic_icon_datasource
 )
 from services.utils import get_google_sheets_data
 from config.settings import SKILLAPPLYRACE_LOCATION_URL
@@ -15,10 +16,13 @@ bp = Blueprint('skills', __name__)
 @bp.route('/skill/<int:skill_id>')
 def skill_detail(skill_id: int):
     """Skill detail page"""
-    skill = get_skill_detail(skill_id)
-    if not skill:
+    skills = get_skill_detail(skill_id)
+    if not skills:
         return "Skill not found", 404
 
+    # Берем первый скилл для основной информации
+    skill = skills[0]
+    
     spid_id = skill.skill_pack_id
 
     # Get related skill data for items
@@ -53,25 +57,27 @@ def skill_detail(skill_id: int):
 
     # Get skill icon
     skill_icon = None
-    query = """
-        SELECT mSpriteFile, mSpriteX, mSpriteY 
-        FROM DT_SkillPack a
-        LEFT JOIN DT_SkillPackSkill b ON (a.mSPID = b.mSPID)
-        WHERE b.mSID = ?
-    """
-    icon_data = execute_query(query, (skill_id,), fetch_one=True)
+    # query = """
+    #     SELECT mSpriteFile, mSpriteX, mSpriteY 
+    #     FROM DT_SkillPack a
+    #     LEFT JOIN DT_SkillPackSkill b ON (a.mSPID = b.mSPID)
+    #     WHERE b.mSID = ?
+    # """
+    # icon_data = execute_query(query, (skill_id,), fetch_one=True)
+    
+    icon_data = get_monster_reget_skill_pic_icon_datasource(skill_id)
+    
     if icon_data:
         skill_icon = get_skill_icon_path(
             icon_data.mSpriteFile,
             icon_data.mSpriteX,
             icon_data.mSpriteY
         )
-
-    print(f"HEHEHEHHEHEHE {skill_for_item_pic}")
     
     return render_template(
         'skill_core/skill_page_detail.html',
         skill=skill,
+        skills=skills,  # Передаем весь список скиллов
         use_class=use_class,
         race_info=race_info,
         skill_icon=skill_icon,

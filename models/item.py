@@ -47,3 +47,22 @@ class TblSpecificProcItem:
     mCParamDesc: str
     mDParam: int
     mDParamDesc: str
+
+
+@dataclass
+class DT_ItemAbnormalResist:
+    """Data class for item abnormal resist"""
+    IID: int
+    IName: str
+    AID: int
+    ADesc: str
+    AType: int
+    ATypeDesc: str 
+    SID: int
+    SName: str
+    mSPID: int
+    SkillPackName: str
+    SkillPackDesc: str
+    mSpriteFile: str
+    mSpriteX: int
+    mSpriteY: int

@@ -133,12 +133,12 @@ def get_monster_drops(monster_id: int) -> List[Dict]:
 def get_monster_drop_info(item_id: int) -> List[Dict]:
     """Get all drops for a specific monster"""
     monster_class_df = get_google_sheets_data(MONSTER_CLASS_URL)
-    
+   
     query = f"""
         SELECT
             a.MID,
             a.MName,
-            a.mClass,  -- Added mClass to fetch for joining with Google Sheets data
+            a.mClass,  
             w.DDropType,
             q.DPercent as GroupDropChance,
             q.DGroup as DropGroupID,
@@ -157,25 +157,24 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
         WHERE r.DItem = ? AND c.IIsEvent = 0
         ORDER BY a.MID
     """
-    
-    rows = execute_query(query, (item_id,))
+   
+    rows = execute_query(query, (item_id,), fetch_one=False)
     unique_results = {}
-
     for row in rows:
-        # Get monster class info from Google Sheets data
+        # Получаем информацию о классе монстра из данных Google Sheets
         monster_class_info = monster_class_df[
             monster_class_df['MClass'] == row.mClass
         ]['MName'].iloc[0] if not monster_class_df.empty else ''
-
-        key = row.DItem
-        pic = None
+       
+        # Используем комбинацию MID и DGroup как ключ
+        key = (row.MID, row.DropGroupID)
+        
         pic = f"{current_app.config['GITHUB_URL']}{row.MID}.png"
-        #pic = f"{current_app.config['GITHUB_URL']}{row.RFileName.split('.')[0]}_{row.RPosX}_{row.RPosY}.png"
-
+        
         if key not in unique_results:
             unique_results[key] = {
                 "MID": row.MID,
-                "MName": row.MName,
+                "MName": row.MName.replace("/n", " "),
                 "MClass": monster_class_info,
                 "DDropType": row.DDropType,
                 "DPercentGroup": row.GroupDropChance,
@@ -190,11 +189,13 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
                 "count": 1
             }
         else:
+            # Обновляем только счетчик, так как это тот же самый монстр и группа
             unique_results[key]["count"] += 1
-            unique_results[key]["DNumber"] += row.Quantity
-
+            
+    # Преобразуем словарь в список и сортируем
     results = list(unique_results.values())
-    results.sort(key=lambda x: x["DItem"])
+    results.sort(key=lambda x: (x["MID"], x["DGroup"]))
+   
     return results
 
 
