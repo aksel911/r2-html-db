@@ -37,3 +37,27 @@ class Monster:
             "mDetectChao": self.mDetectChao,
             "mIsResistTransF": 'Да' if self.mIsResistTransF else 'Нет'
         }
+
+
+@dataclass
+class DT_MonsterResource:
+    """Data class for monster resources"""
+    RFileName: str
+
+@dataclass
+class DT_MonsterAbnormalResist:
+    """Data class for monster abnormal resist"""
+    MID: int
+    MName: str
+    AID: int
+    ADesc: str
+    AType: int
+    ATypeDesc: str 
+    SID: int
+    SName: str
+    mSPID: int
+    SkillPackName: str
+    SkillPackDesc: str
+    mSpriteFile: str
+    mSpriteX: int
+    mSpriteY: int

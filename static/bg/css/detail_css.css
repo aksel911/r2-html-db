@@ -250,6 +250,11 @@ img:hover {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    text-align: center; /* Выравнивание текста по центру */
+    margin: 0 auto; /* Центрирование самого блока */
+    display: flex; /* Для возможности центрирования содержимого */
+    justify-content: center; /* Горизонтальное центрирование */
+    align-items: center; /* Вертикальное центрирование */
 }
 
 .abnormal-content,
@@ -480,6 +485,11 @@ img:hover {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    text-align: center; /* Выравнивание текста по центру */
+    margin: 0 auto; /* Центрирование самого блока */
+    display: flex; /* Для возможности центрирования содержимого */
+    justify-content: center; /* Горизонтальное центрирование */
+    align-items: center; /* Вертикальное центрирование */
 }
 
 body.dark-theme {
@@ -633,9 +643,234 @@ body.dark-theme {
 
 
 
+/* Spoiler styles /
+/* Base styles */
+.skill-section {
+    margin-bottom: 2rem;
+}
+
+.skill-header,
+.abnormal-primary-info,
+.abnormal-details-info {
+    border-radius: 10px;
+    background: var(--bg-module-light);
+}
+
+/* Header styles */
+.skill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.skill-header:hover {
+    background: rgba(30, 60, 114, 0.1);
+}
+
+.dark-theme .skill-header:hover,
+.dark-theme .abnormal-primary-info,
+.dark-theme .abnormal-details-info {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Title and toggle styles */
+.skill-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.skill-toggle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skill-toggle::before {
+    content: '';
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-top: 8px solid var(--text-dark);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.skill-section.collapsed .skill-toggle::before {
+    transform: rotate(-90deg);
+}
+
+/* Content styles */
+.skill-content-wrapper {
+    transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.skill-content {
+    opacity: 1;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 0.5rem;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.skill-section.collapsed {
+    .skill-content-wrapper {
+        height: 0 !important;
+    }
+    
+    .skill-content {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Abnormal info styles */
+.abnormal-primary-info {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.abnormal-details-info {
+    padding: 1.5rem;
+}
+
+.abnormal-desc {
+    margin-bottom: 1rem;
+}
+
+/* Remove extra margins */
+.abnormal-primary-info .item-row,
+.abnormal-details-info .stat-grid {
+    margin: 0;
+    padding: 0;
+}
+
+/* Icon styles */
+.abnormal-primary-info .item-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 1rem;
+}
+
+
+
+
+
+
+
+/* Обновленные стили для AbnormalResist */
+.abnormal-resist-row {
+    background: var(--bg-module-light);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+}
+
+.abnormal-resist-info {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.skill-sprite-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.abnormal-resist-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.abnormal-resist-name {
+    margin-bottom: 0.25rem;
+}
+
+.abnormal-resist-name .skill-name {
+    font-weight: 500;
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.abnormal-resist-type {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.abnormal-resist-desc {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.skill-pack-info {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pack-resist-name {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.pack-resist-desc {
+    display: block;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+/* Темная тема */
+.dark-theme .abnormal-resist-row {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .skill-name {
+    color: #fff;
+}
+
+.dark-theme .abnormal-resist-type,
+.dark-theme .abnormal-resist-desc,
+.dark-theme .pack-resist-desc {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Анимация при наведении */
+.abnormal-resist-row:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+
 
 
 
 
 
 /* by Victor Pavlov */
+
+
+
+
+
+
+
+
+
+
+
+

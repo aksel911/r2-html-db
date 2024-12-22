@@ -3,7 +3,10 @@ import requests
 from services.monster_service import (
     get_monster_by_id,
     get_monster_drops,
-    get_monsters_by_class
+    get_monsters_by_class,
+    get_monster_resource,
+    get_monster_mtick,
+    get_monsterabnormalResist_data
 )
 from services.utils import get_google_sheets_data
 from services.merchant_service import (
@@ -45,9 +48,7 @@ def monster_detail(monster_id: int):
             race_info = {"mDesc": race_match.iloc[0]['mDesc']}
 
     # Get respawn time
-    query = f"SELECT mTick FROM {current_app.config['DATABASE_NAME']}.dbo.TblMonsterSpot WHERE mMID = ?"
-    respawn_result = execute_query(query, (monster_id,), fetch_one=True)
-    respawn_time = respawn_result[0] if respawn_result else 1000
+    respawn_time = get_monster_mtick(monster_id)
     respawn_info = {
         "mTick": respawn_time / 1000,
         "mTickms": respawn_time
@@ -80,14 +81,23 @@ def monster_detail(monster_id: int):
     merchant_items = get_merchant_items(monster_id)
 
     # Get monster model number
-    query = f"SELECT RFileName FROM {current_app.config['DATABASE_NAME']}.dbo.DT_MonsterResource WHERE ROwnerID = ?"
-    model_result = execute_query(query, (monster_id,), fetch_one=True)
+    model_result = get_monster_resource(monster_id)
     monster_model_no = None
     prefix = 'm'  # Default prefix for all monsters
 
     if model_result:
         monster_model_no = f"{int(model_result.RFileName):05}"
 
+    # DT_MonsterAbnormalResist Check
+    monster_abnormalResist_data = get_monsterabnormalResist_data(monster_id)
+    if monster_abnormalResist_data:
+        monster_abnormalResist_data = monster_abnormalResist_data
+    else:
+        monster_abnormalResist_data = None
+    
+    
+    
+    
     return render_template(
         'monster_core/monster_page_detail.html',
         item=monster,
@@ -100,6 +110,7 @@ def monster_detail(monster_id: int):
         merchant_items=merchant_items,
         mondropinfo=get_monster_drops(monster_id),
         monstermodelno_result=monster_model_no,
+        monster_abnormalResist_data=monster_abnormalResist_data,
         prefix=prefix
     )
 

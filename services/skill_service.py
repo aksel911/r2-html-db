@@ -3,9 +3,12 @@ from flask import current_app
 from models.skill import Skill
 from services.database import execute_query
 from services.utils import get_skill_icon_path, clean_dict
-from services.item_service import get_item_resource
+from services.item_service import (get_item_resource, get_item_pic_url)
 from services.abnormal_service import (
     get_abnormal_skills
+)
+from services.monster_service import (
+    get_monster_pic_url
 )
 
 
@@ -274,7 +277,6 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
             ON v1.mSID = v2.SID
     """
     
-
     try:
         row = execute_query(query, (item_id,), fetch_one=True)
         if not row:
@@ -297,18 +299,61 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
         linked_skillsaid = 0
         linked_skillsaid = itemdskill_data[3]
         
+        transformlist_data = None
+        monster_pic_url = None
+        
+        # TransformList
+        if row.MType == 20:
+            transformlist_result = get_transformlist_by_mttype(row.MAParam)
+            if transformlist_result:
+                transformlist_data = transformlist_result  # Здесь уже весь список
+                itemdskill_data = None
+                itemskill_pic = None
+        
+        # Не для книг
         if row.MType != 101:
-            itemdskill_data , itemskill_pic = None, None
+            itemdskill_data = None
+            itemskill_pic = None
             linked_skills = get_abnormal_skills(row.AID)
 
-        print(f"ITEMDSK2ILL: {linked_skillsaid}")
-        
-        return itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid
+        return itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid, transformlist_data, monster_pic_url
 
     except Exception as e:
         print(f"Error in get_item_skill: {e}")
         return None
     
+    
+
+def get_transformlist_by_mttype(mttype: int) -> Optional[List[Tuple]]:
+    query = """
+        SELECT
+            a.mNo,
+            a.mMonID,
+            a.mLevel,
+            a.mControl,
+            b.MName
+        FROM
+            TblTransformList AS a
+        INNER JOIN DT_Monster AS b ON (a.mMonID = b.MID)
+        WHERE
+            a.mGroupID = ?
+        ORDER BY a.mMonID
+    """
+    try:
+        rows = execute_query(query, (mttype,), fetch_one=False)
+        if not rows:
+            return None
+       
+        results = []
+        for row in rows:
+            transformlist_data = (row.mNo, row.mMonID, row.mLevel, row.mControl, row.MName.replace('/n', ' '))
+            monster_pic_url = get_monster_pic_url(row.mMonID)
+            results.append((transformlist_data, monster_pic_url))
+           
+        return results  # Возвращаем весь список трансформаций
+    except Exception as e:
+        print(f"Error in get_transformlist_by_mttype: {e}")
+        return None
     
 
 
@@ -346,10 +391,10 @@ def get_skill_use_by_spid_items(spid_id: int) -> Optional[Tuple]:
         skill_for_item_data = (row.AID, row.SID, row.SName, row.IID, row.IName)
 
         item_id = row.IID
-        print(f"XYUXYU: {item_id}")
 
-        skill_for_item_pic = get_item_resource(item_id)
-
+        skill_for_item_pic_data = get_item_resource(item_id)
+        skill_for_item_pic = get_item_pic_url(skill_for_item_pic_data)
+        
         return skill_for_item_data, skill_for_item_pic
 
     except Exception as e:

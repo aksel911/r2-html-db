@@ -45,22 +45,22 @@ def item_detail(item_id: int):
     # Process skill data
     abnormal_type_data = None
     abnormal_type_pic = None
+    
     itemdskill_data = None
     itemskill_pic = None
+    
     linked_skills = 0
     linked_skillsaid = 0
-    #print(f"xxxxxx {skill_data}")
     
+    transform_list = None
+    monster_pic_url = None
+
     if skill_data:
-        # Проверяем, что skill_data возвращает кортеж из трех элементов
-        if isinstance(skill_data, tuple) and len(skill_data) == 4:
-            itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid = skill_data
-            print(f"xxxxxx32323 {linked_skillsaid}")
+        # Проверяем, что skill_data возвращает кортеж из 6 элементов
+        if isinstance(skill_data, tuple) and len(skill_data) == 6:
+            itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid, transform_list, monster_pic_url = skill_data
             
             abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(linked_skillsaid)
-            # Проверяем наличие данных о скилле для получения abnormal_type
-            # if itemdskill_data and isinstance(itemdskill_data, tuple) and len(itemdskill_data) > 3:
-            #     abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(itemdskill_data[3])
 
     prefix = None
     item_model_no = None
@@ -99,7 +99,7 @@ def item_detail(item_id: int):
             prefix = 'i'  # TODO: ЗАГЛУШКА ДЛЯ ОСТАЛЬНОГО!
             item_model_no = base
 
-    
+    print(transform_list, monster_pic_url)
     return render_template(
         'item_core/item_page_detail.html',
         item=item,
@@ -117,7 +117,9 @@ def item_detail(item_id: int):
         linked_skillsaid=linked_skillsaid,
         abnormal_type_data=abnormal_type_data,
         abnormal_type_pic=abnormal_type_pic,
-        specificproc_data=specificproc_check
+        specificproc_data=specificproc_check,
+        transform_list=transform_list,
+        monster_pic_url=monster_pic_url
     )
 
 # Item type routes

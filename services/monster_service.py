@@ -1,11 +1,41 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Union
 import pandas as pd
 import requests
 from flask import current_app
 from models.monster import Monster
 from services.database import execute_query, get_db_connection
-from services.utils import get_google_sheets_data
+from services.utils import get_google_sheets_data, get_skill_icon_path, clean_description
 from config.settings import MONSTER_CLASS_URL
+from models.monster import DT_MonsterResource, DT_MonsterAbnormalResist
+
+
+def get_monster_resource(monster_id: int) -> Optional[DT_MonsterResource]:
+    """Get monster resource by MID with caching"""
+    query = "SELECT RFileName FROM DT_MonsterResource WHERE ROwnerID = ?"
+    row = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if row:
+        return DT_MonsterResource(
+            row.RFileName
+        )
+    return None
+
+def get_monster_resource_url(RFileName):
+    monster_model_no = f"{current_app.config['GITHUB_URL']}models/m{int(RFileName):05}"
+    
+def get_monster_pic_url(monster_id: int):
+    monster_pic_url = f"{current_app.config['GITHUB_URL']}{monster_id}.png"
+    return monster_pic_url
+
+def get_monster_mtick(monster_id: int) -> Union[str, int]:
+    query = f"SELECT mTick FROM {current_app.config['DATABASE_NAME']}.dbo.TblMonsterSpot WHERE mMID = ?"
+    respawn_result = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if respawn_result is None:
+        return 0
+    
+    return respawn_result[0]
+
 
 def get_monster_by_id(monster_id: int) -> Optional[Dict]:
     """Get monster information by ID"""
@@ -168,7 +198,6 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
     return results
 
 
-
 def get_monsters_by_class(class_ids: List[int]) -> Tuple[List[Tuple], Dict]:
     """Get monsters by class IDs"""
     class_str = ','.join(str(c) for c in class_ids)
@@ -189,3 +218,96 @@ def get_monsters_by_class(class_ids: List[int]) -> Tuple[List[Tuple], Dict]:
     }
 
     return monsters, file_paths
+
+
+
+def get_monsterabnormalResist_data(monster_id: int) -> Optional[List[DT_MonsterAbnormalResist]]:
+    """Get monster resource by MID with caching"""
+    query = """
+        SELECT DISTINCT
+    a.MID,
+    b.MName,
+    a.AID,
+    c.ADesc,
+    c1.AType,
+    c1.AName AS 'ATypeDesc',
+    d1.SID,
+    d1.SName,
+    v1.mSPID,
+    v1.mName,
+    v1.mDesc,
+    v1.mSpriteFile,
+    v1.mSpriteX,
+    v1.mSpriteY 
+    -- Можно добавить модули:
+    --   e1.MID AS 'ModuleID',
+    --   e1.MType,
+    --   e2.MName AS 'MTypeDesc',
+    --   e2.MDesc,
+    --   
+    --   
+    --   e1.MAParam,
+    --   e2.MAParamName,
+    --   
+    --   e1.MBParam,
+    --   e2.MBParamName,
+    --   
+    --   e1.MCParam,
+    --   e2.MCParamName
+    --
+    
+    FROM
+    DT_MonsterAbnormalResist AS a
+    
+    LEFT OUTER JOIN DT_Monster AS b ON ( b.MID = a.MID )
+    
+    LEFT OUTER JOIN DT_Abnormal AS c ON ( c.AID = a.AID )
+    LEFT OUTER JOIN TP_AbnormalType AS c1 ON ( c1.AType = c.AType )
+
+    LEFT OUTER JOIN DT_SkillAbnormal AS d ON ( c.AID = d.AbnormalID )
+    LEFT OUTER JOIN DT_Skill AS d1 ON ( d.SID = d1.SID )
+    LEFT OUTER JOIN DT_SkillPackSkill AS v ON ( d1.SID = v.mSID )
+    LEFT OUTER JOIN DT_SkillPack AS v1 ON ( v.mSPID = v1.mSPID ) 
+    
+    --   LEFT JOIN DT_AbnormalModule AS e ON (c.AID = e.AID)
+    --   LEFT JOIN DT_Module AS e1 ON (e.MID = e1.MID)
+    --   LEFT JOIN TP_ModuleType AS e2 ON (e1.MType = e2.MType)
+    
+    WHERE
+        a.MID = ? 
+    ORDER BY
+        a.MID
+    """
+    rows  = execute_query(query, (monster_id,), fetch_one=False)
+    
+    if rows:
+        result = []
+        for row in rows:
+            # Создаем базовый словарь с данными
+            resist_data = {
+                'MID': row[0],
+                'MName': row[1],
+                'AID': row[2],
+                'ADesc': clean_description(row[3]),
+                'AType': row[4],
+                'ATypeDesc': clean_description(row[5]),
+                'SID': row[6],
+                'SName': row[7],
+                'mSPID': row[8],
+                'SkillPackName': row[9],
+                'SkillPackDesc': clean_description(row[10]),
+            }
+            
+            # Генерируем путь к иконке используя get_skill_icon_path
+            resist_data['skill_icon_path'] = get_skill_icon_path(
+                sprite_file=row[11],  # mSpriteFile
+                sprite_x=row[12],     # mSpriteX
+                sprite_y=row[13]      # mSpriteY
+            )
+            
+            result.append(resist_data)
+        
+        return result
+    
+    return None
+    

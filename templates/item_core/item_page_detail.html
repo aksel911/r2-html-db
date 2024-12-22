@@ -337,11 +337,29 @@
                         </div>
                     </div>
                     {% endif %}
-				</div>
 
 
-				
 
+                    <!-- Перевоплощает в -->
+                    {% if transform_list %}
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <h2 class="section-title">Перевоплощает в</h2>
+                        <div class="skill-content">
+                            {% for transform_data, monster_pic in transform_list %}
+                            <div class="item-row">
+                                <img class="item-icon"
+                                    onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
+                                    src="{{ monster_pic }}">
+                                <a href="{{ url_for('monsters.monster_detail', monster_id=transform_data[1]) }}"
+                                class="item-name">{{ transform_data[4] }}</a>
+                                <span class="stat-value">Уровень: {{ transform_data[2] }}</span>
+                                <span class="stat-value">mControl: {{ transform_data[3] }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
 
 
 
@@ -349,16 +367,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 
-    <script>
-        document.getElementById('theme-toggle').addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-        });
 
-        // Проверка сохранённой темы при загрузке
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-theme');
-        }
-    </script>
+    {% include 'item_core/item_page_scripts.html' %}
+
+
 </body>
 </html>

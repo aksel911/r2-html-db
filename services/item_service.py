@@ -39,6 +39,12 @@ def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
         )
     return None
 
+
+def get_item_pic_url(item_id: int):
+    item_pic_url = f"{current_app.config['GITHUB_URL']}{item_id.RFileName}_{item_id.RPosX}_{item_id.RPosY}.png"
+    return item_pic_url
+
+
 @lru_cache(maxsize=1000)
 def get_item_model_resource(item_id: int) -> Optional[DT_ItemResource]:
     """Get item resource by ID with caching"""

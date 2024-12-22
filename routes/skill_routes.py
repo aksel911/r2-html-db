@@ -67,6 +67,8 @@ def skill_detail(skill_id: int):
             icon_data.mSpriteY
         )
 
+    print(f"HEHEHEHHEHEHE {skill_for_item_pic}")
+    
     return render_template(
         'skill_core/skill_page_detail.html',
         skill=skill,
