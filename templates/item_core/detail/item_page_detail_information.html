@@ -1,0 +1,32 @@
+<!-- Информация -->
+<div class="skill-section fadeIn">
+	{% if file_path %}
+		<p class="fadeIn mb-4">
+			<img src="{{ file_path }}"
+				 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+		</p>
+		{% else %}
+			<p class="fadeIn mb-4">No image available</p>
+	{% endif %}
+
+	<h2 class="section-title">Информация</h2>
+	<div class="skill-content">
+
+		<div class="stat-grid">
+			<div class="stat-row">
+				<span class="stat-label">Вес</span>
+				<span class="stat-value">{{ item.IWeight }}</span>
+			</div>
+			<div class="stat-row">
+				<span class="stat-label">Количество ячеек для рун</span>
+				<span class="stat-value">{{ item.IMaxBeadHoleCount }}</span>
+			</div>
+			{% if item.ITermOfValidity != 10000 %}
+			<div class="stat-row">
+				<span class="stat-label">Время использования</span>
+				<span class="stat-value">{{ item.ITermOfValidity }} дней</span>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>

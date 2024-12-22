@@ -509,8 +509,9 @@ body.dark-theme {
 .dark-theme h1,
 .dark-theme h2,
 .dark-theme p {
-    color: white !important;
+    color: rgba(255, 255, 255, 0.9) !important; 
 }
+
 
 .dark-theme .monster-title {
     background: linear-gradient(135deg, #4a90e2 0%, #87ceeb 100%);
@@ -707,8 +708,14 @@ body.dark-theme {
 /* Content styles */
 .skill-content-wrapper {
     transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    overflow-y: scroll; /* Add vertical scrollbar */
+    scrollbar-width: none;
     border-radius: 8px;
+}
+
+.skill-content-wrapper::-webkit-scrollbar {
+    display: none; /* Скрыть скроллбар в Chrome, Safari и Edge */
 }
 
 .skill-content {

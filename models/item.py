@@ -66,3 +66,59 @@ class DT_ItemAbnormalResist:
     mSpriteFile: str
     mSpriteX: int
     mSpriteY: int
+    
+
+@dataclass
+class DT_Bead:
+    """Data class for beads"""
+    mBeadNo: int
+    mBeadName: str
+    mBeadType: int
+    mBeadTypeDesc: str
+    mChkGroup: str
+    mPercent: float
+    mApplyTarget: str
+    mParamA: float
+    mParamADesc: str
+    mParamB: float
+    mParamBDesc: str
+    mParamC: float
+    mParamCDesc: str
+    mParamD: float
+    mParamDDesc: str
+    mParamE: float
+    mParamEDesc: str
+    mTargetIPos: str
+    mProb: float
+    mGroup: int
+    mItemSubType: int
+    mMaxHoleCount: int
+    mHoleCount: int
+    mHoleProb: float
+    MID: int
+
+
+
+@dataclass
+class DT_ItemBeadModule:
+    """Data class for beads"""
+    MID: int
+    MType: int
+    MName: str
+    MDesc: str
+    MLevel: int
+    MAParam: float
+    MAParamName: str
+    MBParam: float
+    MBParamName: str
+    MCParam: float
+    MCParamName: str
+    
+    
+@dataclass
+class TblBeadHoleProb:
+    """Data class for beads"""
+    IName: str
+    mMaxHoleCount: int
+    mHoleCount: int
+    mProb: float

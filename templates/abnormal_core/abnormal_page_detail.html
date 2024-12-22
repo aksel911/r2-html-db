@@ -23,41 +23,18 @@
     <main>
         <div class="container text-center">
             <div class="row">
-                <!-- Секция Информация -->
+                <!-- Первый блок -->
+                 
+                <!-- Информация -->
                 <div class="col-12 col-md-6">
-                    <div class="skill-section fadeIn">
+                    {% include 'abnormal_core/detail/abnormal_page_detail_information.html' %}
 
-                        <p class="fadeIn">
-                            <img src="{{ abnormal.abnormal_type_pic }}"
-                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                        </p>
 
-                        <h2 class="section-title">Информация</h2>
-                        <div class="skill-content">
-                            <div class="stat-grid fadeIn">
-                                <div class="stat-row">
-                                    <span class="stat-label">Тип аномалии</span>
-                                    <span class="stat-value">{{ abnormal.abnormal_data.AType }}</span>
-                                </div>
 
-                                {% if abnormal.abnormal_data.ALevel != 0 %}
-                                    <div class="stat-row">
-                                        <span class="stat-label">Уровень</span>
-                                        <span class="stat-value">{{ abnormal.abnormal_data.ALevel }}</span>
-                                    </div>
-                                {% endif %}
 
-                                {% if abnormal.abnormal_data.AEffect %}
-                                    <div class="stat-row">
-                                        <span class="stat-label">Эффект</span>
-                                        <span class="stat-value">{{ abnormal.abnormal_data.AEffect }}</span>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
+                <!-- Второй блок -->
                 <div class="col-12 col-md-6">
                     <h1 class="monster-title fadeIn" style="
                         font-size: 3rem;
@@ -93,91 +70,18 @@
                             z-index: 0;
                         "></div>
                     </h1>
+                    
+                    <!-- Связанные скиллы -->
+                    {% include 'abnormal_core/detail/abnormal_page_linked_skills.html' %}
 
-                    {% if abnormal_skills %}
-                        <div class="skill-section fadeIn">
-                            <p class="section-star">★</p>
-                            <h2 class="section-title">Связанные скиллы</h2>
-                            <div class="skill-content">
-                                {% for skill in abnormal_skills %}
-                                    <div class="item-row">
-                                        <img class="item-icon" src="{{ skill.icon }}"
-                                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                        <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}"
-                                           class="item-name">{{ skill.name }}</a>
-                                    </div>
-                                    {% if skill.desc %}
-                                        <p class="skill-desc">{{ skill.desc }}</p>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
+                    <!-- Связанные предметы -->
+                    {% include 'abnormal_core/detail/abnormal_page_linked_items.html' %}
+                    
+                    <!-- Описание аномалии -->
+                    {% include 'abnormal_core/detail/abnormal_page_adesc.html' %}
 
-                    {% if abnormal_items %}
-                        <div class="skill-section fadeIn">
-                            <p class="section-star">★</p>
-                            <h2 class="section-title">Связанные предметы</h2>
-                            <div class="skill-content">
-                                {% for item in abnormal_items %}
-                                    <div class="item-row">
-                                        <img class="item-icon" src="{{ item.icon }}"
-                                             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                        <a href="{{ url_for('items.item_detail', item_id=item.id) }}"
-                                           class="item-name">{{ item.name }}</a>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    {% if abnormal.abnormal_data.ADesc %}
-                        <div class="skill-section fadeIn">
-                            <p class="section-star">★</p>
-                            <h2 class="section-title">Описание аномалии</h2>
-                            <div class="skill-content">
-                                <p class="skill-desc">{{ abnormal.abnormal_data.ADesc }}</p>
-                            </div>
-                        </div>
-                    {% endif %}
                     <!-- Секция Модули -->
-                    {% if abnormal.module_data %}
-                        <div class="skill-section fadeIn">
-                            <p class="section-star">★</p>
-                            <h2 class="section-title">Модули</h2>
-                            <div class="skill-content">
-                                <div class="module-content">
-                                    <div class="module-header">
-                                        <h3 class="module-type">{{ abnormal.module_data.type_name }}</h3>
-                                        <p class="module-desc">{{ abnormal.module_data.type_desc }}</p>
-                                    </div>
-
-                                    <div class="skill-stats">
-                                        <div class="stat-row">
-                                            <span class="stat-label">Тип модуля</span>
-                                            <span class="stat-value">{{ abnormal.module_data.type }}</span>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span class="stat-label">Уровень</span>
-                                            <span class="stat-value">{{ abnormal.module_data.level }}</span>
-                                        </div>
-
-                                        {% if abnormal.module_data.params %}
-                                            <div class="module-params">
-                                                <h4 class="params-title">Параметры</h4>
-                                                {% for param in abnormal.module_data.params %}
-                                                    <div class="stat-row">
-                                                        <span class="stat-label">{{ param.name }}</span>
-                                                        <span class="stat-value">{{ param.value }}</span>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
+                    {% include 'abnormal_core/detail/abnormal_page_module.html' %}
                 </div>
             </div>
         </div>

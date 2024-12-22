@@ -2,9 +2,10 @@ from typing import List, Dict, Optional, Tuple
 from os.path import splitext
 from functools import lru_cache
 from flask import current_app
-from models.item import DT_Item, DT_ItemResource, TblSpecificProcItem, DT_ItemAbnormalResist
+from models.item import DT_Item, DT_ItemResource, TblSpecificProcItem, DT_ItemAbnormalResist, DT_Bead, DT_ItemBeadModule, TblBeadHoleProb
 from services.database import execute_query, get_db_connection
 from services.utils import get_skill_icon_path, clean_description
+
 
 @lru_cache(maxsize=1000)
 def get_item_by_id(item_id: int) -> Optional[DT_Item]:
@@ -143,7 +144,7 @@ def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[Lis
     return items, file_paths
 
 
-
+# DT_ItemAbnormalResist Check
 def get_itemabnormalResist_data(item_id: int) -> Optional[List[DT_ItemAbnormalResist]]:
     """Get item resource by MID with caching"""
     query = """
@@ -233,3 +234,199 @@ def get_itemabnormalResist_data(item_id: int) -> Optional[List[DT_ItemAbnormalRe
         return result
     
     return None
+
+# DT_Bead Check
+def get_rune_bead_data(item_id: int) -> Optional[DT_Bead]:
+    """Get detailed bead/rune data by item ID with caching"""
+    query = """
+    SELECT
+        a.mBeadNo,
+        c.mName as 'mBead_Name',
+        c.mBeadType,
+        d1.mDesc as 'mBeadTypeDesc',
+        CASE 
+            WHEN c.mChkGroup = 0 THEN 'По умолчанию (0)'
+            WHEN c.mChkGroup = 1 THEN 'Атака всем (1)'
+            WHEN c.mChkGroup = 2 THEN 'Атака навыком (2)'
+            WHEN c.mChkGroup = 3 THEN 'Атака оружием (3)'
+            WHEN c.mChkGroup = 4 THEN 'Атака всем по умолчанию (4)'
+            WHEN c.mChkGroup = 5 THEN 'Атака навыком по умолчанию (5)'
+            WHEN c.mChkGroup = 6 THEN 'Атака оружием по умолчанию (6)'
+            WHEN c.mChkGroup = 7 THEN 'Вероятность навыка по умолчанию (7)'
+            WHEN c.mChkGroup = 8 THEN 'Вероятность оружия по умолчанию (8)'
+            WHEN c.mChkGroup = 9 THEN 'Урон по умолчанию (9)'
+            WHEN c.mChkGroup = 10 THEN 'Урон навыком по умолчанию (10)'
+            WHEN c.mChkGroup = 11 THEN 'Физический урон по умолчанию (11)'
+            WHEN c.mChkGroup = 12 THEN 'Магический урон по умолчанию (12)'
+            WHEN c.mChkGroup = 13 THEN 'Отраженный урон по умолчанию (13)'
+            WHEN c.mChkGroup = 14 THEN 'Привязанный к навыку умение по умолчанию (14)'
+            WHEN c.mChkGroup = 15 THEN 'Урон навыка (15)'
+            WHEN c.mChkGroup = 16 THEN 'Критический урон по умолчанию (16)'
+            WHEN c.mChkGroup = 17 THEN 'Привязанное умение по умолчанию (17)'
+            ELSE 'Неизвестно'
+        END AS mChkGroup,
+        c.mPercent,
+        CASE 
+            WHEN c.mApplyTarget = 0 THEN 'На себя (0)'
+            WHEN c.mApplyTarget = 1 THEN 'На других (1)'
+            WHEN c.mApplyTarget = 2 THEN 'На других игроков (2)'
+            WHEN c.mApplyTarget = 3 THEN 'На других NPC (3)'
+            ELSE 'Неизвестно'
+        END AS mApplyTarget,
+        c.mParamA,
+        d1.mDescA as 'mParamADesc',
+        c.mParamB,
+        d1.mDescB as 'mParamBDesc',
+        c.mParamC,
+        d1.mDescC as 'mParamCDesc',
+        c.mParamD,
+        d1.mDescD as 'mParamDDesc',
+        c.mParamE,
+        d1.mDescE as 'mParamEDesc',
+        CASE 
+            WHEN d.mTargetIPos = 0 THEN 'Оружие (0)'
+            WHEN d.mTargetIPos = 1 THEN 'Щит (1)'
+            WHEN d.mTargetIPos = 2 THEN 'Доспех (броня) (2)'
+            WHEN d.mTargetIPos = 3 THEN 'Кольцо 1 (левое) (3)'
+            WHEN d.mTargetIPos = 4 THEN 'Кольцо 2 (правое) (4)'
+            WHEN d.mTargetIPos = 5 THEN 'Амулет (5)'
+            WHEN d.mTargetIPos = 6 THEN 'Обувь (6)'
+            WHEN d.mTargetIPos = 7 THEN 'Перчатки (7)'
+            WHEN d.mTargetIPos = 8 THEN 'Головной убор (шлем) (8)'
+            WHEN d.mTargetIPos = 9 THEN 'Пояс (9)'
+            WHEN d.mTargetIPos = 10 THEN 'Плащ (10)'
+            WHEN d.mTargetIPos = 11 THEN 'Сфера Мастера (11)'
+            WHEN d.mTargetIPos = 12 THEN 'Сфера Души (12)'
+            WHEN d.mTargetIPos = 13 THEN 'Сфера Защиты (13)'
+            WHEN d.mTargetIPos = 14 THEN 'Сфера Разрушения (14)'
+            WHEN d.mTargetIPos = 15 THEN 'Сфера Жизни (15)'
+            WHEN d.mTargetIPos = 16 THEN 'Сфера 1 Слот (Удачи/Ремесленника) (16)'
+            WHEN d.mTargetIPos = 17 THEN 'Сфера 2 Слот (Перевоплощения) (17)'
+            WHEN d.mTargetIPos = 18 THEN 'Сфера 3 Слот (Мудрости, Охоты, Разума) (18)'
+            WHEN d.mTargetIPos = 19 THEN 'Питомец (19)'
+            ELSE 'Неизвестно'
+        END AS mTargetIPos,
+        d.mProb as 'mProb',
+        d.mGroup,
+        d.mItemSubType,
+        a2.mMaxHoleCount,
+        a2.mHoleCount,
+        a2.mProb as 'mHoleProb',
+        a1.MID
+    FROM DT_ItemBeadEffect as a
+    LEFT JOIN DT_ItemBeadModule as a1 on (a.IID = a1.IID)
+    LEFT JOIN TblBeadHoleProb as a2 on (a.IID = a2.IID)
+    INNER JOIN DT_Item as b on (a.IID = b.IID)
+    INNER JOIN DT_BeadEffect as c on (a.mBeadNo = c.mBeadNo)
+    INNER JOIN DT_Bead as d on (a.IID = d.IID)
+    INNER JOIN TP_BeadType as d1 on (d1.mBeadType = c.mBeadType)
+    WHERE a.IID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_Bead(
+            row.mBeadNo,
+            row.mBead_Name,
+            row.mBeadType,
+            row.mBeadTypeDesc,
+            row.mChkGroup,
+            row.mPercent,
+            row.mApplyTarget,
+            row.mParamA,
+            row.mParamADesc,  
+            row.mParamB,
+            row.mParamBDesc,  
+            row.mParamC,
+            row.mParamCDesc,  
+            row.mParamD,
+            row.mParamDDesc, 
+            row.mParamE,
+            row.mParamEDesc, 
+            row.mTargetIPos,
+            row.mProb,
+            row.mGroup,
+            row.mItemSubType,
+            row.mMaxHoleCount,
+            row.mHoleCount,
+            row.mHoleProb,
+            row.MID
+        )
+    return None
+
+
+# DT_ItemBeadModule Check
+def get_item_bead_module_data(item_id: int) -> Optional[List[DT_ItemBeadModule]]:
+    query = """
+        SELECT
+            a.MID,
+            c.MType,
+            c1.MName,
+            c1.MDesc,
+            c.MLevel,
+            c.MAParam,
+            c1.MAParamName,
+            c.MBParam,
+            c1.MBParamName,
+            c.MCParam,
+            c1.MCParamName
+        FROM
+            DT_ItemBeadModule AS a
+        INNER JOIN DT_Item AS b ON ( a.IID = b.IID )
+        INNER JOIN DT_Module AS c ON ( a.MID = c.MID )
+        INNER JOIN TP_ModuleType AS c1 ON ( c.MType = c1.MType )
+        
+        WHERE
+            a.IID = ?
+    """
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_ItemBeadModule(
+            row.MID,
+            row.MType,
+            row.MName,
+            row.MDesc,
+            row.MLevel,
+            row.MAParam,
+            row.MAParamName,
+            row.MBParam,
+            row.MBParamName,
+            row.MCParam,
+            row.MCParamName
+        )
+    return None
+
+
+# TblBeadHoleProb Check
+def get_item_bead_holeprob_data(item_id: int) -> Optional[List[TblBeadHoleProb]]:
+    query = """
+    SELECT 
+        b.IName,
+        a.mMaxHoleCount,
+        a.mHoleCount,
+        a.mProb
+    FROM dbo.TblBeadHoleProb AS a
+    INNER JOIN DT_Item AS b ON (a.IID = b.IID)
+    WHERE a.IID = ?
+    ORDER BY a.mMaxHoleCount, a.mHoleCount
+    """
+    
+
+    
+    rows = execute_query(query, (item_id,), fetch_one=False)
+    #print(f"DEBUG: iid= {item_id}, Rows={rows}")
+    if not rows:
+        return None
+        
+    results = []
+    for row in rows:
+        results.append(TblBeadHoleProb(
+            row.IName,
+            row.mMaxHoleCount,
+            row.mHoleCount,
+            float(row.mProb)  # Явное приведение к float
+        ))
+    
+    return results

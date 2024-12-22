@@ -11,7 +11,46 @@ from services.monster_service import (
     get_monster_pic_url
 )
 
+# Easy defs
+# Поиск SID по SPID с картинкой
+def get_sid_by_spid(spid):
+    query = """
+    SELECT
+        a.mSPID,
+        a.mName,
+        a.mSpriteFile,
+        a.mSpriteX,
+        a.mSpriteY,
+        b1.SID,
+        b1.SName 
+    FROM
+        DT_SkillPack AS a
+        
+    INNER JOIN DT_SkillPackSkill AS b ON ( a.mSPID = b.mSPID )
+    INNER JOIN DT_Skill AS b1 ON ( b.mSID = b1.SID )
+        
+    WHERE 
+        a.mSPID = ?
+            """
+    row = execute_query(query, (spid,), fetch_one=True)
+    spid_data = row
+    
+    
+    if not spid_data:
+        return None
 
+    # Generate file paths
+    spid_inage = get_skill_icon_path(
+            spid_data[2],  # mSpriteFile
+            spid_data[3],  # mSpriteX
+            spid_data[4]   # mSpriteY
+        )
+
+    
+    return spid_data, spid_inage
+
+
+# rest of the code
 def get_skills_list() -> Tuple[List[Tuple], Dict[int, str]]:
     """Get list of all skills"""
     query = """
@@ -74,10 +113,6 @@ def get_monster_reget_skill_pic_icon_datasource(skill_id: int) -> Optional[str]:
         return icon_data
     else:
         return None
-
-
-
-
 
 
 def get_skill_detail(skill_id: int) -> List[Optional[Skill]]:
@@ -222,12 +257,6 @@ def get_skill_detail(skill_id: int) -> List[Optional[Skill]]:
     return skills
 
 
-
-
-
-
-
-
 def get_abnormal_in_skill(aid: int) -> Optional[Tuple]:
     """Get abnormal information for a skill"""
     if aid is None:
@@ -269,6 +298,7 @@ def get_abnormal_in_skill(aid: int) -> Optional[Tuple]:
     except Exception as e:
         print(f"Error in get_abnormal_in_skill: {e}")
         return None
+
 
 def get_item_skill(item_id: int) -> Optional[Tuple]:
     """Get skill details for an item"""
@@ -316,6 +346,7 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
     
     try:
         row = execute_query(query, (item_id,), fetch_one=True)
+
         if not row:
             return None
 
@@ -360,7 +391,6 @@ def get_item_skill(item_id: int) -> Optional[Tuple]:
         return None
     
     
-
 def get_transformlist_by_mttype(mttype: int) -> Optional[List[Tuple]]:
     query = """
         SELECT
@@ -392,8 +422,6 @@ def get_transformlist_by_mttype(mttype: int) -> Optional[List[Tuple]]:
         print(f"Error in get_transformlist_by_mttype: {e}")
         return None
     
-
-
 
 def get_skill_use_by_spid_items(spid_id: int) -> Optional[Tuple]:
     """Get skill details by ID"""
@@ -438,9 +466,6 @@ def get_skill_use_by_spid_items(spid_id: int) -> Optional[Tuple]:
         print(f"Error in get_skill_use_by_spid_items: {e}")
         return None
     
-
-
-
 
 def get_skill_use_by_sid(spid_id: int) -> Optional[Tuple]:
     """Get skill details by ID"""

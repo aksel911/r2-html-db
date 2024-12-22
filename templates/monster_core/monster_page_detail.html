@@ -28,7 +28,7 @@
                     {% include 'GLB.html' %}
                 </div>
             {% else %}
-                <p class="fadeIn">No monstermodelno_result</p>
+                <p class="fadeIn">🏴</p>
             {% endif %}
 
             {% if not monstermodelno_result and file_path_gif %}
@@ -36,133 +36,27 @@
                     <img src="{{ url_for('static', filename='gif/' + file_path_gif) }}" style="transform: scale(0.75);">
                 </p>
             {% elif not monstermodelno_result %}
-                <p class="fadeIn">No gif image available</p>
+                <p class="fadeIn">🏳️</p>
             {% endif %}
 
             <div class="row">
                 <div class="col-12 col-md-6">
+                    <!-- Первый блок -->
+
                     <!-- Информация -->
-                    <div class="skill-section fadeIn ">
-                        <h2 class="section-title">Информация</h2>
-                        {% if file_path %}
-                            <p class="fadeIn mb-4">
-                                <img src="{{ file_path }}"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                            </p>
-                            {% else %}
-                            <p class="fadeIn mb-4">No image available</p>
-                        {% endif %}
-
-                        <div class="skill-content">
-
-                            <div class="stat-grid">
-                                <div class="stat-row">
-                                    <span class="stat-label">Уровень</span>
-                                    <span class="stat-value">{{ item.MLevel }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Класс</span>
-                                    <span class="stat-value">{{ item.MClass }}, {{ classinfo.MName }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Раса</span>
-                                    <span class="stat-value">{{ raceinfo.mDesc }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Отображается HP</span>
-                                    <span class="stat-value">{{ item.mIsShowHp }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Агрессивность</span>
-                                    <span class="stat-value">{{ item.mIsResistTransF }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Агр. на перевоплощение</span>
-                                    <span class="stat-value">{{ item.mDetectTransP }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Агр. на невидимость</span>
-                                    <span class="stat-value">{{ item.mDetectTransF }}</span>
-                                </div>
-                                {% if respawntimeinfo.mTick != 0.001 %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Время возрождения</span>
-                                    <span class="stat-value">{{ respawntimeinfo.mTick }} сек. или {{ respawntimeinfo.mTickms }} мс.</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    {% include 'monster_core/detail/monster_page_detail_information.html' %}
 
                     <!-- Локация обитания -->
-                    {% if monlocationinfo.Location %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Локация обитания</h2>
-                        <div class="skill-content">
-                            <div class="skill-stats">
-                                <div class="stat-row">
-                                    <span class="stat-label">Название локации</span>
-                                    <span class="stat-value">{{ monlocationinfo.Location }}</span>
-                                </div>
-                                {% if monlocationinfo.LocationLevel %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Тип</span>
-                                    <span class="stat-value">{{ monlocationinfo.LocationLevel }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'monster_core/detail/monster_page_detail_location.html' %}
 
 
                     <!-- AbnormalResist -->
-                    {% if monster_abnormalResist_data %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">AbnormalResist</h2>
-                        <div class="skill-content">
-                            {% set unique_sids = [] %}
-                            {% for resist in monster_abnormalResist_data %}
-                                {% if resist.SID != None and resist.SID not in unique_sids %}
-                                    {% set _ = unique_sids.append(resist.SID) %}
-                                    <div class="abnormal-resist-row">
-                                        <div class="abnormal-resist-info">
-                                            <img class="skill-sprite-icon"
-                                                src="{{ resist.skill_icon_path }}"
-                                                alt="{{ resist.SName or 'Skill icon' }}"
-                                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                            <div class="abnormal-resist-content">
-                                                <div class="abnormal-resist-name">
-                                                    <a href="{{ url_for('skills.skill_detail', skill_id=resist.SID) }}" class="skill-name">{{ resist.SName or 'Неизвестно' }}</a>
-                                                </div>
-                                                <div class="abnormal-resist-type">AType: {{ resist.ATypeDesc or 'Тип не указан' }} [{{ resist.AType or 'Тип не указан' }}]</div>
-                                                {% if resist.ADesc %}
-                                                    <div class="abnormal-resist-desc">{{ resist.ADesc }}</div>
-                                                {% endif %}
-                                                
-                                                {% if resist.SkillPackName %}
-                                                    <div class="skill-pack-info">
-                                                        <span class="pack-resist-name">{{ resist.SkillPackName }}</span>
-                                                        {% if resist.SkillPackDesc %}
-                                                            <span class="pack-resist-desc">{{ resist.SkillPackDesc }}</span>
-                                                        {% endif %}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
+                    {% include 'monster_core/detail/monster_page_detail_abnormal_resist.html' %}
 
 
                 </div>
-
+                
+                <!-- Второй блок -->
                 <div class="col-12 col-md-6">
                     <!-- Заголовок -->
                     <h1 class="monster-title fadeIn">
@@ -171,108 +65,15 @@
                     </h1>
 
                     <!-- Статистика -->
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Статистика</h2>
-                        <div class="skill-content">
-                            <div style="max-width: 400px; margin: 0 auto;">
-                                <!-- Progress bars -->
-                                <div class="stat-row">
-                                    <span style="width: 80px; text-align: left;">Опыт:</span>
-                                    <div class="progress fadeIn" style="flex-grow: 1;">
-                                        <div class="progress-bar exp-bar" role="progressbar"
-                                             style="width: {{ item.mExp / 10 }}%;"
-                                             aria-valuenow="{{ item.mExp }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="{{ item.mExp }}">
-                                            {{ item.mExp }} Exp
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="stat-row">
-                                    <span style="width: 80px; text-align: left;">HP:</span>
-                                    <div class="progress fadeIn" style="flex-grow: 1;">
-                                        <div class="progress-bar health-bar" role="progressbar"
-                                             style="width: {{ item.MHP / 10 }}%;"
-                                             aria-valuenow="{{ item.MHP }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="{{ item.MHP }}">
-                                            {{ item.MHP }} HP
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="stat-row">
-                                    <span style="width: 80px; text-align: left;">MP:</span>
-                                    <div class="progress fadeIn" style="flex-grow: 1;">
-                                        <div class="progress-bar mana-bar" role="progressbar"
-                                             style="width: {{ item.MMP / 10 }}%;"
-                                             aria-valuenow="{{ item.MMP }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="{{ item.MMP }}">
-                                            {{ item.MMP }} MP
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="stat-row">
-                                    <span style="width: 80px; text-align: left;">Репутация:</span>
-                                    <div class="progress fadeIn" style="flex-grow: 1;">
-                                        <div class="progress-bar chaotic-bar" role="progressbar"
-                                             style="width: {{ item.MChaotic }}%;"
-                                             aria-valuenow="{{ item.MChaotic }}"
-                                             aria-valuemin="0"
-                                             aria-valuemax="1000">
-                                            {{ item.MChaotic }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {% include 'monster_core/detail/monster_page_detail_stats.html' %}
 
                     <!-- Список выпадающих предметов -->
-                    {% if mondropinfo %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Список выпадающих предметов</h2>
-                        <div class="skill-content">
-                            {% for drop in mondropinfo %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ drop['Pic'] }}">
-                                <a href="{{ url_for('items.item_detail', item_id=drop['DItem']) }}"
-                                   class="item-name">{{ drop["IName"] }}</a>
-                                <span class="stat-value">{{ drop["DNumber"] }} шт.</span>
-                                <span class="stat-value">{{ drop["DPercentItem"] }} %</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'monster_core/detail/monster_page_detail_item_drop.html' %}
 
                     <!-- Список продаваемых предметов -->
-                    {% if merchant_items %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Список продаваемых предметов</h2>
-                        <div class="skill-content">
-                            {% for item in merchant_items %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ item.MerchantItemPicture }}">
-                                <a href="{{ url_for('items.item_detail', item_id=item.MerchantItemID) }}"
-                                   class="item-name">{{ item.MerchantItemName }}</a>
-                                <span class="stat-value">{{ item.MerchantItemPrice }}</span>
-                                <span class="stat-value">{{ item.MerchantPaymentType }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'monster_core/detail/monster_page_detail_item_sell.html' %}
+
+
                 </div>
             </div>
         </div>

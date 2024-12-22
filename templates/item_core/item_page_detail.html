@@ -37,246 +37,50 @@
                     {% include 'GLB.html' %}
                 </div>
             {% else %}
-                <p class="fadeIn">No monstermodelno_result</p>
+                <p class="fadeIn">🏴</p>
             {% endif %}
 
 
 
 			<div class="row">
                 <div class="col-12 col-md-6">
+                    <!-- Первый блок -->
+
                     <!-- Информация -->
-                    <div class="skill-section fadeIn">
-                        {% if file_path %}
-                            <p class="fadeIn mb-4">
-                                <img src="{{ file_path }}"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                            </p>
-                            {% else %}
-                                <p class="fadeIn mb-4">No image available</p>
-                        {% endif %}
+                    {% include 'item_core/detail/item_page_detail_information.html' %}
 
-                        <h2 class="section-title">Информация</h2>
-                        <div class="skill-content">
+                    <!-- TblBeadHoleProb --> <!-- Свиток создания ячеек -->
+                    {% include 'item_core/detail/TblBeadHoleProb.html' %}
 
-                            <div class="stat-grid">
-                                <div class="stat-row">
-                                    <span class="stat-label">Вес</span>
-                                    <span class="stat-value">{{ item.IWeight }}</span>
-                                </div>
-                                <div class="stat-row">
-                                    <span class="stat-label">Количество ячеек для рун</span>
-                                    <span class="stat-value">{{ item.IMaxBeadHoleCount }}</span>
-                                </div>
-                                {% if item.ITermOfValidity != 10000 %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Время использования</span>
-                                    <span class="stat-value">{{ item.ITermOfValidity }} дней</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    <!-- DT_Bead Руны --> <!-- Руны -->
+                    {% include 'item_core/detail/DT_Bead.html' %}
 
-                    
+                    <!-- DT_ItemBeadModule -->
+                    {% include 'item_core/detail/DT_ItemBeadModule.html' %}
+
                     <!-- Крафт предмета -->
-                    {% if craft_result %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Крафт предмета</h2>
-                        <div class="skill-content">
-                            {% for craft in craft_result %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ craft.ImagePath }}">
-                                <a href="{{ url_for('items.item_detail', item_id=craft.RItemID) }}"
-                                   class="item-name">{{ craft.CraftItems }}</a>
-                                <span class="stat-value">{% if craft.RSuccess is not none %}{{ craft.RSuccess }} %{% endif %}</span>
-                                <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-
+                    {% include 'item_core/detail/item_page_detail_item_craft.html' %}
 
                     <!-- Нужен для крафта -->
-                    {% if craft_next %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Нужен для крафта</h2>
-                        <div class="skill-content">
-                            {% for craft in craft_next %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ craft.ImagePath }}">
-                                <a href="{{ url_for('items.item_detail', item_id=craft.RItemID0) }}"
-                                   class="item-name">{{ craft.IName }}</a>
-                                <span class="stat-value">{{ craft.RSuccess }} %</span>
-                                <span class="stat-value">{{ craft.RIsCreateCnt }} шт.</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-
+                    {% include 'item_core/detail/item_page_detail_need_craft.html' %}
 
                     <!-- TblSpecificProcItem -->
-                    {% if specificproc_data %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">SpecificProc</h2>
-                        <div class="skill-content">
-                            <div class="stat-grid">
-                                {% if specificproc_data.mProcNo %}
-                                <div class="stat-row">
-                                    <span class="stat-label">ProcNo</span>
-                                    <span class="stat-value">{{ specificproc_data.mProcNo }}</span>
-                                </div>
-                                {% endif %}
-
-                                {% if specificproc_data.mProcDesc %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Описание ProcNo</span>
-                                    <span class="stat-value">{{ specificproc_data.mProcDesc }}</span>
-                                </div>
-                                {% endif %}
-
-                                {% if specificproc_data.mAParam is not none %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Parameter A</span>
-                                    <span class="stat-value">
-                                        {{ specificproc_data.mAParam }}
-                                        {% if specificproc_data.mAParamDesc %}
-                                        <br><small>{{ specificproc_data.mAParamDesc }}</small>
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                {% endif %}
-
-                                {% if specificproc_data.mBParam is not none %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Parameter B</span>
-                                    <span class="stat-value">
-                                        {{ specificproc_data.mBParam }}
-                                        {% if specificproc_data.mBParamDesc %}
-                                        <br><small>{{ specificproc_data.mBParamDesc }}</small>
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                {% endif %}
-
-                                {% if specificproc_data.mCParam is not none %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Parameter C</span>
-                                    <span class="stat-value">
-                                        {{ specificproc_data.mCParam }}
-                                        {% if specificproc_data.mCParamDesc %}
-                                        <br><small>{{ specificproc_data.mCParamDesc }}</small>
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                {% endif %}
-
-                                {% if specificproc_data.mDParam is not none %}
-                                <div class="stat-row">
-                                    <span class="stat-label">Parameter D</span>
-                                    <span class="stat-value">
-                                        {{ specificproc_data.mDParam }}
-                                        {% if specificproc_data.mDParamDesc %}
-                                        <br><small>{{ specificproc_data.mDParamDesc }}</small>
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-
+                    {% include 'item_core/detail/TblSpecificProcItem.html' %}
 
                     <!-- Скилл -->
-                    {% if itemdskill_data and itemskill_pic %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Скилл</h2>
-                        <div class="skill-content">
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ itemskill_pic }}">
-                                <a href="{{ url_for('skills.skill_detail', skill_id=itemdskill_data[10]) }}"
-                                   class="item-name">{{ itemdskill_data[6] }}</a>
-                            </div>
-                        </div>
-                    </div>
-                    {% elif linked_skills %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Связанные скиллы</h2>
-                        <div class="skill-content">
-                            {% for skill in linked_skills %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ skill.icon }}">
-                                <a href="{{ url_for('skills.skill_detail', skill_id=skill.id) }}"
-                                   class="item-name">{{ skill.name }}</a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
+                    {% include 'item_core/detail/item_page_detail_skill.html' %}
 
                     <!-- Абнормал -->
-                    {% if abnormal_type_data and abnormal_type_pic %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Абнормал</h2>
-                        <div class="skill-content">
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ abnormal_type_pic }}">
-                                <a href="{{ url_for('abnormals.abnormal_detail', aid=abnormal_type_data[0]) }}"
-                                   class="item-name">{{ abnormal_type_data[1] }}</a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    <!-- Можно купить у -->
-                    {% if merchant_sellers %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Можно купить у</h2>
-                        <div class="skill-content">
-                            {% for merchant in merchant_sellers %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/{{ merchant.MerchantID }}.png">
-                                <a href="{{ url_for('monsters.monster_detail', monster_id=merchant.MerchantID) }}"
-                                   class="item-name">{{ merchant.MerchantName }}</a>
-                                <span class="stat-value">{{ merchant.Price }}</span>
-                                <span class="stat-value">{{ merchant.PaymentType }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'item_core/detail/item_page_detail_abnormal.html' %}
 
 				</div>
 
+                <!-- Второй блок -->
 				<div class="col-12 col-md-6">
 					<h1 class="monster-title fadeIn" style="
                         font-size: 3rem;
                         font-weight: 800;
-                        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                        background: linear-gradient(135deg,rgb(22, 22, 22) 0%, #2a5298 100%);
                         -webkit-background-clip: text;
                         background-clip: text;
                         color: transparent;
@@ -307,99 +111,21 @@
                             z-index: 0;
                         "></div>
                     </h1>
-
+                    <p class="fadeIn">{{ item.IName }}</p>
                     <p class="fadeIn"><img src="{{ item.IUseClass }}"></p>
 
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <div class="skill-content">
-                            <p class="fadeIn">{{ item.IDesc }}</p>
-                        </div>
-                    </div>
-
                     <!-- Можно получить из -->
-                    {% if mondropinfo %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Можно получить из</h2>
-                        <div class="skill-content">
-                            {% for drop in mondropinfo %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                     onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                     src="{{ drop['Pic'] }}">
-                                <a href="{{ url_for('monsters.monster_detail', monster_id=drop['MID']) }}"
-                                   class="item-name">{{ drop["MName"] }}</a>
-                                <span class="stat-value">{{ drop["DNumber"] }} шт.</span>
-                                <span class="stat-value">{{ drop["DPercentItem"] }} %</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'item_core/detail/item_page_detail_can_get_item_from.html' %}
 
                     <!-- AbnormalResist -->
-                    {% if item_abnormalResist_data %}
-                            {% set unique_sids = [] %}
-                            {% for resist in item_abnormalResist_data %}
-                            {% if (resist.SID or 0) != 0 and (resist.SID or 0) not in unique_sids %}
-                            <div class="skill-section fadeIn">
-                                <p class="section-star">★</p>
-                                <h2 class="section-title">AbnormalResist</h2>
-                                <div class="skill-content">
-                                    {% set _ = unique_sids.append(resist.SID) %}
-                                    <div class="abnormal-resist-row">
-                                        <div class="abnormal-resist-info">
-                                            <img class="skill-sprite-icon"
-                                                src="{{ resist.skill_icon_path }}"
-                                                alt="{{ resist.SName or 'Skill icon' }}"
-                                                onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-                                            <div class="abnormal-resist-content">
-                                                <div class="abnormal-resist-name">
-                                                    <a href="{{ url_for('skills.skill_detail', skill_id=resist.SID) }}" class="skill-name">{{ resist.SName or 'Неизвестно' }}</a>
-                                                </div>
-                                                <div class="abnormal-resist-type">AType: {{ resist.ATypeDesc or 'Тип не указан' }} [{{ resist.AType or 'Тип не указан' }}]</div>
-                                                {% if resist.ADesc %}
-                                                    <div class="abnormal-resist-desc">{{ resist.ADesc }}</div>
-                                                {% endif %}
-                                                
-                                                {% if resist.SkillPackName %}
-                                                    <div class="skill-pack-info">
-                                                        <span class="pack-resist-name">{{ resist.SkillPackName }}</span>
-                                                        {% if resist.SkillPackDesc %}
-                                                            <span class="pack-resist-desc">{{ resist.SkillPackDesc }}</span>
-                                                        {% endif %}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'item_core/detail/item_page_detail_abnormal_resist.html' %}
 
                     <!-- Перевоплощает в -->
-                    {% if transform_list %}
-                    <div class="skill-section fadeIn">
-                        <p class="section-star">★</p>
-                        <h2 class="section-title">Перевоплощает в</h2>
-                        <div class="skill-content">
-                            {% for transform_data, monster_pic in transform_list %}
-                            <div class="item-row">
-                                <img class="item-icon"
-                                    onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'"
-                                    src="{{ monster_pic }}">
-                                <a href="{{ url_for('monsters.monster_detail', monster_id=transform_data[1]) }}"
-                                class="item-name">{{ transform_data[4] }}</a>
-                                <span class="stat-value">Уровень: {{ transform_data[2] }}</span>
-                                <span class="stat-value">mControl: {{ transform_data[3] }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
+                    {% include 'item_core/detail/item_page_detail_transform_in.html' %}
+
+            </div>
+        </div>
+    </main>
 
 
 

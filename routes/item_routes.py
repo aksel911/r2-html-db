@@ -5,7 +5,10 @@ from services.item_service import (
     get_items_by_type,
     get_item_model_resource,
     get_specific_proc_item,
-    get_itemabnormalResist_data
+    get_itemabnormalResist_data,
+    get_rune_bead_data,
+    get_item_bead_module_data,
+    get_item_bead_holeprob_data
 )
 from services.monster_service import get_monster_drop_info
 from services.merchant_service import get_merchant_sellers
@@ -13,7 +16,7 @@ from services.craft_service import (
     check_base_items_for_craft,
     check_next_craft_item
 )
-from services.skill_service import get_item_skill
+from services.skill_service import get_item_skill, get_skill_use_by_spid_items, get_sid_by_spid
 from services.abnormal_service import get_abnormal_in_skill
 
 bp = Blueprint('items', __name__)
@@ -101,13 +104,49 @@ def item_detail(item_id: int):
             item_model_no = base
 
     # DT_ItemAbnormalResist Check
-    item_abnormalResist_data = get_itemabnormalResist_data(item_id)
-    if item_abnormalResist_data:
-        item_abnormalResist_data = item_abnormalResist_data
-    else:
-        item_abnormalResist_data = None
+    item_abnormalResist_data = None
     
-    print(f"PIZDAAAAAA: {item_abnormalResist_data}")
+    item_abnormalResist_data = get_itemabnormalResist_data(item_id)
+    item_abnormalResist_data = item_abnormalResist_data or None
+
+    
+    
+    # DT_Bead Check
+    rune_bead_data = None
+    activation_bead_data = None
+    activation_bead_pic = None
+    
+    if item.IName.startswith('Руна'):
+        rune_bead_data = get_rune_bead_data(item_id)
+    
+    if rune_bead_data != None:
+        if rune_bead_data.mBeadType == 2:  # Активация навыка
+            activation_bead_data, activation_bead_pic = get_sid_by_spid(rune_bead_data.mParamA) # row.AID, row.SID, row.SName, row.IID, row.IName
+            
+            print(f"Activation Bead: {activation_bead_data}, {activation_bead_pic}")
+            #print(rune_bead_data.mGroup, rune_bead_data.mItemSubType, rune_bead_data.mProb, rune_bead_data.mTargetIPos)
+
+    
+    # DT_ItemBeadModule
+    item_bead_module_data = None
+    
+    item_bead_module_data = get_item_bead_module_data(item_id)
+    if item_bead_module_data:
+        item_bead_module_data = item_bead_module_data
+    else:
+        item_bead_module_data = None
+    
+    
+    # TblBeadHoleProb
+    item_bead_holeprob_data = None
+    
+    item_bead_holeprob_data = get_item_bead_holeprob_data(item_id)
+    if item_bead_holeprob_data:
+        item_bead_holeprob_data = item_bead_holeprob_data
+    else:
+        item_bead_holeprob_data = None
+
+    print(f"Item itemdskill_data: {itemdskill_data}")
     return render_template(
         'item_core/item_page_detail.html',
         item=item,
@@ -128,7 +167,12 @@ def item_detail(item_id: int):
         specificproc_data=specificproc_check,
         transform_list=transform_list,
         monster_pic_url=monster_pic_url,
-        item_abnormalResist_data=item_abnormalResist_data
+        item_abnormalResist_data=item_abnormalResist_data,
+        rune_bead_data=rune_bead_data,
+        activation_bead_data=activation_bead_data,
+        activation_bead_pic=activation_bead_pic,
+        item_bead_module_data=item_bead_module_data,
+        item_bead_holeprob_data=item_bead_holeprob_data
     )
 
 # Item type routes
