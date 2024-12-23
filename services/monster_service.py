@@ -5,8 +5,8 @@ from flask import current_app
 from models.monster import Monster
 from services.database import execute_query, get_db_connection
 from services.utils import get_google_sheets_data, get_skill_icon_path, clean_description
-from config.settings import MONSTER_CLASS_URL
-from models.monster import DT_MonsterResource, DT_MonsterAbnormalResist
+from config.settings import MONSTER_CLASS_URL, ATTRIBUTE_TYPE_WEAPON_URL, ATTRIBUTE_TYPE_ARMOR_URL
+from models.monster import DT_MonsterResource, DT_MonsterAbnormalResist, DT_MonsterAttributeAdd, DT_MonsterAttributeResist, DT_MonsterProtect, DT_MonsterSlain
 
 
 def get_monster_resource(monster_id: int) -> Optional[DT_MonsterResource]:
@@ -226,36 +226,36 @@ def get_monsterabnormalResist_data(monster_id: int) -> Optional[List[DT_MonsterA
     """Get monster resource by MID with caching"""
     query = """
         SELECT DISTINCT
-    a.MID,
-    b.MName,
-    a.AID,
-    c.ADesc,
-    c1.AType,
-    c1.AName AS 'ATypeDesc',
-    d1.SID,
-    d1.SName,
-    v1.mSPID,
-    v1.mName,
-    v1.mDesc,
-    v1.mSpriteFile,
-    v1.mSpriteX,
-    v1.mSpriteY 
-    -- Можно добавить модули:
-    --   e1.MID AS 'ModuleID',
-    --   e1.MType,
-    --   e2.MName AS 'MTypeDesc',
-    --   e2.MDesc,
-    --   
-    --   
-    --   e1.MAParam,
-    --   e2.MAParamName,
-    --   
-    --   e1.MBParam,
-    --   e2.MBParamName,
-    --   
-    --   e1.MCParam,
-    --   e2.MCParamName
-    --
+            a.MID,
+            b.MName,
+            a.AID,
+            c.ADesc,
+            c1.AType,
+            c1.AName AS 'ATypeDesc',
+            d1.SID,
+            d1.SName,
+            v1.mSPID,
+            v1.mName,
+            v1.mDesc,
+            v1.mSpriteFile,
+            v1.mSpriteX,
+            v1.mSpriteY 
+            -- Можно добавить модули:
+            --   e1.MID AS 'ModuleID',
+            --   e1.MType,
+            --   e2.MName AS 'MTypeDesc',
+            --   e2.MDesc,
+            --   
+            --   
+            --   e1.MAParam,
+            --   e2.MAParamName,
+            --   
+            --   e1.MBParam,
+            --   e2.MBParamName,
+            --   
+            --   e1.MCParam,
+            --   e2.MCParamName
+            --
     
     FROM
     DT_MonsterAbnormalResist AS a
@@ -311,4 +311,163 @@ def get_monsterabnormalResist_data(monster_id: int) -> Optional[List[DT_MonsterA
         return result
     
     return None
+
+
+
+
+
+# DT_MonsterAttributeAdd Check
+def get_monster_attribute_add_data(monster_id: int) -> Optional[List[DT_MonsterAttributeAdd]]:
+    attribute_type_weapon_df = get_google_sheets_data(ATTRIBUTE_TYPE_WEAPON_URL)
+
+    query = """
+    SELECT
+        a.AID,
+        b.AType,
+        b.ALevel,
+        b.ADiceDamage,
+        b.ADamage 
+    FROM
+        DT_MonsterAttributeAdd AS a
+    INNER JOIN DT_AttributeAdd AS b ON ( a.AID = b.AID )
+
+    WHERE
+        a.MID = ?
+    """
     
+    row = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if row:
+        AName = attribute_type_weapon_df[attribute_type_weapon_df['AType'] == row[1]]['AName'].iloc[0] if not attribute_type_weapon_df.empty else ''
+
+        return DT_MonsterAttributeAdd(
+            row.AID,
+            row.AType,
+            AName,
+            row.ALevel,
+            row.ADiceDamage,
+            row.ADamage
+        )
+    else:
+        return None
+    
+
+
+# DT_MonsterAttributeResist Check
+def get_monster_attribute_resist_data(monster_id: int) -> Optional[List[DT_MonsterAttributeResist]]:
+    attribute_type_weapon_df = get_google_sheets_data(ATTRIBUTE_TYPE_ARMOR_URL)
+
+    query = """
+    SELECT
+        a.AID,
+        b.AType,
+        b.ALevel,
+        b.ADiceDamage,
+        b.ADamage 
+    FROM
+        DT_MonsterAttributeResist AS a
+    INNER JOIN DT_AttributeResist AS b ON ( a.AID = b.AID )
+    
+    WHERE
+        a.MID = ?
+    """
+    
+    row = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if row:
+        AName = attribute_type_weapon_df[attribute_type_weapon_df['AType'] == row[1]]['AName'].iloc[0] if not attribute_type_weapon_df.empty else ''
+
+        return DT_MonsterAttributeResist(
+            row.AID,
+            row.AType,
+            AName,
+            row.ALevel,
+            row.ADiceDamage,
+            row.ADamage
+        )
+    else:
+        return None
+    
+    
+# DT_ItemProtect Check
+def get_monster_protect_data(monster_id: int) -> Optional[List[DT_MonsterProtect]]:
+    
+    query = """
+    SELECT
+        a.SID,
+        c.SID as 'ProtectSID',
+        e.SName,
+        c.SLevel,
+        c.SDPV,
+        c.SMPV,
+        c.SRPV,
+        c.SDDV,
+        c.SMDV,
+        c.SRDV 
+    FROM
+        DT_MonsterProtect AS a
+
+    INNER JOIN DT_Protect AS c ON ( a.SID = c.SID )
+    INNER JOIN TP_SlainType AS e ON ( c.SType = e.SType ) 
+    
+    WHERE a.MID = ?
+    """
+    
+    row = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if row:
+        return DT_MonsterProtect(
+            row.SID,
+            row.ProtectSID,
+            row.SName,
+            row.SLevel,
+            row.SDPV,
+            row.SMPV,
+            row.SRPV,
+            row.SDDV,
+            row.SMDV,
+            row.SRDV
+        )
+    else:
+        return None
+    
+    
+
+# DT_MonsterSlain Check
+def get_monster_slain_data(item_id: int) -> Optional[List[DT_MonsterSlain]]:
+    
+    query = """
+    SELECT
+        a.SID,
+        b.SType,
+        c.SName,
+        b.SLevel,
+        b.SHitPlus,
+        b.SDDPlus,
+        b.SRHitPlus,
+        b.SRDDPlus
+        
+    FROM DT_MonsterSlain AS a
+        
+    INNER JOIN DT_Slain AS b ON (a.SID = b.SID)
+        
+    INNER JOIN TP_SlainType AS c ON (b.SType = c.SType)
+        
+    WHERE a.MID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_MonsterSlain(
+            row.SID,
+            row.SType,
+            row.SName,
+            row.SLevel,
+            row.SHitPlus,
+            row.SDDPlus,
+            row.SRHitPlus,
+            row.SRDDPlus
+        )
+    else:
+        return None

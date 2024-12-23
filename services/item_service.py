@@ -2,31 +2,241 @@ from typing import List, Dict, Optional, Tuple
 from os.path import splitext
 from functools import lru_cache
 from flask import current_app
-from models.item import DT_Item, DT_ItemResource, TblSpecificProcItem, DT_ItemAbnormalResist, DT_Bead, DT_ItemBeadModule, TblBeadHoleProb
+
+from models.item import (DT_Item, DT_ItemResource, TblSpecificProcItem, DT_ItemAbnormalResist,
+DT_Bead, DT_ItemBeadModule, TblBeadHoleProb, DT_ItemAttributeAdd, 
+DT_ItemAttributeResist, DT_ItemProtect, DT_ItemSlain, DT_ItemPanalty)
+
 from services.database import execute_query, get_db_connection
-from services.utils import get_skill_icon_path, clean_description
+from services.utils import get_skill_icon_path, clean_description, get_google_sheets_data
+from config.settings import ATTRIBUTE_TYPE_WEAPON_URL, ATTRIBUTE_TYPE_ARMOR_URL
 
 
-@lru_cache(maxsize=1000)
+def apply_filters(items, filters):
+    """Оптимизированная функция применения фильтров"""
+    if not items or not filters:
+        return items
+
+    # Удаляем пустые фильтры для оптимизации
+    filters = {k: v for k, v in filters.items() if v and k != ''}
+    if not filters:
+        return items
+
+    # Преобразуем списки один раз
+    filtered_items = list(items)
+
+    try:
+        # Числовые фильтры основные
+        if type_filter := filters.get('typeFilter'):
+            type_val = int(type_filter)
+            filtered_items = [item for item in filtered_items if item.IType == type_val]
+
+        if filters.get('levelMin') or filters.get('levelMax'):
+            level_min = int(filters.get('levelMin', 0))
+            level_max = int(filters.get('levelMax', 999999))
+            filtered_items = [item for item in filtered_items if level_min <= item.ILevel <= level_max]
+
+        if filters.get('weightMin') or filters.get('weightMax'):
+            weight_min = float(filters.get('weightMin', 0))
+            weight_max = float(filters.get('weightMax', 999999))
+            filtered_items = [item for item in filtered_items if weight_min <= item.IWeight <= weight_max]
+
+        # Булевы фильтры (оптимизировано)
+        bool_fields = {
+            'stackableFilter': ('IMaxStack', lambda x: int(x) if x in ['0', '1'] else None),
+            'eventItemFilter': ('IIsEvent', lambda x: bool(int(x))),
+            'testItemFilter': ('IIsTest', lambda x: bool(int(x))),
+            'indictFilter': ('IIsIndict', lambda x: bool(int(x))),
+            'chargeFilter': ('IIsCharge', lambda x: bool(int(x))),
+            'partyDropFilter': ('IIsPartyDrop', lambda x: bool(int(x)))
+        }
+
+        for filter_name, (attr, converter) in bool_fields.items():
+            if filter_val := filters.get(filter_name):
+                val = converter(filter_val)
+                if val is not None:
+                    filtered_items = [item for item in filtered_items if getattr(item, attr) == val]
+
+        # Числовые фильтры дополнительные (оптимизировано)
+        numeric_fields = {
+            'IDHIT', 'IDDD', 'IRHIT', 'IRDD', 'IMHIT', 'IMDD',
+            'IHPPlus', 'IMPPlus', 'ISTR', 'IDEX', 'IINT',
+            'IHPRegen', 'IMPRegen', 'IAttackRate', 'IMoveRate', 'ICritical'
+        }
+
+        for field in numeric_fields:
+            min_key = f"{field}Min"
+            max_key = f"{field}Max"
+            
+            if filters.get(min_key) or filters.get(max_key):
+                min_val = float(filters.get(min_key, 0))
+                max_val = float(filters.get(max_key, 999999))
+                filtered_items = [item for item in filtered_items 
+                                if min_val <= float(getattr(item, field, 0) or 0) <= max_val]
+
+        # Квест
+        if quest_no := filters.get('questNoFilter'):
+            quest_val = int(quest_no)
+            filtered_items = [item for item in filtered_items if item.IQuestNo == quest_val]
+
+    except (ValueError, AttributeError) as e:
+        print(f"Error applying filters: {e}")
+        return items
+
+    return filtered_items
+
+
+
+
+def item_to_dict(item):
+    """Конвертирует объект DT_Item в словарь со всеми возможными атрибутами, оптимизировано"""
+    attributes = {
+        'IID', 'IName', 'IType', 'ILevel', 'IDHIT', 'IDDD', 'IRHIT', 'IRDD', 'IMHIT', 'IMDD',
+        'IHPPlus', 'IMPPlus', 'ISTR', 'IDEX', 'IINT', 'IMaxStack', 'IWeight', 'IUseType', 'IUseNum',
+        'IRecycle', 'IHPRegen', 'IMPRegen', 'IAttackRate', 'IMoveRate', 'ICritical', 'ITermOfValidity',
+        'ITermOfValidityMi', 'IDesc', 'IStatus', 'IFakeID', 'IFakeName', 'IUseMsg', 'IRange', 'IUseClass',
+        'IDropEffect', 'IUseLevel', 'IUseEternal', 'IUseDelay', 'IUseInAttack', 'IIsEvent', 'IIsIndict',
+        'IAddWeight', 'ISubType', 'IIsCharge', 'INationOp', 'IPShopItemType', 'IQuestNo', 'IIsTest',
+        'IQuestNeedCnt', 'IContentsLv', 'IIsConfirm', 'IIsSealable', 'IAddDDWhenCritical', 'mSealRemovalNeedCnt',
+        'mIsPracticalPeriod', 'mIsReceiveTown', 'IIsReinforceDestroy', 'IAddPotionRestore',
+        'IAddMaxHpWhenTransform', 'IAddMaxMpWhenTransform', 'IAddAttackRateWhenTransform',
+        'IAddMoveRateWhenTransform', 'ISupportType', 'ITermOfValidityLv', 'mIsUseableUTGWSvr',
+        'IAddShortAttackRange', 'IAddLongAttackRange', 'IWeaponPoisonType', 'IDPV', 'IMPV', 'IRPV',
+        'IDDV', 'IMDV', 'IRDV', 'IHDPV', 'IHMPV', 'IHRPV', 'IHDDV', 'IHMDV', 'IHRDV', 'ISubDDWhenCritical',
+        'IGetItemFeedback', 'IEnemySubCriticalHit', 'IIsPartyDrop', 'IMaxBeadHoleCount', 'ISubTypeOption',
+        'mIsDeleteArenaSvr'
+    }
+
+    # Используем __dict__ для получения всех атрибутов объекта
+    item_dict = item.__dict__
+
+    # Возвращаем только те атрибуты, которые есть в объекте
+    return {attr: item_dict.get(attr, None) for attr in attributes}
+
+
+
+
+#@lru_cache(maxsize=10000)
 def get_item_by_id(item_id: int) -> Optional[DT_Item]:
     """Get item by ID with caching"""
-    query = "SELECT * FROM DT_ITem WHERE IID = ?"
+    query = """
+    SELECT 
+        IID, IName, IType, ILevel, IDHIT, IDDD, IRHIT, IRDD, IMHIT, IMDD,
+        IHPPlus, IMPPlus, ISTR, IDEX, IINT, IMaxStack, IWeight, IUseType,
+        IUseNum, IRecycle, IHPRegen, IMPRegen, IAttackRate, IMoveRate,
+        ICritical, ITermOfValidity, ITermOfValidityMi, IDesc, IStatus,
+        IFakeID, IFakeName, IUseMsg, IRange, IUseClass, IDropEffect,
+        IUseLevel, IUseEternal, IUseDelay, IUseInAttack, IIsEvent,
+        IIsIndict, IAddWeight, ISubType, IIsCharge, INationOp,
+        IPShopItemType, IQuestNo, IIsTest, IQuestNeedCnt, IContentsLv,
+        IIsConfirm, IIsSealable, IAddDDWhenCritical, mSealRemovalNeedCnt,
+        mIsPracticalPeriod, mIsReceiveTown, IIsReinforceDestroy,
+        IAddPotionRestore, IAddMaxHpWhenTransform, IAddMaxMpWhenTransform,
+        IAddAttackRateWhenTransform, IAddMoveRateWhenTransform, ISupportType,
+        ITermOfValidityLv, mIsUseableUTGWSvr, IAddShortAttackRange,
+        IAddLongAttackRange, IWeaponPoisonType, IDPV, IMPV, IRPV, IDDV,
+        IMDV, IRDV, IHDPV, IHMPV, IHRPV, IHDDV, IHMDV, IHRDV,
+        ISubDDWhenCritical, IGetItemFeedback, IEnemySubCriticalHit,
+        IIsPartyDrop, IMaxBeadHoleCount, ISubTypeOption, mIsDeleteArenaSvr
+    FROM DT_Item 
+    WHERE IID = ?
+    """
+    
     row = execute_query(query, (item_id,), fetch_one=True)
     
     if row:
         return DT_Item(
-            row.IID,
-            row.IName,
-            row.IDesc.replace('\\n', ' ⭑ ') if row.IDesc else '',
-            row.IWeight,
-            row.IUseClass,
-            row.IType,
-            row.IMaxBeadHoleCount,
-            row.ITermOfValidity
+            IID=row.IID,
+            IName=row.IName,
+            IType=row.IType,
+            ILevel=row.ILevel,
+            IDHIT=row.IDHIT,
+            IDDD=row.IDDD,
+            IRHIT=row.IRHIT,
+            IRDD=row.IRDD,
+            IMHIT=row.IMHIT,
+            IMDD=row.IMDD,
+            IHPPlus=row.IHPPlus,
+            IMPPlus=row.IMPPlus,
+            ISTR=row.ISTR,
+            IDEX=row.IDEX,
+            IINT=row.IINT,
+            IMaxStack=row.IMaxStack,
+            IWeight=float(row.IWeight),
+            IUseType=row.IUseType,
+            IUseNum=row.IUseNum,
+            IRecycle=row.IRecycle,
+            IHPRegen=row.IHPRegen,
+            IMPRegen=row.IMPRegen,
+            IAttackRate=row.IAttackRate,
+            IMoveRate=row.IMoveRate,
+            ICritical=row.ICritical,
+            ITermOfValidity=row.ITermOfValidity,
+            ITermOfValidityMi=row.ITermOfValidityMi,
+            IDesc=row.IDesc.replace('\\n', ' ⭑ ') if row.IDesc else '',
+            IStatus=row.IStatus,
+            IFakeID=row.IFakeID,
+            IFakeName=row.IFakeName,
+            IUseMsg=row.IUseMsg,
+            IRange=row.IRange,
+            IUseClass=row.IUseClass,
+            IDropEffect=row.IDropEffect,
+            IUseLevel=row.IUseLevel,
+            IUseEternal=bool(row.IUseEternal),
+            IUseDelay=row.IUseDelay,
+            IUseInAttack=bool(row.IUseInAttack),
+            IIsEvent=bool(row.IIsEvent),
+            IIsIndict=bool(row.IIsIndict),
+            IAddWeight=float(row.IAddWeight),
+            ISubType=row.ISubType,
+            IIsCharge=bool(row.IIsCharge),
+            INationOp=row.INationOp,
+            IPShopItemType=row.IPShopItemType,
+            IQuestNo=row.IQuestNo,
+            IIsTest=bool(row.IIsTest),
+            IQuestNeedCnt=row.IQuestNeedCnt,
+            IContentsLv=row.IContentsLv,
+            IIsConfirm=bool(row.IIsConfirm),
+            IIsSealable=bool(row.IIsSealable),
+            IAddDDWhenCritical=row.IAddDDWhenCritical,
+            mSealRemovalNeedCnt=row.mSealRemovalNeedCnt,
+            mIsPracticalPeriod=bool(row.mIsPracticalPeriod),
+            mIsReceiveTown=bool(row.mIsReceiveTown),
+            IIsReinforceDestroy=bool(row.IIsReinforceDestroy),
+            IAddPotionRestore=row.IAddPotionRestore,
+            IAddMaxHpWhenTransform=row.IAddMaxHpWhenTransform,
+            IAddMaxMpWhenTransform=row.IAddMaxMpWhenTransform,
+            IAddAttackRateWhenTransform=row.IAddAttackRateWhenTransform,
+            IAddMoveRateWhenTransform=row.IAddMoveRateWhenTransform,
+            ISupportType=row.ISupportType,
+            ITermOfValidityLv=row.ITermOfValidityLv,
+            mIsUseableUTGWSvr=bool(row.mIsUseableUTGWSvr),
+            IAddShortAttackRange=row.IAddShortAttackRange,
+            IAddLongAttackRange=row.IAddLongAttackRange,
+            IWeaponPoisonType=row.IWeaponPoisonType,
+            IDPV=row.IDPV,
+            IMPV=row.IMPV,
+            IRPV=row.IRPV,
+            IDDV=row.IDDV,
+            IMDV=row.IMDV,
+            IRDV=row.IRDV,
+            IHDPV=row.IHDPV,
+            IHMPV=row.IHMPV,
+            IHRPV=row.IHRPV,
+            IHDDV=row.IHDDV,
+            IHMDV=row.IHMDV,
+            IHRDV=row.IHRDV,
+            ISubDDWhenCritical=row.ISubDDWhenCritical,
+            IGetItemFeedback=row.IGetItemFeedback,
+            IEnemySubCriticalHit=row.IEnemySubCriticalHit,
+            IIsPartyDrop=bool(row.IIsPartyDrop),
+            IMaxBeadHoleCount=row.IMaxBeadHoleCount,
+            ISubTypeOption=row.ISubTypeOption,
+            mIsDeleteArenaSvr=bool(row.mIsDeleteArenaSvr)
         )
     return None
 
-@lru_cache(maxsize=1000)
+#@lru_cache(maxsize=1000)
 def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
     """Get item resource by ID with caching"""
     query = "SELECT * FROM DT_ItemResource WHERE ROwnerID = ? AND RType = 2"
@@ -41,13 +251,13 @@ def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
         )
     return None
 
-
+#@lru_cache(maxsize=1000)
 def get_item_pic_url(item_id: int):
     item_pic_url = f"{current_app.config['GITHUB_URL']}{item_id.RFileName}_{item_id.RPosX}_{item_id.RPosY}.png"
     return item_pic_url
 
 
-@lru_cache(maxsize=1000)
+#@lru_cache(maxsize=1000)
 def get_item_model_resource(item_id: int) -> Optional[DT_ItemResource]:
     """Get item resource by ID with caching"""
     query = "SELECT * FROM DT_ItemResource WHERE ROwnerID = ? AND RType = 0"
@@ -63,7 +273,7 @@ def get_item_model_resource(item_id: int) -> Optional[DT_ItemResource]:
     return None
 
 
-@lru_cache(maxsize=1000)
+#@lru_cache(maxsize=1000)
 def get_specific_proc_item(item_id: int) -> Optional[TblSpecificProcItem]:
     """Get TblSpecificProcItem"""
     query = """
@@ -110,22 +320,26 @@ def get_specific_proc_item(item_id: int) -> Optional[TblSpecificProcItem]:
 
 def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
     """Generic function to fetch items by type with optional search"""
-    type_str = ','.join(str(t) for t in item_types)
+    # Используем параметризованный запрос для безопасности
+    placeholders = ','.join('?' * len(item_types))
     
-    # Get item IDs
     query = f"""
-    SELECT IID 
-    FROM DT_ITem 
-    WHERE IType IN ({type_str}) 
-    AND IName LIKE ? 
+    SELECT IID
+    FROM DT_ITem
+    WHERE IType IN ({placeholders})
+    AND IName LIKE ?
     ORDER BY IID
     """
-    rows = execute_query(query, (f'%{search_term}%',))
+    
+    # Создаем список параметров: сначала item_types, затем search_term
+    params = item_types + [f'%{search_term}%']
+    
+    rows = execute_query(query, params)
     item_ids = [row.IID for row in rows]
-
+    
     if not item_ids:
         return [], {}
-
+        
     # Get items and their resources
     items = []
     file_paths = {}
@@ -140,7 +354,7 @@ def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[Lis
                 file_paths[item_id] = resource.file_path
             else:
                 file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
-
+                
     return items, file_paths
 
 
@@ -427,6 +641,261 @@ def get_item_bead_holeprob_data(item_id: int) -> Optional[List[TblBeadHoleProb]]
             row.mMaxHoleCount,
             row.mHoleCount,
             float(row.mProb)  # Явное приведение к float
+        ))
+    
+    return results
+
+
+
+# DT_ItemAttributeAdd Check
+def get_item_attribute_add_data(item_id: int) -> Optional[List[DT_ItemAttributeAdd]]:
+    attribute_type_weapon_df = get_google_sheets_data(ATTRIBUTE_TYPE_WEAPON_URL)
+
+    query = """
+    SELECT
+        a.AID,
+        b.AType,
+        b.ALevel,
+        b.ADiceDamage,
+        b.ADamage 
+    FROM
+        DT_ItemAttributeAdd AS a
+    INNER JOIN DT_AttributeAdd AS b ON ( a.AID = b.AID )
+
+    WHERE
+        a.IID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        AName = attribute_type_weapon_df[attribute_type_weapon_df['AType'] == row[1]]['AName'].iloc[0] if not attribute_type_weapon_df.empty else ''
+
+        return DT_ItemAttributeAdd(
+            row.AID,
+            row.AType,
+            AName,
+            row.ALevel,
+            row.ADiceDamage,
+            row.ADamage
+        )
+    else:
+        return None
+    
+
+
+# DT_ItemAttributeResist Check
+def get_item_attribute_resist_data(item_id: int) -> Optional[List[DT_ItemAttributeResist]]:
+    attribute_type_weapon_df = get_google_sheets_data(ATTRIBUTE_TYPE_ARMOR_URL)
+
+    query = """
+    SELECT
+        a.AID,
+        b.AType,
+        b.ALevel,
+        b.ADiceDamage,
+        b.ADamage 
+    FROM
+        DT_ItemAttributeResist AS a
+    INNER JOIN DT_AttributeResist AS b ON ( a.AID = b.AID )
+    
+    WHERE
+        a.IID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        AName = attribute_type_weapon_df[attribute_type_weapon_df['AType'] == row[1]]['AName'].iloc[0] if not attribute_type_weapon_df.empty else ''
+
+        return DT_ItemAttributeResist(
+            row.AID,
+            row.AType,
+            AName,
+            row.ALevel,
+            row.ADiceDamage,
+            row.ADamage
+        )
+    else:
+        return None
+    
+    
+
+
+# DT_ItemProtect Check
+def get_item_protect_data(item_id: int) -> Optional[List[DT_ItemProtect]]:
+    
+    query = """
+    SELECT
+        a.PID,
+        c.SID,
+        e.SName,
+        c.SLevel,
+        c.SDPV,
+        c.SMPV,
+        c.SRPV,
+        c.SDDV,
+        c.SMDV,
+        c.SRDV 
+    FROM
+        DT_ItemProtect AS a
+    INNER JOIN DT_Protect AS c ON ( a.PID = c.SID )
+    INNER JOIN TP_SlainType AS e ON ( c.SType = e.SType ) 
+    
+    WHERE a.IID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_ItemProtect(
+            row.PID,
+            row.SID,
+            row.SName,
+            row.SLevel,
+            row.SDPV,
+            row.SMPV,
+            row.SRPV,
+            row.SDDV,
+            row.SMDV,
+            row.SRDV
+        )
+    else:
+        return None
+    
+    
+
+
+# DT_ItemSlain Check
+def get_item_slain_data(item_id: int) -> Optional[List[DT_ItemSlain]]:
+    
+    query = """
+    SELECT
+        a.SID,
+        b.SType,
+        c.SName,
+        b.SLevel,
+        b.SHitPlus,
+        b.SDDPlus,
+        b.SRHitPlus,
+        b.SRDDPlus
+        
+    FROM DT_ItemSlain AS a
+        
+    INNER JOIN DT_Slain AS b ON (a.SID = b.SID)
+        
+    INNER JOIN TP_SlainType AS c ON (b.SType = c.SType)
+        
+    WHERE a.IID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_ItemSlain(
+            row.SID,
+            row.SType,
+            row.SName,
+            row.SLevel,
+            row.SHitPlus,
+            row.SDDPlus,
+            row.SRHitPlus,
+            row.SRDDPlus
+        )
+    else:
+        return None
+    
+
+
+# DT_ItemPanalty Check
+def get_item_panalty_data(item_id: int) -> Optional[List[DT_ItemPanalty]]:
+    
+    query = """
+    SELECT
+        a.IUseClass,
+        a.IDHIT,
+        a.IDDD,
+        a.IRHIT,
+        a.IRDD,
+        a.IMHIT,
+        a.IMDD,
+        a.IHPPlus,
+        a.IMPPlus,
+        a.ISTR,
+        a.IDEX,
+        a.IINT,
+        a.IHPRegen,
+        a.IMPRegen,
+        a.IAttackRate,
+        a.IMoveRate,
+        a.ICritical,
+        a.IRange,
+        a.IAddWeight,
+        a.IAddPotionRestore,
+        a.IDPV,
+        a.IMPV,
+        a.IRPV,
+        a.IDDV,
+        a.IMDV,
+        a.IRDV,
+        a.IHDPV,
+        a.IHMPV,
+        a.IHRPV,
+        a.IHDDV,
+        a.IHMDV,
+        a.IHRDV 
+    FROM
+        DT_ItemPanalty AS a
+        
+    WHERE a.IID = ?
+    """
+    
+    
+    rows = execute_query(query, (item_id,), fetch_one=False)
+
+    if not rows:
+        return None
+        
+    results = []
+    for row in rows:
+        
+        
+        PanaltyClassPic = None
+        PanaltyClassPic = f"{current_app.config['GITHUB_URL']}class/{row.IUseClass}.png",
+        results.append(DT_ItemPanalty(
+            row.IUseClass,
+            PanaltyClassPic[0],
+            row.IDHIT,
+            row.IDDD,
+            row.IRHIT,
+            row.IRDD,
+            row.IMHIT,
+            row.IMDD,
+            row.IHPPlus,
+            row.IMPPlus,
+            row.ISTR,
+            row.IDEX,
+            row.IINT,
+            row.IHPRegen,
+            row.IMPRegen,
+            row.IAttackRate,
+            row.IMoveRate,
+            row.ICritical,
+            row.IRange,
+            row.IAddWeight,
+            row.IAddPotionRestore,
+            row.IDPV,
+            row.IMPV,
+            row.IRPV,
+            row.IDDV,
+            row.IMDV,
+            row.IRDV,
+            row.IHDPV,
+            row.IHMPV,
+            row.IHRPV,
+            row.IHDDV,
+            row.IHMDV,
+            row.IHRDV
         ))
     
     return results

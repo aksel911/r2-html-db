@@ -113,7 +113,12 @@
                     </h1>
 
                     <p class="fadeIn"><img src="{{ item.IUseClass }}"></p>
-
+                    <div class="skill-section fadeIn">
+                        <p class="section-star">★</p>
+                        <div class="skill-content">
+                            <p class="fadeIn">{{ item.IDesc }}</p>
+                        </div>
+                    </div>
                     <!-- Можно получить из -->
                     {% include 'item_core/detail/item_page_detail_can_get_item_from.html' %}
 
@@ -122,6 +127,21 @@
 
                     <!-- Перевоплощает в -->
                     {% include 'item_core/detail/item_page_detail_transform_in.html' %}
+
+                    <!-- DT_ItemProtect -->
+                    {% include 'item_core/detail/DT_ItemProtect.html' %}
+                    
+                    <!-- DT_ItemPanalty -->
+                    {% include 'item_core/detail/DT_ItemPanalty.html' %}
+
+                    <!-- DT_ItemSlain -->
+                    {% include 'item_core/detail/DT_ItemSlain.html' %}
+
+                    <!-- DT_ItemAttributeAdd -->
+                    {% include 'item_core/detail/DT_ItemAttributeAdd.html' %}
+
+                    <!-- DT_ItemAttributeResist -->
+                    {% include 'item_core/detail/DT_ItemAttributeResist.html' %}
 
             </div>
         </div>

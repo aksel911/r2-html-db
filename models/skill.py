@@ -70,3 +70,27 @@ class Skill:
                 }
                 for param in self.module_data["params"]
             ]
+            
+
+
+@dataclass
+class DT_Attribute:
+    """Data class for beads"""
+    AttrbuteID: int
+    AType: int
+    AName: str
+    ALevel: int
+    ADiceDamage: int
+    ADamage: int
+    
+
+@dataclass
+class DT_SkillSlain:
+    SlainID: int
+    SType: int
+    SName: str
+    SLevel: int
+    SHitPlus: int
+    SDDPlus: int
+    SRHitPlus: int
+    SRDDPlus: int

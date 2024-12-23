@@ -61,3 +61,50 @@ class DT_MonsterAbnormalResist:
     mSpriteFile: str
     mSpriteX: int
     mSpriteY: int
+    
+
+
+@dataclass
+class DT_MonsterAttributeAdd:
+    AID: int
+    AType: int
+    AName: str
+    ALevel: int
+    ADiceDamage: int
+    ADamage: int
+    
+    
+@dataclass
+class DT_MonsterAttributeResist:
+    AID: int
+    AType: int
+    AName: str
+    ALevel: int
+    ADiceDamage: int
+    ADamage: int
+    
+
+
+@dataclass
+class DT_MonsterProtect:
+    SID: int
+    ProtectSID: int
+    SName: str
+    SLevel: int
+    SDPV: int
+    SMPV: int
+    SRPV: int
+    SDDV: int
+    SMDV: int
+    SRDV: int
+
+@dataclass
+class DT_MonsterSlain:
+    SID: int
+    SType: int
+    SName: str
+    SLevel: int
+    SHitPlus: int
+    SDDPlus: int
+    SRHitPlus: int
+    SRDDPlus: int

@@ -1,5 +1,5 @@
-flask>=2.0.1
-requests>=2.31.0
-pyodbc>=4.0.39
-python-dotenv>=1.0.0
-typing-extensions>=4.8.0
+flask
+python-dotenv
+pyodbc
+pandas
+requests

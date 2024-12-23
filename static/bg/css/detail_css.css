@@ -260,7 +260,6 @@ img:hover {
 .abnormal-content,
 .module-content,
 .skill-content {
-    background: var(--bg-module-light);
     border-radius: 10px;
     padding: 1.5rem;
 }
@@ -477,7 +476,7 @@ img:hover {
 .dark-theme .abnormal-content,
 .dark-theme .module-content,
 .dark-theme .skill-content {
-    background: rgba(255, 255, 255, 0.05);
+
 }
 
 .dark-theme .section-title {
@@ -654,7 +653,7 @@ body.dark-theme {
 .abnormal-primary-info,
 .abnormal-details-info {
     border-radius: 10px;
-    background: var(--bg-module-light);
+    background: rgba(50, 50, 50, 0.1);
 }
 
 /* Header styles */
@@ -674,7 +673,7 @@ body.dark-theme {
 .dark-theme .skill-header:hover,
 .dark-theme .abnormal-primary-info,
 .dark-theme .abnormal-details-info {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(50, 50, 50, 0.1);
 }
 
 /* Title and toggle styles */
@@ -712,6 +711,8 @@ body.dark-theme {
     overflow-y: scroll; /* Add vertical scrollbar */
     scrollbar-width: none;
     border-radius: 8px;
+    background: var(--bg-module-light);
+    margin-top: 8px;
 }
 
 .skill-content-wrapper::-webkit-scrollbar {
@@ -862,6 +863,64 @@ body.dark-theme {
 .abnormal-resist-row:hover {
     background: rgba(255, 255, 255, 0.1);
 }
+
+
+
+.normal {
+    color: white;
+}
+
+.blessed {
+    color: yellow;
+}
+
+.cursed {
+    color: red;
+}
+
+/* Случайный цвет для "Любой" */
+.random-color {
+    animation: color-cycle 5s infinite, stop-on-random 6s forwards;
+}
+
+/* Анимация для плавного перелива от желтого в красный и в белый */
+@keyframes color-cycle {
+    0% {
+        color: yellow;
+    }
+    33% {
+        color: red;
+    }
+    66% {
+        color: white;
+    }
+    100% {
+        color: yellow;
+    }
+}
+
+/* Анимация для случайного цвета */
+@keyframes stop-on-random {
+    0% {
+        color: yellow;
+    }
+    83% {
+        color: yellow;
+    }
+    100% {
+        color: rgb(
+            calc(255 * random()),
+            calc(255 * random()),
+            calc(255 * random())
+        );
+    }
+}
+
+
+
+
+
+
 
 
 

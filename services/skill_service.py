@@ -1,8 +1,8 @@
 from typing import List, Dict, Optional, Tuple
 from flask import current_app
-from models.skill import Skill
+from models.skill import Skill, DT_Attribute, DT_SkillSlain
 from services.database import execute_query
-from services.utils import get_skill_icon_path, clean_dict
+from services.utils import get_skill_icon_path, clean_dict, get_google_sheets_data
 from services.item_service import (get_item_resource, get_item_pic_url)
 from services.abnormal_service import (
     get_abnormal_skills
@@ -10,6 +10,10 @@ from services.abnormal_service import (
 from services.monster_service import (
     get_monster_pic_url
 )
+from config.settings import ATTRIBUTE_TYPE_WEAPON_URL
+
+
+
 
 # Easy defs
 # Поиск SID по SPID с картинкой
@@ -516,4 +520,85 @@ def get_skill_use_by_sid(spid_id: int) -> Optional[Tuple]:
 
     except Exception as e:
         print(f"Error in get_skill_use_by_sid: {e}")
+        return None
+    
+    
+    
+    
+    
+# DT_ItemAttributeAdd Check
+def get_skill_attribute_data(item_id: int) -> Optional[List[DT_Attribute]]:
+    
+    attribute_type_weapon_df = get_google_sheets_data(ATTRIBUTE_TYPE_WEAPON_URL)
+
+    query = """
+    SELECT
+        a.AttrbuteID,
+        b.AType,
+        b.ALevel,
+        b.ADiceDamage,
+        b.ADamage 
+    FROM
+        DT_SkillAttribute AS a
+        INNER JOIN DT_Attribute AS b ON ( b.AID = a.AttrbuteID ) 
+    WHERE
+        a.SID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        AName = attribute_type_weapon_df[attribute_type_weapon_df['AType'] == row[1]]['AName'].iloc[0] if not attribute_type_weapon_df.empty else ''
+
+        return DT_Attribute(
+            row.AttrbuteID,
+            row.AType,
+            AName,
+            row.ALevel,
+            row.ADiceDamage,
+            row.ADamage
+        )
+    else:
+        return None
+
+
+
+
+# DT_SkillSlain Check
+def get_skill_slain_data(item_id: int) -> Optional[List[DT_SkillSlain]]:
+    
+    query = """
+    SELECT
+        a.SlainID,
+        b.SType,
+        c.SName,
+        b.SLevel,
+        b.SHitPlus,
+        b.SDDPlus,
+        b.SRHitPlus,
+        b.SRDDPlus
+        
+    FROM DT_SkillSlain AS a
+        
+    INNER JOIN DT_Slain AS b ON (a.SlainID = b.SID)
+        
+    INNER JOIN TP_SlainType AS c ON (b.SType = c.SType)
+        
+    WHERE a.SkillID = ?
+    """
+    
+    row = execute_query(query, (item_id,), fetch_one=True)
+    
+    if row:
+        return DT_SkillSlain(
+            row.SlainID,
+            row.SType,
+            row.SName,
+            row.SLevel,
+            row.SHitPlus,
+            row.SDDPlus,
+            row.SRHitPlus,
+            row.SRDDPlus
+        )
+    else:
         return None

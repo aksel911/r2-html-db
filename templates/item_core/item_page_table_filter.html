@@ -1,0 +1,416 @@
+    <!-- Filters container -->
+<div class="filters-container mb-4">
+    <div class="row">
+        <!-- Основные фильтры -->
+        <div class="col-md-12">
+            <button class="btn btn-primary mb-3" type="button" data-toggle="collapse" data-target="#mainFilters">
+                <i class="fas fa-filter"></i> Основные фильтры
+            </button>
+            <button class="btn btn-secondary mb-3 ml-2" type="button" data-toggle="collapse" data-target="#advancedFilters">
+                <i class="fas fa-sliders-h"></i> Расширенные фильтры
+            </button>
+            <button class="btn btn-info mb-3 ml-2" id="resetFilters">
+                <i class="fas fa-sync"></i> Сбросить фильтры
+            </button>
+        </div>
+
+        <!-- Основные фильтры -->
+        <div class="col-12 collapse" id="mainFilters">
+            <div class="card card-body mb-3">
+                <div class="row">
+                    <!-- Тип предмета -->
+                    <div class="col-md-3 mb-2">
+                        <label for="typeFilter">Тип предмета:</label>
+                        <select class="form-control" id="typeFilter">
+                            <option value="">Все</option>
+                            <option value="0">Ничего</option>
+                            <option value="1">Оружие Ближнего Боя</option>
+                            <option value="2">Щит, Браслет</option>
+                            <option value="3">Доспех</option>
+                            <option value="4">Кольцо</option>
+                            <option value="5">Ожерелье</option>
+                            <option value="6">Ботинки</option>
+                            <option value="7">Перчатки</option>
+                            <option value="8">Шлем</option>
+                            <option value="9">Ремень</option>
+                            <option value="10">Зелья</option>
+                            <option value="11">SpecificProcItem/Shop Item</option>
+                            <option value="12">Книга</option>
+                            <option value="13">Жезл, Фейерверк, Петарда, Свиток Облика</option>
+                            <option value="14">Премет со Skill</option>
+                            <option value="15">Сундук, Аналогия сундука</option>
+                            <option value="16">Пустышка, Печати, Квестовый</option>
+                            <option value="17">Плащ</option>
+                            <option value="18">Оружие Дальнего Боя</option>
+                            <option value="19">Патроны, стрелы, камни</option>
+                            <option value="20">Алебарда/Копье</option>
+                            <option value="21">Зелья/Package</option>
+                            <option value="22">Сфера Мастера</option>
+                            <option value="23">Сфера Души</option>
+                            <option value="24">Сфера Защиты</option>
+                            <option value="25">Сфера Разрушения</option>
+                            <option value="26">Сфера Жизни</option>
+                            <option value="27">Сфера 1 Слот</option>
+                            <option value="28">Сфера 2 Слот</option>
+                            <option value="29">Сфера 3 Слот</option>
+                            <option value="30">Монеты из мешочка</option>
+                            <option value="31">Трофей</option>
+                            <option value="32">Мешочек монет</option>
+                            <option value="33">Улучшение Питомца</option>
+                            <option value="34">Зелье Иллюзий</option>
+                            <option value="35">Камень Улучшения Питомца</option>
+                            <option value="36">Зелье Доверия Питомца</option>
+                            <option value="37">Коллекционная Карта</option>
+                            <option value="38">Камень Души</option>
+                            <option value="39">Временный Сундук</option>
+                            <option value="40">Посох</option>
+                            <option value="41">Кусочки Разноцветных Карт</option>
+                        </select>
+                    </div>
+
+                    <!-- Уровень -->
+                    <div class="col-md-3 mb-2">
+                        <label>Уровень предмета:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="levelMin" placeholder="Мин">
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text">-</span>
+                            </div>
+                            <input type="number" class="form-control" id="levelMax" placeholder="Макс">
+                        </div>
+                    </div>
+
+                    <!-- Вес -->
+                    <div class="col-md-3 mb-2">
+                        <label>Вес предмета:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="weightMin" placeholder="Мин">
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text">-</span>
+                            </div>
+                            <input type="number" class="form-control" id="weightMax" placeholder="Макс">
+                        </div>
+                    </div>
+
+                    <!-- Стакается -->
+                    <div class="col-md-3 mb-2">
+                        <label for="stackableFilter">Стакается:</label>
+                        <select class="form-control" id="stackableFilter">
+                            <option value="">Все</option>
+                            <option value="1">Да</option>
+                            <option value="0">Нет</option>
+                        </select>
+                    </div>
+
+                    <!-- Срок действия (дни) -->
+                    <div class="col-md-3 mb-2">
+                        <label>Срок действия (дни):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="validityDaysMin" placeholder="Мин">
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text">-</span>
+                            </div>
+                            <input type="number" class="form-control" id="validityDaysMax" placeholder="Макс">
+                        </div>
+                    </div>
+
+                    <!-- Срок действия (минуты) -->
+                    <div class="col-md-3 mb-2">
+                        <label>Срок действия (минуты):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="validityMinutesMin" placeholder="Мин">
+                            <div class="input-group-prepend input-group-append">
+                                <span class="input-group-text">-</span>
+                            </div>
+                            <input type="number" class="form-control" id="validityMinutesMax" placeholder="Макс">
+                        </div>
+                    </div>
+
+                    <!-- Номер квеста -->
+                    <div class="col-md-3 mb-2">
+                        <label>Номер квеста:</label>
+                        <input type="number" class="form-control" id="questNoFilter" placeholder="Номер квеста">
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <!-- Чекбоксы -->
+                    <div class="col-md-12">
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="eventItemFilter">
+                            <label class="custom-control-label" for="eventItemFilter">Ивентовый предмет</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="testItemFilter">
+                            <label class="custom-control-label" for="testItemFilter">Тестовый предмет</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="indictFilter">
+                            <label class="custom-control-label" for="indictFilter">Запрет на выброс</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="chargeFilter">
+                            <label class="custom-control-label" for="chargeFilter">Премиум предмет</label>
+                        </div>
+                        <div class="custom-control custom-checkbox custom-control-inline">
+                            <input type="checkbox" class="custom-control-input" id="partyDropFilter">
+                            <label class="custom-control-label" for="partyDropFilter">Выпадает группе</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Расширенные фильтры -->
+        <div class="col-12 collapse" id="advancedFilters">
+            <div class="card card-body">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="advanced-filters-grid">
+                            <!-- Здесь будут динамически добавляться фильтры для всех колонок -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .filters-container {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .advanced-filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .filter-group {
+        margin-bottom: 15px;
+    }
+
+    /* Dark theme support */
+    .dark-theme .filters-container {
+        background: rgba(40, 40, 40, 0.95);
+        color: white;
+    }
+
+    .dark-theme .card {
+        background: rgba(40, 40, 40, 0.95);
+        border-color: #2c3e50;
+    }
+
+    .dark-theme .form-control {
+        background-color: #2c3e50;
+        border-color: #34495e;
+        color: white;
+    }
+
+    .dark-theme .input-group-text {
+        background-color: #34495e;
+        border-color: #2c3e50;
+        color: white;
+    }
+
+    .dark-theme .custom-control-label {
+        color: white;
+    }
+</style>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let debounceTimer;
+        let lastRequest = null;
+        
+        function createAdvancedFilters() {
+            const advancedFiltersGrid = document.querySelector('.advanced-filters-grid');
+            if (!advancedFiltersGrid) return;
+    
+            const advancedFilters = [
+                { id: 'IDHIT', label: 'Точность в ближнем бою' },
+                { id: 'IDDD', label: 'Урон в ближнем бою' },
+                { id: 'IRHIT', label: 'Точность в дальнем бою' },
+                { id: 'IRDD', label: 'Урон в дальнем бою' },
+                { id: 'IMHIT', label: 'Магическая точность' },
+                { id: 'IMDD', label: 'Магический урон' },
+                { id: 'IHPPlus', label: 'Доп. HP' },
+                { id: 'IMPPlus', label: 'Доп. MP' },
+                { id: 'ISTR', label: 'Сила' },
+                { id: 'IDEX', label: 'Ловкость' },
+                { id: 'IINT', label: 'Интеллект' },
+                { id: 'IHPRegen', label: 'Реген HP' },
+                { id: 'IMPRegen', label: 'Реген MP' },
+                { id: 'IAttackRate', label: 'Скорость атаки' },
+                { id: 'IMoveRate', label: 'Скорость передвижения' },
+                { id: 'ICritical', label: 'Шанс крита' }
+            ];
+    
+            const fragment = document.createDocumentFragment();
+            advancedFilters.forEach(filter => {
+                const div = document.createElement('div');
+                div.className = 'filter-group';
+                div.innerHTML = `
+                    <label>${filter.label}:</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="${filter.id}Min" 
+                               placeholder="Мин" data-filter="${filter.id}">
+                        <div class="input-group-prepend input-group-append">
+                            <span class="input-group-text">-</span>
+                        </div>
+                        <input type="number" class="form-control" id="${filter.id}Max" 
+                               placeholder="Макс" data-filter="${filter.id}">
+                    </div>
+                `;
+                fragment.appendChild(div);
+            });
+    
+            advancedFiltersGrid.appendChild(fragment);
+        }
+    
+        function updateURL(params) {
+            const url = new URL(window.location.href);
+            Object.entries(params).forEach(([key, value]) => {
+                url.searchParams.set(key, value);
+            });
+            window.history.pushState({}, '', url);
+        }
+    
+        function renderItems(items, resources) {
+            const tableBody = document.querySelector('table tbody');
+            if (!tableBody) return;
+    
+            const itemsHTML = items.map(item => `
+                <tr>
+                    <td>
+                        <div class="item-image">
+                            <a href="/item/${item.IID}">
+                                <img src="${resources[item.IID] || ''}" alt="${item.IName}" title="${item.IName}">
+                            </a>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="item-name">
+                            <a href="/item/${item.IID}">${item.IName}</a>
+                        </div>
+                        <div class="item-desc">${item.IDesc || ''}</div>
+                    </td>
+                    <td>${item.ILevel || ''}</td>
+                    <td>${item.IDHIT || ''}</td>
+                    <td>${item.IDDD || ''}</td>
+                    <td>${item.IWeight || ''}</td>
+                    <td class="item-desc">${item.IDesc || ''}</td>
+                </tr>
+            `).join('');
+    
+            tableBody.innerHTML = itemsHTML;
+        }
+    
+        async function applyFilters() {
+            const tableBody = document.querySelector('table tbody');
+            if (!tableBody) return;
+    
+            // Отменяем предыдущий запрос, если он еще выполняется
+            if (lastRequest) {
+                lastRequest.abort();
+            }
+    
+            const params = new URLSearchParams(
+                Array.from(
+                    document.querySelectorAll('.form-control, .custom-control-input')
+                ).filter(
+                    input => (input.type === 'checkbox' && input.checked) 
+                          || (input.type !== 'checkbox' && input.value)  
+                ).map(
+                    input => [input.id, input.type === 'checkbox' ? '1' : input.value]
+                )  
+            );
+    
+            // Сохраняем предыдущий поисковый запрос
+            if (window.location.search) {
+                const searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('search')) {
+                    params.set('search', searchParams.get('search'));
+                }
+            }
+    
+            try {
+                // Создаем контроллер для возможности отмены запроса
+                const controller = new AbortController();
+                lastRequest = controller;
+    
+                const response = await fetch(`${window.location.pathname}?${params}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: controller.signal
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                renderItems(data.items, data.resources);
+                updateURL(params);
+    
+                lastRequest = null;
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Request was cancelled');
+                } else {
+                    console.error('Error fetching filtered items:', error);
+                }
+            }
+        }
+    
+        function debounceFilter(event) {
+            if (event.target.classList.contains('form-control')) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilters, 300);
+            }
+        }
+    
+        // Инициализация
+        createAdvancedFilters();
+    
+        // Делегирование событий для всех фильтров
+        const filtersContainer = document.querySelector('.filters-container');  
+        filtersContainer.addEventListener('input', debounceFilter);
+        filtersContainer.addEventListener('change', applyFilters);
+    
+        // Обработчик для кнопки сброса
+        const resetButton = document.getElementById('resetFilters');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
+                    if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+                applyFilters();
+            });
+        }
+    
+        // Установка начальных значений из URL параметров
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.forEach((value, key) => {
+            const input = document.getElementById(key);
+            if (input) {
+                if (input.type === 'checkbox') {
+                    input.checked = value === '1';
+                } else {
+                    input.value = value;
+                }
+            }
+        });
+        applyFilters();
+    });
+    </script>
+    

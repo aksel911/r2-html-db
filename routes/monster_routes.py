@@ -6,7 +6,11 @@ from services.monster_service import (
     get_monsters_by_class,
     get_monster_resource,
     get_monster_mtick,
-    get_monsterabnormalResist_data
+    get_monsterabnormalResist_data,
+    get_monster_attribute_add_data,
+    get_monster_attribute_resist_data,
+    get_monster_protect_data,
+    get_monster_slain_data
 )
 from services.utils import get_google_sheets_data
 from services.merchant_service import (
@@ -23,80 +27,74 @@ bp = Blueprint('monsters', __name__)
 
 @bp.route('/monster/<int:monster_id>')
 def monster_detail(monster_id: int):
-    """Monster detail page"""
-    monster = get_monster_by_id(monster_id)
-    if not monster:
+    """Страница деталей монстра"""
+    # Получение данных монстра
+    if not (monster := get_monster_by_id(monster_id)):
         return "Monster not found", 404
 
-    # Fetch data from Google Sheets
-    monster_class_df = get_google_sheets_data(MONSTER_CLASS_URL)
-    monster_race_df = get_google_sheets_data(MONSTER_RACE_URL)
-    monster_location_df = get_google_sheets_data(MONSTER_LOCATION_URL)
+    # Получение данных из Google Sheets
+    sheets_data = {
+        'class': get_google_sheets_data(MONSTER_CLASS_URL),
+        'race': get_google_sheets_data(MONSTER_RACE_URL),
+        'location': get_google_sheets_data(MONSTER_LOCATION_URL)
+    }
 
-    # Get class info from Google Sheets
+    # Получение информации о классе
     class_info = {"MName": ""}
-    if not monster_class_df.empty:
-        class_match = monster_class_df[monster_class_df['MClass'] == monster['MClass']]
+    if not sheets_data['class'].empty:
+        class_match = sheets_data['class'][sheets_data['class']['MClass'] == monster['MClass']]
         if not class_match.empty:
-            class_info = {"MName": class_match.iloc[0]['MName']}
+            class_info["MName"] = class_match.iloc[0]['MName']
 
-    # Get race info from Google Sheets
+    # Получение информации о расе
     race_info = {"mDesc": None}
-    if not monster_race_df.empty:
-        race_match = monster_race_df[monster_race_df['MRaceType'] == monster['mRaceType']]
+    if not sheets_data['race'].empty:
+        race_match = sheets_data['race'][sheets_data['race']['MRaceType'] == monster['mRaceType']]
         if not race_match.empty:
-            race_info = {"mDesc": race_match.iloc[0]['mDesc']}
+            race_info["mDesc"] = race_match.iloc[0]['mDesc']
 
-    # Get respawn time
+    # Получение времени респауна
     respawn_time = get_monster_mtick(monster_id)
     respawn_info = {
         "mTick": respawn_time / 1000,
         "mTickms": respawn_time
     }
 
-    # Get monster location from Google Sheets
+    # Получение локации монстра
     monster_location = None
-    if not monster_location_df.empty:
-        location_match = monster_location_df[monster_location_df['MID'] == monster_id]
+    if not sheets_data['location'].empty:
+        location_match = sheets_data['location'][sheets_data['location']['MID'] == monster_id]
         if not location_match.empty:
-            location_level = location_match.iloc[0]['LocationLevel']
-            if pd.isna(location_level):
-                location_level = None
+            row = location_match.iloc[0]
             monster_location = {
-                "Location": location_match.iloc[0]['Location'],
-                "LocationLevel": location_level
+                "Location": row['Location'],
+                "LocationLevel": None if pd.isna(row['LocationLevel']) else row['LocationLevel']
             }
 
-    # Handle images
+    # Обработка изображений
     file_path = f"{current_app.config['GITHUB_URL']}{monster_id}.png"
     file_path_gif = f"{current_app.config['GITHUB_URL']}gif/{monster_id}_IDLE.gif"
     try:
-        response = requests.head(file_path_gif)
-        if response.status_code != 200:
+        if requests.head(file_path_gif).status_code != 200:
             file_path_gif = None
     except:
         file_path_gif = None
 
-    # Get merchant items
-    merchant_items = get_merchant_items(monster_id)
-
-    # Get monster model number
-    model_result = get_monster_resource(monster_id)
+    # Получение модели монстра
+    prefix = 'm'  # Префикс по умолчанию для всех монстров
     monster_model_no = None
-    prefix = 'm'  # Default prefix for all monsters
-
-    if model_result:
+    if model_result := get_monster_resource(monster_id):
         monster_model_no = f"{int(model_result.RFileName):05}"
 
-    # DT_MonsterAbnormalResist Check
-    monster_abnormalResist_data = get_monsterabnormalResist_data(monster_id)
-    if monster_abnormalResist_data:
-        monster_abnormalResist_data = monster_abnormalResist_data
-    else:
-        monster_abnormalResist_data = None
+    # Получение данных о сопротивлении Абнормал
+    monster_abnormalResist_data = get_monsterabnormalResist_data(monster_id) or None
     
+    monster_attribute_add_data = get_monster_attribute_add_data(monster_id) or None
+    monster_attribute_resist_data = get_monster_attribute_resist_data(monster_id) or None
     
-    
+    monster_protect_data = get_monster_protect_data(monster_id) or None
+
+    monster_slain_data = get_monster_slain_data(monster_id) or None
     
     return render_template(
         'monster_core/monster_page_detail.html',
@@ -107,10 +105,14 @@ def monster_detail(monster_id: int):
         raceinfo=race_info,
         respawntimeinfo=respawn_info,
         monlocationinfo=monster_location,
-        merchant_items=merchant_items,
+        merchant_items=get_merchant_items(monster_id),
         mondropinfo=get_monster_drops(monster_id),
         monstermodelno_result=monster_model_no,
         monster_abnormalResist_data=monster_abnormalResist_data,
+        monster_attribute_add_data=monster_attribute_add_data,
+        monster_attribute_resist_data=monster_attribute_resist_data,
+        monster_protect_data=monster_protect_data,
+        monster_slain_data=monster_slain_data,
         prefix=prefix
     )
 

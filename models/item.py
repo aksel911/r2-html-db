@@ -7,14 +7,94 @@ class DT_Item:
     """Data class for items"""
     IID: int
     IName: str
-    IDesc: str
-    IWeight: float
-    IUseClass: str
     IType: int
-    IMaxBeadHoleCount: int
+    ILevel: int
+    IDHIT: int
+    IDDD: int
+    IRHIT: int
+    IRDD: int
+    IMHIT: int
+    IMDD: int
+    IHPPlus: int
+    IMPPlus: int
+    ISTR: int
+    IDEX: int
+    IINT: int
+    IMaxStack: int
+    IWeight: float
+    IUseType: int
+    IUseNum: int
+    IRecycle: int
+    IHPRegen: int
+    IMPRegen: int
+    IAttackRate: int
+    IMoveRate: int
+    ICritical: int
     ITermOfValidity: int
+    ITermOfValidityMi: int
+    IDesc: str
+    IStatus: int
+    IFakeID: int
+    IFakeName: str
+    IUseMsg: str
+    IRange: int
+    IUseClass: str
+    IDropEffect: int
+    IUseLevel: int
+    IUseEternal: bool
+    IUseDelay: int
+    IUseInAttack: bool
+    IIsEvent: bool
+    IIsIndict: bool
+    IAddWeight: float
+    ISubType: int
+    IIsCharge: bool
+    INationOp: int
+    IPShopItemType: int
+    IQuestNo: int
+    IIsTest: bool
+    IQuestNeedCnt: int
+    IContentsLv: int
+    IIsConfirm: bool
+    IIsSealable: bool
+    IAddDDWhenCritical: int
+    mSealRemovalNeedCnt: int
+    mIsPracticalPeriod: bool
+    mIsReceiveTown: bool
+    IIsReinforceDestroy: bool
+    IAddPotionRestore: int
+    IAddMaxHpWhenTransform: int
+    IAddMaxMpWhenTransform: int
+    IAddAttackRateWhenTransform: int
+    IAddMoveRateWhenTransform: int
+    ISupportType: int
+    ITermOfValidityLv: int
+    mIsUseableUTGWSvr: bool
+    IAddShortAttackRange: int
+    IAddLongAttackRange: int
+    IWeaponPoisonType: int
+    IDPV: int
+    IMPV: int
+    IRPV: int
+    IDDV: int
+    IMDV: int
+    IRDV: int
+    IHDPV: int
+    IHMPV: int
+    IHRPV: int
+    IHDDV: int
+    IHMDV: int
+    IHRDV: int
+    ISubDDWhenCritical: int
+    IGetItemFeedback: int
+    IEnemySubCriticalHit: int
+    IIsPartyDrop: bool
+    IMaxBeadHoleCount: int
+    ISubTypeOption: int
+    mIsDeleteArenaSvr: bool
 
     def __post_init__(self):
+        # Преобразование URL класса
         self.IUseClass = f"{current_app.config['GITHUB_URL']}class/{self.IUseClass}.png"
 
 @dataclass
@@ -122,3 +202,88 @@ class TblBeadHoleProb:
     mMaxHoleCount: int
     mHoleCount: int
     mProb: float
+    
+
+@dataclass
+class DT_ItemAttributeAdd:
+    AID: int
+    AType: int
+    AName: str
+    ALevel: int
+    ADiceDamage: int
+    ADamage: int
+    
+    
+@dataclass
+class DT_ItemAttributeResist:
+    AID: int
+    AType: int
+    AName: str
+    ALevel: int
+    ADiceDamage: int
+    ADamage: int
+    
+
+@dataclass
+class DT_ItemProtect:
+    PID: int
+    SID: int
+    SName: str
+    SLevel: int
+    SDPV: int
+    SMPV: int
+    SRPV: int
+    SDDV: int
+    SMDV: int
+    SRDV: int
+
+    
+
+@dataclass
+class DT_ItemSlain:
+    SID: int
+    SType: int
+    SName: str
+    SLevel: int
+    SHitPlus: int
+    SDDPlus: int
+    SRHitPlus: int
+    SRDDPlus: int
+    
+
+@dataclass
+class DT_ItemPanalty:
+    IUseClass: int
+    PanaltyClassPic: str
+    IDHIT: int
+    IDDD: int
+    IRHIT: int
+    IRDD: int
+    IMHIT: int
+    IMDD: int
+    IHPPlus: int
+    IMPPlus: int
+    ISTR: int
+    IDEX: int
+    IINT: int
+    IHPRegen: int
+    IMPRegen: int
+    IAttackRate: int
+    IMoveRate: int
+    ICritical: int
+    IRange: int
+    IAddWeight: int
+    IAddPotionRestore: int
+    IDPV: int
+    IMPV: int
+    IRPV: int
+    IDDV: int
+    IMDV: int
+    IRDV: int
+    IHDPV: int
+    IHMPV: int
+    IHRPV: int
+    IHDDV: int
+    IHMDV: int
+    IHRDV: int
+    

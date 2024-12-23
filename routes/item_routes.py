@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, jsonify, request, render_template
 from services.item_service import (
+    apply_filters,
+    item_to_dict,
     get_item_by_id, 
     get_item_resource,
     get_items_by_type,
@@ -8,7 +10,12 @@ from services.item_service import (
     get_itemabnormalResist_data,
     get_rune_bead_data,
     get_item_bead_module_data,
-    get_item_bead_holeprob_data
+    get_item_bead_holeprob_data,
+    get_item_attribute_add_data,
+    get_item_attribute_resist_data,
+    get_item_protect_data,
+    get_item_slain_data,
+    get_item_panalty_data
 )
 from services.monster_service import get_monster_drop_info
 from services.merchant_service import get_merchant_sellers
@@ -16,137 +23,147 @@ from services.craft_service import (
     check_base_items_for_craft,
     check_next_craft_item
 )
-from services.skill_service import get_item_skill, get_skill_use_by_spid_items, get_sid_by_spid
+from services.skill_service import get_item_skill, get_sid_by_spid
 from services.abnormal_service import get_abnormal_in_skill
+from functools import wraps
 
 bp = Blueprint('items', __name__)
 
+
+
+# TODO: Это тест фильтр, нужно доделать. Очень долго грузит отфильтрованные данные, Под каждую страницу свои фильтры. Сделать фильтры для: Монстров, Абнормал и Скиллов (всего остального)
+# ! Работает только /weapon --> @with_filters([1, 18, 20]) | Далее смотреть item_service.py --> apply_filters / item_to_dict | Далее все скрипты, css и остальное от фильтров в item_page_table_filter.html
+def with_filters(item_types):
+    """Декоратор для добавления фильтрации к роутам"""
+    def decorator(original_route):
+        @wraps(original_route)
+        def wrapped_route(*args, **kwargs):
+            try:
+                # Если это AJAX запрос, возвращаем только отфильтрованные данные
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    filters = request.args.to_dict()
+                    search_term = filters.pop('search', '') if 'search' in filters else ''
+                    
+                    print(f"Received filters: {filters}")  # Отладочная информация
+                    
+                    # Получаем предметы
+                    items, file_paths = get_items_by_type(item_types, search_term)
+                    print(f"Found {len(items)} items before filtering")  # Отладочная информация
+                    
+                    # Применяем фильтры
+                    filtered_items = apply_filters(items, filters)
+                    print(f"Found {len(filtered_items)} items after filtering")  # Отладочная информация
+                    
+                    # Конвертируем предметы в словари
+                    items_dict = [item_to_dict(item) for item in filtered_items]
+                    
+                    return jsonify({
+                        'items': items_dict,
+                        'resources': file_paths
+                    })
+                
+                # Иначе возвращаем полную страницу
+                return original_route(*args, **kwargs)
+                
+            except Exception as e:
+                print(f"Error in route: {str(e)}")
+                import traceback
+                traceback.print_exc()  # Добавьте это для полного стека ошибки
+                return jsonify({'error': str(e)}), 500
+                
+        return wrapped_route
+    return decorator
+
+
+
 @bp.route('/item/<int:item_id>')
 def item_detail(item_id: int):
-    """Item detail page"""
-    item = get_item_by_id(item_id)
-    if not item:
+    """Страница деталей предмета"""
+    # Проверка основных данных
+    if not (item := get_item_by_id(item_id)):
         return "Item not found", 404
 
-    use_class = item.IUseClass.split('/')[-1].replace('.png', '')
-    use_class = int(use_class)
-
-    item_resource = get_item_resource(item_id)
-    if not item_resource:
+    if not (item_resource := get_item_resource(item_id)):
         return "Item resource not found", 404
 
-    # Get related data
+    # Обработка класса использования
+    use_class = int(item.IUseClass.split('/')[-1].replace('.png', ''))
+
+    # Получение связанных данных
     mondropinfo = get_monster_drop_info(item_id)
     merchant_sellers = get_merchant_sellers(item_id)
     craft_items = check_base_items_for_craft(item_id)
     craft_next_item = check_next_craft_item(item_id)
     skill_data = get_item_skill(item_id)
-    
     specificproc_check = get_specific_proc_item(item_id)
     
-    itemresource_result = get_item_model_resource(item_id)
-    
-    # Process skill data
-    abnormal_type_data = None
-    abnormal_type_pic = None
-    
-    itemdskill_data = None
-    itemskill_pic = None
-    
-    linked_skills = 0
-    linked_skillsaid = 0
-    
-    transform_list = None
-    monster_pic_url = None
+    # Обработка данных навыков
+    abnormal_type_data = abnormal_type_pic = None
+    itemdskill_data = itemskill_pic = None
+    linked_skills = linked_skillsaid = 0
+    transform_list = monster_pic_url = None
 
-    if skill_data:
-        # Проверяем, что skill_data возвращает кортеж из 6 элементов
-        if isinstance(skill_data, tuple) and len(skill_data) == 6:
-            itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid, transform_list, monster_pic_url = skill_data
-            
-            abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(linked_skillsaid)
+    if skill_data and isinstance(skill_data, tuple) and len(skill_data) == 6:
+        itemdskill_data, itemskill_pic, linked_skills, linked_skillsaid, transform_list, monster_pic_url = skill_data
+        abnormal_type_data, abnormal_type_pic = get_abnormal_in_skill(linked_skillsaid)
 
-    prefix = None
-    item_model_no = None
-
-    if itemresource_result:
+    # Обработка модели предмета
+    prefix = item_model_no = None
+    if itemresource_result := get_item_model_resource(item_id):
         base = f"{int(itemresource_result.RPosX):03}{int(itemresource_result.RPosY):03}"
-        final = base
-        if item.IType == 3:  # Armor
-            prefix = 'p'  # Используем одну букву вместо кортежа
+        prefix = 'i'
+        item_model_no = base
+
+        if item.IType == 3:  # Доспехи
+            prefix = 'p'
             replace_dict = {
-                1: [0, 1],
-                2: [2, 3],
-                4: [4, 5],
+                1: [0, 1], 
+                2: [2, 3], 
+                4: [4, 5], 
                 5: [0, 1, 4, 5],
-                7: [4, 5, 0, 1, 2, 3],
-                8: [6, 7],  # Ассасин
+                7: [4, 5, 0, 1, 2, 3], 
+                8: [6, 7], 
                 15: [0, 1, 2, 3, 4, 5, 6, 7],
-                16: [8, 9],
-                18: [8, 9, 2, 3],
+                16: [8, 9], 
+                18: [8, 9, 2, 3], 
                 19: [8, 9, 2, 3, 0, 1],
-                20: [8, 9, 4, 5],
+                20: [8, 9, 4, 5], 
                 22: [8, 9, 4, 5, 2, 3],
-                23: [0, 1, 2, 3, 4, 5, 8, 9],
+                23: [0, 1, 2, 3, 4, 5, 8, 9], 
                 0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                 255: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             }
             if use_class in replace_dict:
                 for index in replace_dict[use_class]:
-                    final = f"0{index}0{base[3:]}"
-                    item_model_no = final
-        
-        elif item.IType in [1, 18, 20, 2, 19]:  # Weapons / Shield / Arrows
-            prefix = 'i'  # Используем одну букву вместо кортежа
-            item_model_no = base
-        else:
+                    item_model_no = f"0{index}0{base[3:]}"
+        elif item.IType not in [1, 18, 20, 2, 19]:  # Не оружие/щит/стрелы
             prefix = 'i'  # TODO: ЗАГЛУШКА ДЛЯ ОСТАЛЬНОГО!
-            item_model_no = base
 
-    # DT_ItemAbnormalResist Check
-    item_abnormalResist_data = None
+    # Проверка DT_ItemAbnormalResist
+    item_abnormalResist_data = get_itemabnormalResist_data(item_id) or None
     
-    item_abnormalResist_data = get_itemabnormalResist_data(item_id)
-    item_abnormalResist_data = item_abnormalResist_data or None
-
-    
-    
-    # DT_Bead Check
-    rune_bead_data = None
-    activation_bead_data = None
-    activation_bead_pic = None
-    
+    # Проверка DT_Bead и активации навыков
+    rune_bead_data = activation_bead_data = activation_bead_pic = None
     if item.IName.startswith('Руна'):
-        rune_bead_data = get_rune_bead_data(item_id)
+        if (rune_bead_data := get_rune_bead_data(item_id)) and rune_bead_data.mBeadType == 2:
+            activation_bead_data, activation_bead_pic = get_sid_by_spid(rune_bead_data.mParamA)
     
-    if rune_bead_data != None:
-        if rune_bead_data.mBeadType == 2:  # Активация навыка
-            activation_bead_data, activation_bead_pic = get_sid_by_spid(rune_bead_data.mParamA) # row.AID, row.SID, row.SName, row.IID, row.IName
-            
-            print(f"Activation Bead: {activation_bead_data}, {activation_bead_pic}")
-            #print(rune_bead_data.mGroup, rune_bead_data.mItemSubType, rune_bead_data.mProb, rune_bead_data.mTargetIPos)
+    # Получение дополнительных данных предмета
+    item_bead_module_data = get_item_bead_module_data(item_id) or None
+    item_bead_holeprob_data = get_item_bead_holeprob_data(item_id) or None
+    
+    item_attribute_add_data = get_item_attribute_add_data(item_id) or None
+    item_attribute_resist_data = get_item_attribute_resist_data(item_id) or None
+    
+    item_protect_data = get_item_protect_data(item_id) or None
+
+    item_slain_data = get_item_slain_data(item_id) or None
+    
+    item_panalty_data = get_item_panalty_data(item_id) or None
+    
 
     
-    # DT_ItemBeadModule
-    item_bead_module_data = None
-    
-    item_bead_module_data = get_item_bead_module_data(item_id)
-    if item_bead_module_data:
-        item_bead_module_data = item_bead_module_data
-    else:
-        item_bead_module_data = None
-    
-    
-    # TblBeadHoleProb
-    item_bead_holeprob_data = None
-    
-    item_bead_holeprob_data = get_item_bead_holeprob_data(item_id)
-    if item_bead_holeprob_data:
-        item_bead_holeprob_data = item_bead_holeprob_data
-    else:
-        item_bead_holeprob_data = None
-
-    print(f"Item itemdskill_data: {itemdskill_data}")
+    # Рендеринг шаблона с данными
     return render_template(
         'item_core/item_page_detail.html',
         item=item,
@@ -172,15 +189,25 @@ def item_detail(item_id: int):
         activation_bead_data=activation_bead_data,
         activation_bead_pic=activation_bead_pic,
         item_bead_module_data=item_bead_module_data,
-        item_bead_holeprob_data=item_bead_holeprob_data
+        item_bead_holeprob_data=item_bead_holeprob_data,
+        item_attribute_add_data=item_attribute_add_data,
+        item_attribute_resist_data=item_attribute_resist_data,
+        item_protect_data=item_protect_data,
+        item_slain_data=item_slain_data,
+        item_panalty_data=item_panalty_data
     )
 
 # Item type routes
 @bp.route('/weapon')
+@with_filters([1, 18, 20])
 def weapon():
     search_term = request.args.get('search', '')
     items, file_paths = get_items_by_type([1, 18, 20], search_term)
+    
+    print(f"ffffffff: {items[0]}")
+    
     return render_template('item/weapon.html', items_wep=items, item_resources=file_paths)
+
 
 @bp.route('/armor')
 def armor():
