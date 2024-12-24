@@ -186,20 +186,29 @@
 
     /* Export button */
     .export-btn {
-        padding: 8px 16px;
-        background-color: #1976D2;
+        padding: 10px 20px; /* Увеличено для лучшего визуального эффекта */
+        background: linear-gradient(145deg, #1976D2, #1565C0); /* Градиентный фон */
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 8px; /* Закругленные углы */
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Легкая тень */
         margin-bottom: 10px;
     }
-
+    
     .export-btn:hover {
-        background-color: #2196F3;
-        transform: translateY(-1px);
+        background: linear-gradient(145deg, #2196F3, #1976D2); /* Более светлый градиент при наведении */
+        transform: translateY(-5px); /* Легкое поднятие */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Увеличенная тень */
     }
+    
+    .export-btn:active {
+        background: linear-gradient(145deg, #1565C0, #0D47A1); /* Тёмный градиент при нажатии */
+        transform: translateY(0); /* Убираем эффект поднятия */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Легкая тень при нажатии */
+    }
+    
 
     /* Responsive styles */
     @media (max-width: 768px) {

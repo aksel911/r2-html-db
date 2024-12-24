@@ -33,42 +33,57 @@ bp = Blueprint('items', __name__)
 
 # TODO: Это тест фильтр, нужно доделать. Очень долго грузит отфильтрованные данные, Под каждую страницу свои фильтры. Сделать фильтры для: Монстров, Абнормал и Скиллов (всего остального)
 # ! Работает только /weapon --> @with_filters([1, 18, 20]) | Далее смотреть item_service.py --> apply_filters / item_to_dict | Далее все скрипты, css и остальное от фильтров в item_page_table_filter.html
-def with_filters(item_types):
-    """Декоратор для добавления фильтрации к роутам"""
+def with_filters(allowed_types):
+    """Enhanced decorator for filtering with pagination and type restrictions"""
     def decorator(original_route):
         @wraps(original_route)
         def wrapped_route(*args, **kwargs):
             try:
-                # Если это AJAX запрос, возвращаем только отфильтрованные данные
+                # Get search term
+                search_term = request.args.get('search', '')
+                
+                # Get initial data for allowed types
+                items = []
+                file_paths = {}
+                
+                for item_type in allowed_types:
+                    type_items, type_paths = get_items_by_type([item_type], search_term)
+                    items.extend(type_items)
+                    file_paths.update(type_paths)
+
+                # If it's an AJAX request, handle filtering
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     filters = request.args.to_dict()
-                    search_term = filters.pop('search', '') if 'search' in filters else ''
                     
-                    print(f"Received filters: {filters}")  # Отладочная информация
-                    
-                    # Получаем предметы
-                    items, file_paths = get_items_by_type(item_types, search_term)
-                    print(f"Found {len(items)} items before filtering")  # Отладочная информация
-                    
-                    # Применяем фильтры
+                    # Apply filters
                     filtered_items = apply_filters(items, filters)
-                    print(f"Found {len(filtered_items)} items after filtering")  # Отладочная информация
                     
-                    # Конвертируем предметы в словари
-                    items_dict = [item_to_dict(item) for item in filtered_items]
+                    # Get pagination parameters
+                    page = request.args.get('page', 1, type=int)
+                    per_page = request.args.get('per_page', 25000, type=int) # ! PP LIMIT
+                    
+                    # Apply pagination
+                    start_idx = (page - 1) * per_page
+                    end_idx = start_idx + per_page
+                    paginated_items = filtered_items[start_idx:end_idx]
+                    
+                    # Convert to dict for response
+                    items_dict = [item_to_dict(item) for item in paginated_items]
                     
                     return jsonify({
                         'items': items_dict,
-                        'resources': file_paths
+                        'resources': file_paths,
+                        'total': len(filtered_items),
+                        'pages': (len(filtered_items) + per_page - 1) // per_page
                     })
                 
-                # Иначе возвращаем полную страницу
-                return original_route(*args, **kwargs)
+                # For normal request, pass data to route
+                return original_route(items_wep=items, item_resources=file_paths, *args, **kwargs)
                 
             except Exception as e:
                 print(f"Error in route: {str(e)}")
                 import traceback
-                traceback.print_exc()  # Добавьте это для полного стека ошибки
+                traceback.print_exc()
                 return jsonify({'error': str(e)}), 500
                 
         return wrapped_route
@@ -197,130 +212,182 @@ def item_detail(item_id: int):
         item_panalty_data=item_panalty_data
     )
 
+
+
 # Item type routes
+
+@bp.route('/all_items')
+@with_filters(list(range(43)))
+def all_items(items_wep=None, item_resources=None):
+    """Weapon items route"""
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type(list(range(43)), search_term)
+        
+    return render_template('item/all_items.html', items_wep=items_wep, item_resources=item_resources)
+
+
 @bp.route('/weapon')
 @with_filters([1, 18, 20])
-def weapon():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([1, 18, 20], search_term)
-    
-    print(f"ffffffff: {items[0]}")
-    
-    return render_template('item/weapon.html', items_wep=items, item_resources=file_paths)
-
+def weapon(items_wep=None, item_resources=None):
+    """Weapon items route"""
+    if items_wep is None:
+        # Get initial data
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([1, 18, 20], search_term)
+        
+    return render_template('item/weapon.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/armor')
-def armor():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([3], search_term)
-    return render_template('item/armor.html', items_wep=items, item_resources=file_paths)
+@with_filters([3])
+def armor(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([3], search_term)
+        
+    return render_template('item/armor.html', items_wep=items_wep, item_resources=item_resources)
+    
+
 
 @bp.route('/gloves')
-def gloves():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([7], search_term)
-    return render_template('item/gloves.html', items_wep=items, item_resources=file_paths)
+@with_filters([7])
+def gloves(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([7], search_term)
+    return render_template('item/gloves.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/boots')
-def boots():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([6], search_term)
-    return render_template('item/boots.html', items_wep=items, item_resources=file_paths)
+@with_filters([6])
+def boots(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([6], search_term)
+    return render_template('item/boots.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/helmet')
-def helmet():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([8], search_term)
-    return render_template('item/helmet.html', items_wep=items, item_resources=file_paths)
+@with_filters([8])
+def helmet(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([8], search_term)
+    return render_template('item/helmet.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/shield')
-def shield():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([2], search_term)
-    return render_template('item/shield.html', items_wep=items, item_resources=file_paths)
+@with_filters([2])
+def shield(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([2], search_term)
+    return render_template('item/shield.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/arrows')
-def arrows():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([19], search_term)
-    return render_template('item/arrows.html', items_wep=items, item_resources=file_paths)
+@with_filters([19])
+def arrows(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([19], search_term)
+    return render_template('item/arrows.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/cloak')
-def cloak():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([17], search_term)
-    return render_template('item/cloak.html', items_wep=items, item_resources=file_paths)
+@with_filters([17])
+def cloak(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([17], search_term)
+    return render_template('item/cloak.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/materials')
-def materials():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([10, 16], search_term)
-    return render_template('item/materials.html', items_wep=items, item_resources=file_paths)
+@with_filters([10, 16])
+def materials(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([10, 16], search_term)
+    return render_template('item/materials.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/ring')
-def ring():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([4], search_term)
-    return render_template('item/ring.html', items_wep=items, item_resources=file_paths)
+@with_filters([4])
+def ring(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([4], search_term)
+    return render_template('item/ring.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/belt')
-def belt():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([9], search_term)
-    return render_template('item/belt.html', items_wep=items, item_resources=file_paths)
+@with_filters([9])
+def belt(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([9], search_term)
+    return render_template('item/belt.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/necklace')
-def necklace():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([5], search_term)
-    return render_template('item/necklace.html', items_wep=items, item_resources=file_paths)
+@with_filters([5])
+def necklace(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([5], search_term)
+    return render_template('item/necklace.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/earrings')
-def earrings():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([42], search_term)
-    return render_template('item/earrings.html', items_wep=items, item_resources=file_paths)
+@with_filters([42])
+def earrings(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([42], search_term)
+    return render_template('item/earrings.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/books')
-def books():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([12], search_term)
-    return render_template('item/books.html', items_wep=items, item_resources=file_paths)
+@with_filters([12])
+def books(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([12], search_term)
+    return render_template('item/books.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/potions')
-def potions():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([10], search_term)
-    return render_template('item/potions.html', items_wep=items, item_resources=file_paths)
+@with_filters([10])
+def potions(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([10], search_term)
+    return render_template('item/potions.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/etc')
-def etc():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([14, 16, 13, 11], search_term)
-    return render_template('item/etc.html', items_wep=items, item_resources=file_paths)
+@with_filters([14, 16, 13, 11])
+def etc(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([14, 16, 13, 11], search_term)
+    return render_template('item/etc.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/quest')
-def quest():
-    """Get quest items"""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT mID FROM TblQuestCondition WHERE mType = 1")
-        item_ids = [row.mID for row in cursor.fetchall()]
+@with_filters([1])
+def quest(items_wep=None, item_resources=None):
+    if items_wep is None:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT mID FROM TblQuestCondition WHERE mType = 1")
+            item_ids = [row.mID for row in cursor.fetchall()]
 
-        if not item_ids:
-            return render_template('quest.html', items_wep=[], item_resources={})
+            if not item_ids:
+                return render_template('item/quest.html', items_wep=[], item_resources={})
 
-        items, file_paths = get_items_by_type(item_ids)
-        return render_template('item/quest.html', items_wep=items, item_resources=file_paths)
+            items_wep, item_resources = get_items_by_type(item_ids)
+    return render_template('item/quest.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/event')
-def event():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([15], search_term)
-    return render_template('item/event.html', items_wep=items, item_resources=file_paths)
+@with_filters([15])
+def event(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([15], search_term)
+    return render_template('item/event.html', items_wep=items_wep, item_resources=item_resources)
 
 @bp.route('/sphere')
-def sphere():
-    search_term = request.args.get('search', '')
-    items, file_paths = get_items_by_type([22, 23, 24, 25, 26, 27, 28, 29], search_term)
-    return render_template('item/sphere.html', items_wep=items, item_resources=file_paths)
+@with_filters([22, 23, 24, 25, 26, 27, 28, 29])
+def sphere(items_wep=None, item_resources=None):
+    if items_wep is None:
+        search_term = request.args.get('search', '')
+        items_wep, item_resources = get_items_by_type([22, 23, 24, 25, 26, 27, 28, 29], search_term)
+    return render_template('item/sphere.html', items_wep=items_wep, item_resources=item_resources)

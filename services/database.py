@@ -24,3 +24,4 @@ def execute_query(query, params=None, fetch_one=False):
         if fetch_one:
             return cursor.fetchone()
         return cursor.fetchall()
+    

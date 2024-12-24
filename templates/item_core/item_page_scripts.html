@@ -2,11 +2,11 @@
     <script>
         $(document).ready(function() {
             window.table = $('#items-table').DataTable({
-                "paging": true,
+                "paging": false,
                 "lengthChange": true,
                 "searching": true,
                 "ordering": true,
-                "info": true,
+                "info": false,
                 "autoWidth": false,
                 "pageLength": 25,
                 "deferRender": true,
@@ -52,8 +52,8 @@
                     "searchPlaceholder": "Быстрый фильтр...",
                     "lengthMenu": "Показать _MENU_ предметов",
                     "info": "Предметы с _START_ по _END_ из _TOTAL_",
-                    "infoEmpty": "Нет предметов",
-                    "zeroRecords": "Предметы не найдены",
+                    "infoEmpty": '<div id="loadingMessage" style="display:center;">Загрузка данных...</div><div id="errorMessage" style="display:center; color: red;"></div>', // "infoEmpty": "Нет предметов",
+                    "zeroRecords": '<div id="loadingMessage" style="display:center;">Загрузка данных...</div><div id="errorMessage" style="display:center; color: red;"></div>', // "zeroRecords": "Предметы не найдены",
                     "paginate": {
                         "first": "Первая",
                         "last": "Последняя",
@@ -129,7 +129,7 @@
         		}).slice(0, 5);
         		if(matches.length > 0) {
         			matches.forEach(function(match) {
-        				var $link = $('<a>').addClass('dropdown-item').attr('href', '/monster/' + match.id).text(match.name).click(function(e) {
+        				var $link = $('<a>').addClass('dropdown-item').attr('href', '/item/' + match.id).text(match.name).click(function(e) {
         					e.preventDefault();
         					$('#search-input').val(match.name);
         					window.table.search(match.name).draw();
@@ -271,7 +271,7 @@
         }, 250));
     </script>
 
-        <!-- Tooltip Initialization Script -->
+    <!-- Tooltip Initialization Script -->
     <script>
         $(document).ready(function() {
             $('[data-toggle="tooltip"]').tooltip();
@@ -292,9 +292,20 @@
     <!-- Dark Theme Toggle Script -->
     <script>
         document.getElementById('theme-toggle').addEventListener('click', () => {
-        	document.documentElement.classList.toggle('dark-theme');
-        	document.body.classList.toggle('dark-theme');
-        	localStorage.setItem('theme', document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light');
+            // Toggle the theme classes
+            document.documentElement.classList.toggle('dark-theme');
+            document.body.classList.toggle('dark-theme');
+            
+            // Store the current theme in localStorage
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+    </script>
+    <script>
+        // Добавляем эффект движения фона от мышки
+        document.addEventListener('mousemove', function(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            document.body.style.backgroundPosition = `${x * 100}% ${y * 100}%`;
         });
     </script>
 

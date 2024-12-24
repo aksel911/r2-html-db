@@ -1,4 +1,4 @@
-    <!-- Filters container -->
+<!-- Filters container -->
 <div class="filters-container mb-4">
     <div class="row">
         <!-- Основные фильтры -->
@@ -12,6 +12,10 @@
             <button class="btn btn-info mb-3 ml-2" id="resetFilters">
                 <i class="fas fa-sync"></i> Сбросить фильтры
             </button>
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <select id="perPageSelect" class="form-control same-width-as-reset"></select>
         </div>
 
         <!-- Основные фильтры -->
@@ -135,26 +139,36 @@
 
                 <div class="row mt-3">
                     <!-- Чекбоксы -->
-                    <div class="col-md-12">
+                    <div class="col-md-12 text-center">
                         <div class="custom-control custom-checkbox custom-control-inline">
                             <input type="checkbox" class="custom-control-input" id="eventItemFilter">
-                            <label class="custom-control-label" for="eventItemFilter">Ивентовый предмет</label>
+                            <label class="custom-control-label" for="eventItemFilter">
+                                <i class="fas fa-calendar-alt"></i> Ивентовый предмет
+                            </label>
                         </div>
                         <div class="custom-control custom-checkbox custom-control-inline">
                             <input type="checkbox" class="custom-control-input" id="testItemFilter">
-                            <label class="custom-control-label" for="testItemFilter">Тестовый предмет</label>
+                            <label class="custom-control-label" for="testItemFilter">
+                                <i class="fas fa-vial"></i> Тестовый предмет
+                            </label>
                         </div>
                         <div class="custom-control custom-checkbox custom-control-inline">
                             <input type="checkbox" class="custom-control-input" id="indictFilter">
-                            <label class="custom-control-label" for="indictFilter">Запрет на выброс</label>
+                            <label class="custom-control-label" for="indictFilter">
+                                <i class="fas fa-lock"></i> Запрет на выброс
+                            </label>
                         </div>
                         <div class="custom-control custom-checkbox custom-control-inline">
                             <input type="checkbox" class="custom-control-input" id="chargeFilter">
-                            <label class="custom-control-label" for="chargeFilter">Премиум предмет</label>
+                            <label class="custom-control-label" for="chargeFilter">
+                                <i class="fas fa-gem"></i> Премиум предмет
+                            </label>
                         </div>
                         <div class="custom-control custom-checkbox custom-control-inline">
                             <input type="checkbox" class="custom-control-input" id="partyDropFilter">
-                            <label class="custom-control-label" for="partyDropFilter">Выпадает группе</label>
+                            <label class="custom-control-label" for="partyDropFilter">
+                                <i class="fas fa-users"></i> Выпадает группе
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -175,242 +189,783 @@
         </div>
     </div>
 </div>
+<div id="totalCount" class="mb-3 mt-3">Найдено предметов: 0</div>
+<div class="pagination-container mb-4 d-flex justify-content-center gap-2"></div>
+<!--
+<div id="loadingMessage" style="display:none;">Загрузка данных...</div>
+<div id="errorMessage" style="display:none; color: red;"></div>
+-->
+
+
 
 <style>
+    /* Общие стили для кнопок */
+    .btn-primary, .btn-secondary, .btn-info {
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+    
+    
+    .btn-primary {
+        background-color: linear-gradient(145deg, #e0f7fa, #b2ebf2);
+        border: 2px solid #81d4fa;
+        color: white;
+        margin-right: 5px;
+    }
+    .btn-primary:hover {
+        background-color: linear-gradient(145deg, #b3e5fc, #81d4fa);
+        border-color: #0288d1;
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    .btn-primary:active {
+        background-color: linear-gradient(145deg, #81d4fa, #4fc3f7);
+        border-color: #0288d1;
+        color: white;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(145deg, #007bff, #0056b3); /* Using blue shades */
+        border: none;
+        color: #ffffff; /* White text for better contrast */
+        margin-right: 5px;
+    }
+    
+    .btn-secondary:hover {
+        background: linear-gradient(145deg, #0056b3, #003d7a); /* Darker blue on hover */
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .btn-secondary:active {
+        background: linear-gradient(145deg, #003d7a, #002f5d); /* Even darker blue when active */
+        color: #e1e1e1; /* Light gray text for active state */
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    
+    .btn-info {
+        background: linear-gradient(145deg, #ede7f6, #d1c4e9);
+        border: none;
+        color: #512da8;
+        margin-right: 5px;
+    }
+    .btn-info:hover {
+        background: linear-gradient(145deg, #d1c4e9, #b39ddb);
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .btn-info:active {
+        background: linear-gradient(145deg, #b39ddb, #9575cd);
+        color: #311b92;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    
+    
+    
+    .dark-theme .btn-primary {
+        background-color: linear-gradient(145deg, #0a3a54, #061f29);
+        border: 2px solid #2E3A3B;
+        color: white;
+        margin-right: 5px;
+    }
+    .dark-theme .btn-primary:hover {
+        background-color: linear-gradient(145deg, #0d5a80, #083241);
+        border-color: #3A4B4E;
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        color: #e1f5fe;
+    }
+    .dark-theme .btn-primary:active {
+        background-color: linear-gradient(145deg, #083241, #021218);
+        border-color: #1E2829;
+        color: #cfd8dc;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .dark-theme .btn-secondary {
+        background: linear-gradient(145deg, #3d5a80 , #293241);
+        border: none;
+        color: #cfd8dc;
+        margin-right: 5px; 
+    }
+    .dark-theme .btn-secondary:hover {
+        background: linear-gradient(145deg, #2d5a80, #193241);
+        
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .dark-theme .btn-secondary:active {
+        background: linear-gradient(145deg,rgb(31, 62, 88),rgb(11, 22, 29));
+        color: #ffffff;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .dark-theme .btn-info {
+        background: linear-gradient(145deg, #5d5a80 , #493241);
+        border: none;
+        color: #cfd8dc;
+        margin-right: 5px;
+    }
+    .dark-theme .btn-info:hover {
+        background: linear-gradient(145deg, #4d5a80, #393241);
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .dark-theme .btn-info:active {
+        background: linear-gradient(145deg,rgb(47, 55, 78),rgb(30, 26, 34));
+        color: #ffffff;
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+
+
+
+
+    
+
+    /* Стиль для фильтров */
     .filters-container {
         background: rgba(255, 255, 255, 0.95);
         padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s, color 0.3s;
     }
-
+    
     .advanced-filters-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
     }
 
-    .filter-group {
-        margin-bottom: 15px;
+    .filter-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .filter-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .filter-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Dark theme support */
+    .filter-icon {
+        font-size: 1.5em;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-card:hover .filter-icon {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+    }
+    
+    .filter-label {
+        font-weight: 500;
+        font-size: 0.95em;
+        color: rgba(5, 5, 5, 0.9);
+    }
+
+    .dark-theme .filter-label {
+        font-weight: 500;
+        font-size: 0.95em;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+
+    /* Адаптация для темной темы */
     .dark-theme .filters-container {
         background: rgba(40, 40, 40, 0.95);
         color: white;
     }
-
+    
     .dark-theme .card {
         background: rgba(40, 40, 40, 0.95);
         border-color: #2c3e50;
     }
-
-    .dark-theme .form-control {
+    
+    .dark-theme .form-control, .dark-theme .input-group-text {
         background-color: #2c3e50;
         border-color: #34495e;
         color: white;
     }
 
-    .dark-theme .input-group-text {
-        background-color: #34495e;
-        border-color: #2c3e50;
-        color: white;
+    /* Адаптация для светлой темы */
+    body:not(.dark-theme) .filters-container {
+        background: rgba(255, 255, 255, 0.95);
+        color: #333;
     }
 
-    .dark-theme .custom-control-label {
-        color: white;
+    body:not(.dark-theme) .card {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #dee2e6;
     }
+
+    body:not(.dark-theme) .form-control {
+        background-color: #ffffff;
+        border-color: #ddd;
+        color: #333;
+    }
+
+    body:not(.dark-theme) .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #ddd;
+        color: #333;
+    }
+
+    body:not(.dark-theme) .custom-control-label {
+        color: #333;
+    }
+
+    /* Анимация появления карточек фильтров */
+    @keyframes filterCardAppear {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .filter-card {
+        animation: filterCardAppear 0.3s ease forwards;
+    }
+    
+    .filter-card:nth-child(n) {
+        animation-delay: calc(0.05s * var(--index, 0));
+    }
+
+
 </style>
 
 
+
+
 <script>
+        // Type mappings для разных маршрутов
+    const TYPE_MAPPINGS = {
+        '/weapon': [1, 18, 20],
+        '/armor': [3],
+        '/gloves': [7],
+        '/boots': [6],
+        '/helmet': [8],
+        '/shield': [2],
+        '/arrows': [19],
+        '/cloak': [17],
+        '/materials': [10, 16],
+        '/ring': [4],
+        '/belt': [9],
+        '/necklace': [5],
+        '/earrings': [42],
+        '/books': [12],
+        '/potions': [10],
+        '/etc': [14, 16, 13, 11],
+        '/sphere': [22, 23, 24, 25, 26, 27, 28, 29],
+        '/quest': [] // Quest items use special handling
+    };
+
+    // Описания типов предметов
+    const TYPE_DESCRIPTIONS = {
+        1: 'Оружие Ближнего Боя',
+        2: 'Щит, Браслет',
+        3: 'Доспех',
+        4: 'Кольцо',
+        5: 'Ожерелье',
+        6: 'Ботинки',
+        7: 'Перчатки',
+        8: 'Шлем',
+        9: 'Ремень',
+        10: 'Зелья',
+        11: 'SpecificProcItem/Shop Item',
+        12: 'Книга',
+        13: 'Жезл, Фейерверк, Петарда',
+        14: 'Предмет со Skill',
+        15: 'Сундук',
+        16: 'Пустышка, Печати, Квестовый',
+        17: 'Плащ',
+        18: 'Оружие Дальнего Боя',
+        19: 'Патроны, стрелы, камни',
+        20: 'Алебарда/Копье',
+        22: 'Сфера Мастера',
+        23: 'Сфера Души',
+        24: 'Сфера Защиты',
+        25: 'Сфера Разрушения',
+        26: 'Сфера Жизни',
+        27: 'Сфера 1 Слот',
+        28: 'Сфера 2 Слот',
+        29: 'Сфера 3 Слот',
+        42: 'Серьги'
+    };
+
+    // Описания расширенных фильтров
+    const ADVANCED_FILTERS = [
+        { id: 'IDHIT', label: 'Точность в ближнем бою', icon: '🎯', type: 'range' },
+        { id: 'IDDD', label: 'Урон в ближнем бою', icon: '⚔️', type: 'range' },
+        { id: 'IRHIT', label: 'Точность в дальнем бою', icon: '🏹', type: 'range' },
+        { id: 'IRDD', label: 'Урон в дальнем бою', icon: '🎯', type: 'range' },
+        { id: 'IMHIT', label: 'Магическая точность', icon: '✨', type: 'range' },
+        { id: 'IMDD', label: 'Магический урон', icon: '🔮', type: 'range' },
+        { id: 'IHPPlus', label: 'Доп. HP', icon: '❤️', type: 'range' },
+        { id: 'IMPPlus', label: 'Доп. MP', icon: '💧', type: 'range' },
+        { id: 'ISTR', label: 'Сила', icon: '💪', type: 'range' },
+        { id: 'IDEX', label: 'Ловкость', icon: '🏃', type: 'range' },
+        { id: 'IINT', label: 'Интеллект', icon: '🧠', type: 'range' },
+        { id: 'IHPRegen', label: 'Реген HP', icon: '♥️', type: 'range' },
+        { id: 'IMPRegen', label: 'Реген MP', icon: '💫', type: 'range' },
+        { id: 'IAttackRate', label: 'Скорость атаки', icon: '⚡', type: 'range' },
+        { id: 'IMoveRate', label: 'Скорость передвижения', icon: '🏃', type: 'range' },
+        { id: 'ICritical', label: 'Шанс крита', icon: '🎯', type: 'range' }
+    ];
+
+    // Глобальные переменные
+    let debounceTimer;
+    let lastRequest = null;
+    let currentPage = 1;
+    let cachedData = null;
+    
+
+    // Элементы для отображения загрузки и ошибок
+    const loadingMessage = document.getElementById('loadingMessage');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Инициализация при загрузке DOM
     document.addEventListener('DOMContentLoaded', function() {
-        let debounceTimer;
-        let lastRequest = null;
-        
-        function createAdvancedFilters() {
-            const advancedFiltersGrid = document.querySelector('.advanced-filters-grid');
-            if (!advancedFiltersGrid) return;
-    
-            const advancedFilters = [
-                { id: 'IDHIT', label: 'Точность в ближнем бою' },
-                { id: 'IDDD', label: 'Урон в ближнем бою' },
-                { id: 'IRHIT', label: 'Точность в дальнем бою' },
-                { id: 'IRDD', label: 'Урон в дальнем бою' },
-                { id: 'IMHIT', label: 'Магическая точность' },
-                { id: 'IMDD', label: 'Магический урон' },
-                { id: 'IHPPlus', label: 'Доп. HP' },
-                { id: 'IMPPlus', label: 'Доп. MP' },
-                { id: 'ISTR', label: 'Сила' },
-                { id: 'IDEX', label: 'Ловкость' },
-                { id: 'IINT', label: 'Интеллект' },
-                { id: 'IHPRegen', label: 'Реген HP' },
-                { id: 'IMPRegen', label: 'Реген MP' },
-                { id: 'IAttackRate', label: 'Скорость атаки' },
-                { id: 'IMoveRate', label: 'Скорость передвижения' },
-                { id: 'ICritical', label: 'Шанс крита' }
-            ];
-    
-            const fragment = document.createDocumentFragment();
-            advancedFilters.forEach(filter => {
-                const div = document.createElement('div');
-                div.className = 'filter-group';
-                div.innerHTML = `
-                    <label>${filter.label}:</label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="${filter.id}Min" 
-                               placeholder="Мин" data-filter="${filter.id}">
-                        <div class="input-group-prepend input-group-append">
-                            <span class="input-group-text">-</span>
-                        </div>
-                        <input type="number" class="form-control" id="${filter.id}Max" 
-                               placeholder="Макс" data-filter="${filter.id}">
-                    </div>
-                `;
-                fragment.appendChild(div);
+        initialize();
+    });
+
+
+    async function fetchData(forceReload = false) {
+        if (cachedData && !forceReload) {
+            return cachedData;
+        }
+
+        // Показать индикатор загрузки
+        toggleLoadingState(true);
+
+        try {
+            const response = await fetch(`${window.location.pathname}?all=1&page=1`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-    
-            advancedFiltersGrid.appendChild(fragment);
-        }
-    
-        function updateURL(params) {
-            const url = new URL(window.location.href);
-            Object.entries(params).forEach(([key, value]) => {
-                url.searchParams.set(key, value);
-            });
-            window.history.pushState({}, '', url);
-        }
-    
-        function renderItems(items, resources) {
-            const tableBody = document.querySelector('table tbody');
-            if (!tableBody) return;
-    
-            const itemsHTML = items.map(item => `
-                <tr>
-                    <td>
-                        <div class="item-image">
-                            <a href="/item/${item.IID}">
-                                <img src="${resources[item.IID] || ''}" alt="${item.IName}" title="${item.IName}">
-                            </a>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="item-name">
-                            <a href="/item/${item.IID}">${item.IName}</a>
-                        </div>
-                        <div class="item-desc">${item.IDesc || ''}</div>
-                    </td>
-                    <td>${item.ILevel || ''}</td>
-                    <td>${item.IDHIT || ''}</td>
-                    <td>${item.IDDD || ''}</td>
-                    <td>${item.IWeight || ''}</td>
-                    <td class="item-desc">${item.IDesc || ''}</td>
-                </tr>
-            `).join('');
-    
-            tableBody.innerHTML = itemsHTML;
-        }
-    
-        async function applyFilters() {
-            const tableBody = document.querySelector('table tbody');
-            if (!tableBody) return;
-    
-            // Отменяем предыдущий запрос, если он еще выполняется
-            if (lastRequest) {
-                lastRequest.abort();
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(`Error: ${data.error}`);
             }
-    
-            const params = new URLSearchParams(
-                Array.from(
-                    document.querySelectorAll('.form-control, .custom-control-input')
-                ).filter(
-                    input => (input.type === 'checkbox' && input.checked) 
-                          || (input.type !== 'checkbox' && input.value)  
-                ).map(
-                    input => [input.id, input.type === 'checkbox' ? '1' : input.value]
-                )  
-            );
-    
-            // Сохраняем предыдущий поисковый запрос
-            if (window.location.search) {
-                const searchParams = new URLSearchParams(window.location.search);
-                if (searchParams.has('search')) {
-                    params.set('search', searchParams.get('search'));
-                }
-            }
-    
-            try {
-                // Создаем контроллер для возможности отмены запроса
-                const controller = new AbortController();
-                lastRequest = controller;
-    
-                const response = await fetch(`${window.location.pathname}?${params}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    signal: controller.signal
+
+            const totalPages = data.pages;
+            let allItems = [...data.items];
+
+            // Загружаем все страницы
+            for (let page = 2; page <= totalPages; page++) {
+                const pageResponse = await fetch(`${window.location.pathname}?all=1&page=${page}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-                
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const data = await response.json();
-                renderItems(data.items, data.resources);
-                updateURL(params);
-    
-                lastRequest = null;
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Request was cancelled');
-                } else {
-                    console.error('Error fetching filtered items:', error);
+                const pageData = await pageResponse.json();
+                if (pageData.items) {
+                    allItems = allItems.concat(pageData.items);
                 }
             }
+
+            // Сохраняем данные в кэше
+            cachedData = { ...data, items: allItems };
+
+            // Скрыть индикатор загрузки
+            toggleLoadingState(false);
+
+            return cachedData;
+        } catch (error) {
+            // Показываем сообщение об ошибке
+            toggleLoadingState(false);
+            showError(error.message);
+            return null;
         }
-    
-        function debounceFilter(event) {
-            if (event.target.classList.contains('form-control')) {
+    }
+
+
+    // Функция для отображения и скрытия индикатора загрузки
+    function toggleLoadingState(isLoading) {
+        if (isLoading) {
+            if (loadingMessage) loadingMessage.style.display = 'block'; // Показываем загрузку
+            if (errorMessage) errorMessage.style.display = 'none'; // Скрываем ошибку
+        } else {
+            if (loadingMessage) loadingMessage.style.display = 'none'; // Скрываем загрузку
+        }
+    }
+
+    // Функция для отображения сообщения об ошибке
+    function showError(message) {
+        if (errorMessage) {
+            errorMessage.textContent = `Произошла ошибка: ${message}`;
+            errorMessage.style.display = 'block'; // Показываем ошибку
+        }
+    }
+
+    // Основная функция инициализации
+    async function initialize() {
+        const data = await fetchData();
+        if (!data) return;
+        window.data = data;
+        initializeTypeFilter();
+        initializeAdvancedFilters();
+
+        // Обработчик всех фильтров
+        document.querySelector('.filters-container').addEventListener('input', event => {
+            if (event.target.classList.contains('form-control') || 
+                event.target.classList.contains('custom-control-input')) {
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(applyFilters, 300);
-            }
-        }
-    
-        // Инициализация
-        createAdvancedFilters();
-    
-        // Делегирование событий для всех фильтров
-        const filtersContainer = document.querySelector('.filters-container');  
-        filtersContainer.addEventListener('input', debounceFilter);
-        filtersContainer.addEventListener('change', applyFilters);
-    
-        // Обработчик для кнопки сброса
-        const resetButton = document.getElementById('resetFilters');
-        if (resetButton) {
-            resetButton.addEventListener('click', function() {
-                document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
-                    if (input.type === 'checkbox') {
-                        input.checked = false;
-                    } else {
-                        input.value = '';
-                    }
-                });
-                applyFilters();
-            });
-        }
-    
-        // Установка начальных значений из URL параметров
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.forEach((value, key) => {
-            const input = document.getElementById(key);
-            if (input) {
-                if (input.type === 'checkbox') {
-                    input.checked = value === '1';
-                } else {
-                    input.value = value;
-                }
+                debounceTimer = setTimeout(() => applyFilters(data, 1), 300);
             }
         });
-        applyFilters();
-    });
-    </script>
+
+        // Сброс фильтров
+        document.getElementById('resetFilters')?.addEventListener('click', () => {
+            document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else if (input.id !== 'perPageSelect') {
+                    input.value = '';
+                }
+            });
+            applyFilters(data, 1);
+        });
+
+        // Выбор количества элементов на странице
+        document.getElementById('perPageSelect')?.addEventListener('change', () => {
+            applyFilters(data, 1);
+        });
+
+        // Начальная загрузка
+        applyFilters(data, 1);
+    }
+
+    // Инициализация фильтра типов
+    function initializeTypeFilter() {
+        const typeFilter = document.getElementById('typeFilter');
+        if (!typeFilter) return;
+
+        const allowedTypes = getAllowedTypes();
+        
+        // Очищаем существующие опции
+        typeFilter.innerHTML = '<option value="">Все</option>';
+
+        // Добавляем только разрешенные типы
+        allowedTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = TYPE_DESCRIPTIONS[type] || `Тип ${type}`;
+            typeFilter.appendChild(option);
+        });
+
+
+        const perPageSelect = document.getElementById('perPageSelect');
+        if (!perPageSelect) return;
+
+        // Определяем доступные варианты количества элементов на странице
+        const perPageOptions = [10, 25, 50, 75, 100, 150, 200];
+
+        // Очищаем существующие опции
+        perPageSelect.innerHTML = '';
+
+        // Добавляем новые опции
+        perPageOptions.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            optionElement.textContent = `${option} на странице`;
+            perPageSelect.appendChild(optionElement);
+        });
+
+        // Устанавливаем значение по умолчанию (25)
+        perPageSelect.value = '25';
+
+        // Устанавливаем начальное значение из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('per_page')) {
+            const urlPerPage = urlParams.get('per_page');
+            if (perPageOptions.includes(Number(urlPerPage))) {
+                perPageSelect.value = urlPerPage;
+            }
+        }
+    }
+
+    // Получение разрешенных типов для текущей страницы
+    function getAllowedTypes() {
+        const path = window.location.pathname;
+        return TYPE_MAPPINGS[path] || [];
+    }
+
+    // Инициализация расширенных фильтров
+    function initializeAdvancedFilters() {
+        const container = document.querySelector('.advanced-filters-grid');
+        if (!container) return;
+
+        const filterCards = ADVANCED_FILTERS.map(filter => `
+            <div class="filter-card" data-filter="${filter.id}">
+                <div class="filter-card-header">
+                    <span class="filter-icon">${filter.icon}</span>
+                    <span class="filter-label">${filter.label}</span>
+                </div>
+                <div class="filter-inputs">
+                    <div class="input-group">
+                        <input type="number" 
+                            class="form-control" 
+                            id="${filter.id}Min"
+                            placeholder="Мин" 
+                            step="any">
+                        <div class="input-group-text">-</div>
+                        <input type="number" 
+                            class="form-control" 
+                            id="${filter.id}Max"
+                            placeholder="Макс" 
+                            step="any">
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        container.innerHTML = filterCards;
+    }
+
+    // Применение фильтров
+    function applyFilters(data, page = 1) {
+        const tableBody = document.querySelector('table tbody');
+        if (!tableBody) return;
+
+        // Собираем все фильтры
+        const filters = {};
+        
+        document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
+            if (input.id === 'perPageSelect') return;
+            if ((input.type === 'checkbox' && input.checked) || 
+                (input.type !== 'checkbox' && input.value)) {
+                filters[input.id] = input.type === 'checkbox' ? '1' : input.value;
+            }
+        });
+
+        // Применяем фильтры к данным
+        let filteredData = data.items;
+        
+        // Фильтрация по типу
+        if (filters.typeFilter) {
+            filteredData = filteredData.filter(item => item.IType === Number(filters.typeFilter));
+        }
+
+
+        // Применение фильтра для уровня
+        if (filters.levelMin || filters.levelMax) {
+            filteredData = filteredData.filter(item => {
+                const level = item.ILevel || 0;
+                return (!filters.levelMin || level >= Number(filters.levelMin)) &&
+                    (!filters.levelMax || level <= Number(filters.levelMax));
+            });
+        }
+
+        // Применение фильтра для веса
+        if (filters.weightMin || filters.weightMax) {
+            filteredData = filteredData.filter(item => {
+                const weight = item.IWeight || 0;
+                return (!filters.weightMin || weight >= Number(filters.weightMin)) &&
+                    (!filters.weightMax || weight <= Number(filters.weightMax));
+            });
+        }
+
+        // Фильтрация по стакаемости
+        if (filters.stackableFilter) {
+            filteredData = filteredData.filter(item => item.IMaxStack === Number(filters.stackableFilter));
+        }
+
+        // Фильтрация по сроку действия в днях
+        if (filters.validityDaysMin || filters.validityDaysMax) {
+            filteredData = filteredData.filter(item => {
+                const validityDays = item.ITermOfValidity || 0;
+                return (!filters.validityDaysMin || validityDays >= Number(filters.validityDaysMin)) && 
+                    (!filters.validityDaysMax || validityDays <= Number(filters.validityDaysMax));
+            });
+        }
+
+        // Фильтрация по сроку действия в минутах
+        if (filters.validityMinutesMin || filters.validityMinutesMax) {
+            filteredData = filteredData.filter(item => {
+                const validityMinutes = item.ITermOfValidityMi || 0;
+                return (!filters.validityMinutesMin || validityMinutes >= Number(filters.validityMinutesMin)) && 
+                    (!filters.validityMinutesMax || validityMinutes <= Number(filters.validityMinutesMax));
+            });
+        }
+
+
+        // Фильтрация по номеру квеста
+        if (filters.questNoFilter) {
+            filteredData = filteredData.filter(item => item.IQuestNo === Number(filters.questNoFilter));
+        }
+
+        // Фильтрация по чекбоксам
+        if (filters.eventItemFilter) {
+            filteredData = filteredData.filter(item => item.IIsEvent === true);
+        }
+        if (filters.testItemFilter) {
+            filteredData = filteredData.filter(item => item.IIsTest === true);
+        }
+        if (filters.indictFilter) {
+            filteredData = filteredData.filter(item => item.IIsIndict === true);
+        }
+        if (filters.chargeFilter) {
+            filteredData = filteredData.filter(item => item.IIsCharge === true);
+        }
+        if (filters.partyDropFilter) {
+            filteredData = filteredData.filter(item => item.IIsPartyDrop === true);
+        }
+
+        // Обновляем общее количество отфильтрованных предметов (до пагинации)
+        updateTotalCount(filteredData.length);
+
+        // Пагинация
+        const perPage = Number(document.getElementById('perPageSelect')?.value) || 25;
+        const startIndex = (page - 1) * perPage;
+        const endIndex = startIndex + perPage;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+
+        renderItems(paginatedData, data.resources);
+        createPagination(filteredData.length, page, perPage);
+        updateURL(filters);
+
+        currentPage = page;
+    }
+
+
+    // Отрисовка предметов
+    function renderItems(items, resources) {
+        const tableBody = document.querySelector('table tbody');
+        const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
+
+        if (!tableBody) return;
+        
+        const itemsHTML = items.map(item => `
+            <tr>
+                <td>
+                    <div class="hover-text-wrapper">
+                        <a href="/item/${item.IID}">
+                            <img src="${resources[item.IID] || fallbackImage}"
+                                alt="${item.IName}"
+                                title="${item.IName}"
+                                width="48"
+                                height="48"
+                                loading="lazy"
+                                class="item-image">
+                        </a>
+                        <div class="hover-text">[${item.IID}] ${item.IName}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="item-name">
+                        <a href="/item/${item.IID}">${item.IName}</a>
+                    </div>
+                </td>
+                <td class="item-desc">${item.IDesc || 'Нет описания'}</td>
+                <td>${item.IWeight || 'N/A'}</td>
+                <td><img src="${item.IUseClass || 'N/A'}" alt="${item.IName}"></td>
+            </tr>
+        `).join('');
     
+        tableBody.innerHTML = itemsHTML;
+    }
+
+    // Создание пагинации
+    function createPagination(total, currentPage, perPage) {
+        const paginationContainer = document.querySelector('.pagination-container');
+        if (!paginationContainer) return;
+    
+        const totalPages = Math.ceil(total / perPage);
+        let paginationHTML = [];
+
+        // Кнопка "Предыдущая"
+        paginationHTML.push(`
+            <button class="btn btn-secondary ${currentPage === 1 ? 'disabled' : ''}"
+                    onclick="applyFilters(data, ${currentPage - 1})"
+                    ${currentPage === 1 ? 'disabled' : ''}>
+                Предыдущая
+            </button>
+        `);
+    
+        // Номера страниц
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                paginationHTML.push(`
+                    <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}"
+                            onclick="applyFilters(data, ${i})">
+                        ${i}
+                    </button>
+                `);
+            } else if (i === currentPage - 3 || i === currentPage + 3) {
+                paginationHTML.push('<span class="pagination-ellipsis">...</span>');
+            }
+        }
+    
+        // Кнопка "Следующая"
+        paginationHTML.push(`
+            <button class="btn btn-secondary ${currentPage === totalPages ? 'disabled' : ''}"
+                    onclick="applyFilters(data, ${currentPage + 1})"
+                    ${currentPage === totalPages ? 'disabled' : ''}>
+                Следующая
+            </button>
+        `);
+    
+        paginationContainer.innerHTML = paginationHTML.join('');
+    }
+
+    // Обновление URL
+    function updateURL(params) {
+        const url = new URL(window.location.href);
+        url.search = params.toString();
+        history.pushState({}, '', url);
+    }
+
+    // Обновление счетчика предметов
+    function updateTotalCount(count) {
+        const totalCount = document.getElementById('totalCount');
+        if (totalCount) {
+            totalCount.textContent = `Найдено предметов: ${count}`;
+        }
+    }
+
+    // Глобальная функция смены страницы
+    window.changePage = function(page) {
+        applyFilters(page);
+    };
+
+</script>

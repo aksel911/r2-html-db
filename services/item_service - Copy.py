@@ -7,48 +7,41 @@ from models.item import (DT_Item, DT_ItemResource, TblSpecificProcItem, DT_ItemA
 DT_Bead, DT_ItemBeadModule, TblBeadHoleProb, DT_ItemAttributeAdd, 
 DT_ItemAttributeResist, DT_ItemProtect, DT_ItemSlain, DT_ItemPanalty)
 
-from services.database import execute_query
+from services.database import execute_query, get_db_connection
 from services.utils import get_skill_icon_path, clean_description, get_google_sheets_data
 from config.settings import ATTRIBUTE_TYPE_WEAPON_URL, ATTRIBUTE_TYPE_ARMOR_URL
 
 
 def apply_filters(items, filters):
-    """Optimized filter function with debugging"""
-    print(f"Applying filters: {filters}")
-    print(f"Initial items count: {len(items)}")
-
+    """Оптимизированная функция применения фильтров"""
     if not items or not filters:
         return items
 
-    # Remove empty filters
+    # Удаляем пустые фильтры для оптимизации
     filters = {k: v for k, v in filters.items() if v and k != ''}
     if not filters:
         return items
 
-    filtered_items = items
+    # Преобразуем списки один раз
+    filtered_items = list(items)
 
     try:
-        # Process filters in order of most restrictive first
+        # Числовые фильтры основные
         if type_filter := filters.get('typeFilter'):
-            print(f"Applying type filter: {type_filter}")
             type_val = int(type_filter)
             filtered_items = [item for item in filtered_items if item.IType == type_val]
-            print(f"After type filter: {len(filtered_items)} items")
-            if not filtered_items:
-                return []
 
-        # Level filter (common restriction)
         if filters.get('levelMin') or filters.get('levelMax'):
             level_min = int(filters.get('levelMin', 0))
             level_max = int(filters.get('levelMax', 999999))
-            print(f"Applying level filter: min={level_min}, max={level_max}")
-            filtered_items = [item for item in filtered_items 
-                            if level_min <= item.ILevel <= level_max]
-            print(f"After level filter: {len(filtered_items)} items")
-            if not filtered_items:
-                return []
+            filtered_items = [item for item in filtered_items if level_min <= item.ILevel <= level_max]
 
-        # Boolean filters (quick to process)
+        if filters.get('weightMin') or filters.get('weightMax'):
+            weight_min = float(filters.get('weightMin', 0))
+            weight_max = float(filters.get('weightMax', 999999))
+            filtered_items = [item for item in filtered_items if weight_min <= item.IWeight <= weight_max]
+
+        # Булевы фильтры (оптимизировано)
         bool_fields = {
             'stackableFilter': ('IMaxStack', lambda x: int(x) if x in ['0', '1'] else None),
             'eventItemFilter': ('IIsEvent', lambda x: bool(int(x))),
@@ -60,122 +53,65 @@ def apply_filters(items, filters):
 
         for filter_name, (attr, converter) in bool_fields.items():
             if filter_val := filters.get(filter_name):
-                print(f"Applying boolean filter {filter_name}: {filter_val}")
                 val = converter(filter_val)
                 if val is not None:
-                    filtered_items = [item for item in filtered_items 
-                                    if getattr(item, attr) == val]
-                    print(f"After {filter_name}: {len(filtered_items)} items")
-                    if not filtered_items:
-                        return []
+                    filtered_items = [item for item in filtered_items if getattr(item, attr) == val]
 
-        # Numeric range filters
+        # Числовые фильтры дополнительные (оптимизировано)
         numeric_fields = {
-            'IDHIT': ('IDHIT', float), 
-            'IDDD': ('IDDD', float),
-            'IRHIT': ('IRHIT', float), 
-            'IRDD': ('IRDD', float),
-            'IMHIT': ('IMHIT', float), 
-            'IMDD': ('IMDD', float),
-            'IHPPlus': ('IHPPlus', float),
-            'IMPPlus': ('IMPPlus', float),
-            'ISTR': ('ISTR', float),
-            'IDEX': ('IDEX', float),
-            'IINT': ('IINT', float),
-            'IHPRegen': ('IHPRegen', float),
-            'IMPRegen': ('IMPRegen', float),
-            'IAttackRate': ('IAttackRate', float),
-            'IMoveRate': ('IMoveRate', float),
-            'ICritical': ('ICritical', float)
+            'IDHIT', 'IDDD', 'IRHIT', 'IRDD', 'IMHIT', 'IMDD',
+            'IHPPlus', 'IMPPlus', 'ISTR', 'IDEX', 'IINT',
+            'IHPRegen', 'IMPRegen', 'IAttackRate', 'IMoveRate', 'ICritical'
         }
 
-        for field_base, (attr, converter) in numeric_fields.items():
-            min_key = f"{field_base}Min"
-            max_key = f"{field_base}Max"
+        for field in numeric_fields:
+            min_key = f"{field}Min"
+            max_key = f"{field}Max"
             
-            if min_val := filters.get(min_key):
-                print(f"Applying min filter {min_key}: {min_val}")
-                min_val = converter(min_val)
+            if filters.get(min_key) or filters.get(max_key):
+                min_val = float(filters.get(min_key, 0))
+                max_val = float(filters.get(max_key, 999999))
                 filtered_items = [item for item in filtered_items 
-                                if converter(getattr(item, attr, 0) or 0) >= min_val]
-                print(f"After {min_key}: {len(filtered_items)} items")
-                if not filtered_items:
-                    return []
-                    
-            if max_val := filters.get(max_key):
-                print(f"Applying max filter {max_key}: {max_val}")
-                max_val = converter(max_val)
-                filtered_items = [item for item in filtered_items 
-                                if converter(getattr(item, attr, 0) or 0) <= max_val]
-                print(f"After {max_key}: {len(filtered_items)} items")
-                if not filtered_items:
-                    return []
+                                if min_val <= float(getattr(item, field, 0) or 0) <= max_val]
 
-        # Weight filter (special handling for float)
-        if filters.get('weightMin') or filters.get('weightMax'):
-            weight_min = float(filters.get('weightMin', 0))
-            weight_max = float(filters.get('weightMax', 999999))
-            print(f"Applying weight filter: min={weight_min}, max={weight_max}")
-            filtered_items = [item for item in filtered_items 
-                            if weight_min <= float(item.IWeight or 0) <= weight_max]
-            print(f"After weight filter: {len(filtered_items)} items")
-
-        # Quest No filter
+        # Квест
         if quest_no := filters.get('questNoFilter'):
-            print(f"Applying quest filter: {quest_no}")
             quest_val = int(quest_no)
-            filtered_items = [item for item in filtered_items 
-                            if item.IQuestNo == quest_val]
-            print(f"After quest filter: {len(filtered_items)} items")
+            filtered_items = [item for item in filtered_items if item.IQuestNo == quest_val]
 
-        print(f"Final filtered items count: {len(filtered_items)}")
-        return filtered_items
+    except (ValueError, AttributeError) as e:
+        print(f"Error applying filters: {e}")
+        return items
 
-    except Exception as e:
-        print(f"Error in apply_filters: {e}")
-        import traceback
-        traceback.print_exc()
-        return []
+    return filtered_items
 
 
 
 
 def item_to_dict(item):
-    """Конвертирует объект DT_Item в словарь со всеми нужными атрибутами"""
-    return {
-        'IID': item.IID,
-        'IName': item.IName,
-        'IType': item.IType,
-        'ILevel': item.ILevel,
-        'IWeight': float(item.IWeight) if item.IWeight else 0,
-        'IDesc': item.IDesc.replace('\\n', ' ⭑ ') if item.IDesc else '',
-        'IUseClass': item.IUseClass,
-        'IMaxStack': item.IMaxStack,
-        'IIsEvent': item.IIsEvent,
-        'IIsTest': item.IIsTest,
-        'IIsIndict': item.IIsIndict,
-        'IIsCharge': item.IIsCharge,
-        'IIsPartyDrop': item.IIsPartyDrop,
-        'IQuestNo': item.IQuestNo,
-        'ITermOfValidity': item.ITermOfValidity,
-        'ITermOfValidityMi': item.ITermOfValidityMi,
-        'IDHIT': item.IDHIT,
-        'IDDD': item.IDDD,
-        'IRHIT': item.IRHIT,
-        'IRDD': item.IRDD,
-        'IMHIT': item.IMHIT,
-        'IMDD': item.IMDD,
-        'IHPPlus': item.IHPPlus,
-        'IMPPlus': item.IMPPlus,
-        'ISTR': item.ISTR,
-        'IDEX': item.IDEX,
-        'IINT': item.IINT,
-        'IHPRegen': item.IHPRegen,
-        'IMPRegen': item.IMPRegen,
-        'IAttackRate': item.IAttackRate,
-        'IMoveRate': item.IMoveRate,
-        'ICritical': item.ICritical
+    """Конвертирует объект DT_Item в словарь со всеми возможными атрибутами, оптимизировано"""
+    attributes = {
+        'IID', 'IName', 'IType', 'ILevel', 'IDHIT', 'IDDD', 'IRHIT', 'IRDD', 'IMHIT', 'IMDD',
+        'IHPPlus', 'IMPPlus', 'ISTR', 'IDEX', 'IINT', 'IMaxStack', 'IWeight', 'IUseType', 'IUseNum',
+        'IRecycle', 'IHPRegen', 'IMPRegen', 'IAttackRate', 'IMoveRate', 'ICritical', 'ITermOfValidity',
+        'ITermOfValidityMi', 'IDesc', 'IStatus', 'IFakeID', 'IFakeName', 'IUseMsg', 'IRange', 'IUseClass',
+        'IDropEffect', 'IUseLevel', 'IUseEternal', 'IUseDelay', 'IUseInAttack', 'IIsEvent', 'IIsIndict',
+        'IAddWeight', 'ISubType', 'IIsCharge', 'INationOp', 'IPShopItemType', 'IQuestNo', 'IIsTest',
+        'IQuestNeedCnt', 'IContentsLv', 'IIsConfirm', 'IIsSealable', 'IAddDDWhenCritical', 'mSealRemovalNeedCnt',
+        'mIsPracticalPeriod', 'mIsReceiveTown', 'IIsReinforceDestroy', 'IAddPotionRestore',
+        'IAddMaxHpWhenTransform', 'IAddMaxMpWhenTransform', 'IAddAttackRateWhenTransform',
+        'IAddMoveRateWhenTransform', 'ISupportType', 'ITermOfValidityLv', 'mIsUseableUTGWSvr',
+        'IAddShortAttackRange', 'IAddLongAttackRange', 'IWeaponPoisonType', 'IDPV', 'IMPV', 'IRPV',
+        'IDDV', 'IMDV', 'IRDV', 'IHDPV', 'IHMPV', 'IHRPV', 'IHDDV', 'IHMDV', 'IHRDV', 'ISubDDWhenCritical',
+        'IGetItemFeedback', 'IEnemySubCriticalHit', 'IIsPartyDrop', 'IMaxBeadHoleCount', 'ISubTypeOption',
+        'mIsDeleteArenaSvr'
     }
+
+    # Используем __dict__ для получения всех атрибутов объекта
+    item_dict = item.__dict__
+
+    # Возвращаем только те атрибуты, которые есть в объекте
+    return {attr: item_dict.get(attr, None) for attr in attributes}
 
 
 
@@ -320,6 +256,31 @@ def get_item_pic_url(item_id: int):
     item_pic_url = f"{current_app.config['GITHUB_URL']}{item_id.RFileName}_{item_id.RPosX}_{item_id.RPosY}.png"
     return item_pic_url
 
+def get_quest_items():
+    query = """
+    SELECT
+        a.mID,
+        b.IType 
+    FROM
+        TblQuestCondition AS a
+        INNER JOIN DT_Item AS b ON ( a.mID = b.IID ) 
+    WHERE
+        mType = ?
+    """
+    mType = 1
+    rows = execute_query(query, (mType,), fetch_one=False)
+    
+    if rows:
+        result = []
+        for row in rows:
+            q_item_mID = row[0]  # ID предмета
+            q_item_IType = row[1]  # Тип предмета
+
+            result.append((q_item_mID, q_item_IType))
+        
+        return result
+    
+    return None
 
 #@lru_cache(maxsize=1000)
 def get_item_model_resource(item_id: int) -> Optional[DT_ItemResource]:
@@ -418,7 +379,7 @@ def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[Lis
                 file_paths[item_id] = resource.file_path
             else:
                 file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
-                
+    #print(f"items: {items}, file_paths: {file_paths}")            
     return items, file_paths
 
 
