@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Union
 from os.path import splitext
 from functools import lru_cache
 from flask import current_app
@@ -181,9 +181,16 @@ def item_to_dict(item):
 
 
 #@lru_cache(maxsize=10000)
-def get_item_by_id(item_id: int) -> Optional[DT_Item]:
-    """Get item by ID with caching"""
-    query = """
+def get_item_by_id(item_ids: Union[int, List[int]]) -> Union[Optional[DT_Item], List[Optional[DT_Item]]]:
+    """Get item by ID with caching. Now supports both single ID and list of IDs"""
+    single_id = isinstance(item_ids, int)
+    ids = [item_ids] if single_id else item_ids
+    
+    if not ids:
+        return None if single_id else []
+        
+    placeholders = ','.join('?' * len(ids))
+    query = f"""
     SELECT 
         IID, IName, IType, ILevel, IDHIT, IDDD, IRHIT, IRDD, IMHIT, IMDD,
         IHPPlus, IMPPlus, ISTR, IDEX, IINT, IMaxStack, IWeight, IUseType,
@@ -203,13 +210,15 @@ def get_item_by_id(item_id: int) -> Optional[DT_Item]:
         ISubDDWhenCritical, IGetItemFeedback, IEnemySubCriticalHit,
         IIsPartyDrop, IMaxBeadHoleCount, ISubTypeOption, mIsDeleteArenaSvr
     FROM DT_Item 
-    WHERE IID = ?
+    WHERE IID IN ({placeholders})
     """
     
-    row = execute_query(query, (item_id,), fetch_one=True)
+    rows = execute_query(query, ids, fetch_one=False)
     
-    if row:
-        return DT_Item(
+    # Создаем словарь id -> item для сохранения порядка
+    items_dict = {}
+    for row in rows:
+        items_dict[row.IID] = DT_Item(
             IID=row.IID,
             IName=row.IName,
             IType=row.IType,
@@ -298,22 +307,38 @@ def get_item_by_id(item_id: int) -> Optional[DT_Item]:
             ISubTypeOption=row.ISubTypeOption,
             mIsDeleteArenaSvr=bool(row.mIsDeleteArenaSvr)
         )
-    return None
+    
+    if single_id:
+        return items_dict.get(item_ids)
+    return [items_dict.get(item_id) for item_id in ids]
 
 #@lru_cache(maxsize=1000)
-def get_item_resource(item_id: int) -> Optional[DT_ItemResource]:
-    """Get item resource by ID with caching"""
-    query = "SELECT * FROM DT_ItemResource WHERE ROwnerID = ? AND RType = 2"
-    row = execute_query(query, (item_id,), fetch_one=True)
+def get_item_resource(item_ids: Union[int, List[int]]) -> Union[Optional[DT_ItemResource], Dict[int, DT_ItemResource]]:
+    """Get item resource by ID with caching. Now supports both single ID and list of IDs"""
+    single_id = isinstance(item_ids, int)
+    ids = [item_ids] if single_id else item_ids
     
-    if row:
-        return DT_ItemResource(
+    if not ids:
+        return None if single_id else {}
+        
+    placeholders = ','.join('?' * len(ids))
+    query = f"SELECT * FROM DT_ItemResource WHERE ROwnerID IN ({placeholders}) AND RType = 2"
+    
+    rows = execute_query(query, ids, fetch_one=False)
+    
+    # Создаем словарь id -> resource
+    resources_dict = {}
+    for row in rows:
+        resources_dict[row.ROwnerID] = DT_ItemResource(
             row.ROwnerID,
             row.RFileName,
             row.RPosX,
             row.RPosY
         )
-    return None
+    
+    if single_id:
+        return resources_dict.get(item_ids)
+    return resources_dict
 
 #@lru_cache(maxsize=1000)
 def get_item_pic_url(item_id: int):
@@ -381,7 +406,7 @@ def get_specific_proc_item(item_id: int) -> Optional[TblSpecificProcItem]:
     return None
 
 
-
+# Загрузка предметов (ГЛАВНАЯ СТРАНИЦА ПО /items/)
 def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
     """Generic function to fetch items by type with optional search"""
     # Используем параметризованный запрос для безопасности
@@ -398,27 +423,24 @@ def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[Lis
     # Создаем список параметров: сначала item_types, затем search_term
     params = item_types + [f'%{search_term}%']
     
-    rows = execute_query(query, params)
+    rows = execute_query(query, params, fetch_one=False)
     item_ids = [row.IID for row in rows]
     
     if not item_ids:
         return [], {}
         
-    # Get items and their resources
-    items = []
+    # Получаем все предметы и ресурсы одним запросом для всех ID
+    items = get_item_by_id(item_ids)
+    resources = get_item_resource(item_ids)
+   
+    # Формируем словарь путей к файлам
     file_paths = {}
-    
     for item_id in item_ids:
-        item = get_item_by_id(item_id)
-        if item:
-            items.append(item)
-            
-            resource = get_item_resource(item_id)
-            if resource:
-                file_paths[item_id] = resource.file_path
-            else:
-                file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
-                
+        if item_id in resources:
+            file_paths[item_id] = resources[item_id].file_path
+        else:
+            file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
+               
     return items, file_paths
 
 

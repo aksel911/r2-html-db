@@ -27,6 +27,7 @@ def get_monster_pic_url(monster_id: int):
     monster_pic_url = f"{current_app.config['GITHUB_URL']}{monster_id}.png"
     return monster_pic_url
 
+# Respawn Time Info
 def get_monster_mtick(monster_id: int) -> Union[str, int]:
     query = f"SELECT mTick FROM {current_app.config['DATABASE_NAME']}.dbo.TblMonsterSpot WHERE mMID = ?"
     respawn_result = execute_query(query, (monster_id,), fetch_one=True)

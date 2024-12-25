@@ -56,8 +56,8 @@ def monster_detail(monster_id: int):
     # Получение времени респауна
     respawn_time = get_monster_mtick(monster_id)
     respawn_info = {
-        "mTick": respawn_time / 1000,
-        "mTickms": respawn_time
+        "mTickMin": int(respawn_time / 60),
+        "mTick": respawn_time
     }
 
     # Получение локации монстра

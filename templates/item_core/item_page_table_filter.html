@@ -1,6 +1,7 @@
 <!-- Filters container -->
 <div class="filters-container mb-4">
     <div class="row">
+
         <!-- Основные фильтры -->
         <div class="col-md-12">
             <button class="btn btn-primary mb-3" type="button" data-toggle="collapse" data-target="#mainFilters">
@@ -16,6 +17,26 @@
                 <i class="fas fa-moon"></i>
             </button>
             <select id="perPageSelect" class="form-control same-width-as-reset"></select>
+        </div>
+
+        <!-- Поиск -->
+        <div class="col-md-12 mb-3">
+            <div class="search-container position-relative">
+                <div class="input-group">
+                    <input type="text" 
+                        class="form-control" 
+                        id="itemSearch" 
+                        placeholder="🔍 Поиск по ID или названию предмета..."
+                        autocomplete="off">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="searchSuggestions" class="position-absolute w-100 bg-white border rounded-bottom shadow-sm" 
+                    style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto;"></div>
+            </div>
         </div>
 
         <!-- Основные фильтры -->
@@ -191,293 +212,21 @@
 </div>
 <div id="totalCount" class="mb-3 mt-3">Найдено предметов: 0</div>
 <div class="pagination-container mb-4 d-flex justify-content-center gap-2"></div>
-<!--
-<div id="loadingMessage" style="display:none;">Загрузка данных...</div>
-<div id="errorMessage" style="display:none; color: red;"></div>
--->
+
+<!-- Loading overlay and messages -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <span>Загрузка данных...</span>
+    </div>
+</div>
+<div id="errorMessage" class="message-container error-message"></div>
 
 
 
-<style>
-    /* Общие стили для кнопок */
-    .btn-primary, .btn-secondary, .btn-info {
-        transition: all 0.3s ease-in-out;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-    }
-    
-    
-    .btn-primary {
-        background-color: linear-gradient(145deg, #e0f7fa, #b2ebf2);
-        border: 2px solid #81d4fa;
-        color: white;
-        margin-right: 5px;
-    }
-    .btn-primary:hover {
-        background-color: linear-gradient(145deg, #b3e5fc, #81d4fa);
-        border-color: #0288d1;
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        color: white;
-    }
-    .btn-primary:active {
-        background-color: linear-gradient(145deg, #81d4fa, #4fc3f7);
-        border-color: #0288d1;
-        color: white;
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    }
-    
-    .btn-secondary {
-        background: linear-gradient(145deg, #007bff, #0056b3); /* Using blue shades */
-        border: none;
-        color: #ffffff; /* White text for better contrast */
-        margin-right: 5px;
-    }
-    
-    .btn-secondary:hover {
-        background: linear-gradient(145deg, #0056b3, #003d7a); /* Darker blue on hover */
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .btn-secondary:active {
-        background: linear-gradient(145deg, #003d7a, #002f5d); /* Even darker blue when active */
-        color: #e1e1e1; /* Light gray text for active state */
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    
-    .btn-info {
-        background: linear-gradient(145deg, #ede7f6, #d1c4e9);
-        border: none;
-        color: #512da8;
-        margin-right: 5px;
-    }
-    .btn-info:hover {
-        background: linear-gradient(145deg, #d1c4e9, #b39ddb);
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-    .btn-info:active {
-        background: linear-gradient(145deg, #b39ddb, #9575cd);
-        color: #311b92;
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    
-    
-    
-    .dark-theme .btn-primary {
-        background-color: linear-gradient(145deg, #0a3a54, #061f29);
-        border: 2px solid #2E3A3B;
-        color: white;
-        margin-right: 5px;
-    }
-    .dark-theme .btn-primary:hover {
-        background-color: linear-gradient(145deg, #0d5a80, #083241);
-        border-color: #3A4B4E;
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-        color: #e1f5fe;
-    }
-    .dark-theme .btn-primary:active {
-        background-color: linear-gradient(145deg, #083241, #021218);
-        border-color: #1E2829;
-        color: #cfd8dc;
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    }
-    
-    .dark-theme .btn-secondary {
-        background: linear-gradient(145deg, #3d5a80 , #293241);
-        border: none;
-        color: #cfd8dc;
-        margin-right: 5px; 
-    }
-    .dark-theme .btn-secondary:hover {
-        background: linear-gradient(145deg, #2d5a80, #193241);
-        
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-    .dark-theme .btn-secondary:active {
-        background: linear-gradient(145deg,rgb(31, 62, 88),rgb(11, 22, 29));
-        color: #ffffff;
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .dark-theme .btn-info {
-        background: linear-gradient(145deg, #5d5a80 , #493241);
-        border: none;
-        color: #cfd8dc;
-        margin-right: 5px;
-    }
-    .dark-theme .btn-info:hover {
-        background: linear-gradient(145deg, #4d5a80, #393241);
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    }
-    .dark-theme .btn-info:active {
-        background: linear-gradient(145deg,rgb(47, 55, 78),rgb(30, 26, 34));
-        color: #ffffff;
-        transform: translateY(0);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-
-
-
-
-    
-
-    /* Стиль для фильтров */
-    .filters-container {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        transition: background-color 0.3s, color 0.3s;
-    }
-    
-    .advanced-filters-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 20px;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 12px;
-    }
-
-    .filter-card {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .filter-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    .filter-card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .filter-icon {
-        font-size: 1.5em;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    .filter-card:hover .filter-icon {
-        background: rgba(255, 255, 255, 0.2);
-        transform: scale(1.1);
-    }
-    
-    .filter-label {
-        font-weight: 500;
-        font-size: 0.95em;
-        color: rgba(5, 5, 5, 0.9);
-    }
-
-    .dark-theme .filter-label {
-        font-weight: 500;
-        font-size: 0.95em;
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-
-    /* Адаптация для темной темы */
-    .dark-theme .filters-container {
-        background: rgba(40, 40, 40, 0.95);
-        color: white;
-    }
-    
-    .dark-theme .card {
-        background: rgba(40, 40, 40, 0.95);
-        border-color: #2c3e50;
-    }
-    
-    .dark-theme .form-control, .dark-theme .input-group-text {
-        background-color: #2c3e50;
-        border-color: #34495e;
-        color: white;
-    }
-
-    /* Адаптация для светлой темы */
-    body:not(.dark-theme) .filters-container {
-        background: rgba(255, 255, 255, 0.95);
-        color: #333;
-    }
-
-    body:not(.dark-theme) .card {
-        background: rgba(255, 255, 255, 0.95);
-        border-color: #dee2e6;
-    }
-
-    body:not(.dark-theme) .form-control {
-        background-color: #ffffff;
-        border-color: #ddd;
-        color: #333;
-    }
-
-    body:not(.dark-theme) .input-group-text {
-        background-color: #f8f9fa;
-        border-color: #ddd;
-        color: #333;
-    }
-
-    body:not(.dark-theme) .custom-control-label {
-        color: #333;
-    }
-
-    /* Анимация появления карточек фильтров */
-    @keyframes filterCardAppear {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .filter-card {
-        animation: filterCardAppear 0.3s ease forwards;
-    }
-    
-    .filter-card:nth-child(n) {
-        animation-delay: calc(0.05s * var(--index, 0));
-    }
-
-
-</style>
-
-
-
-
+<!-- ГЛАВНЫЕ СКРИПТЫ ФИЛЬТРА -->
 <script>
-        // Type mappings для разных маршрутов
+    // Type mappings для разных маршрутов
     const TYPE_MAPPINGS = {
         '/weapon': [1, 18, 20],
         '/armor': [3],
@@ -619,23 +368,89 @@
     }
 
 
-    // Функция для отображения и скрытия индикатора загрузки
+    // Обновленная функция toggleLoadingState
     function toggleLoadingState(isLoading) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const errorMessage = document.getElementById('errorMessage');
+        
         if (isLoading) {
-            if (loadingMessage) loadingMessage.style.display = 'block'; // Показываем загрузку
-            if (errorMessage) errorMessage.style.display = 'none'; // Скрываем ошибку
+            loadingOverlay.classList.add('show');
+            errorMessage?.classList.remove('show');
         } else {
-            if (loadingMessage) loadingMessage.style.display = 'none'; // Скрываем загрузку
+            setTimeout(() => {
+                loadingOverlay.classList.remove('show');
+            }, 500);
         }
     }
 
-    // Функция для отображения сообщения об ошибке
+    // Обновленная функция showError
     function showError(message) {
+        const errorMessage = document.getElementById('errorMessage');
         if (errorMessage) {
             errorMessage.textContent = `Произошла ошибка: ${message}`;
-            errorMessage.style.display = 'block'; // Показываем ошибку
+            errorMessage.classList.add('show');
+            
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
         }
     }
+
+    // Добавляем анимации к существующей функции renderItems
+    const originalRenderItems = window.renderItems;
+    window.renderItems = function(items, resources) {
+        if (!items) return;
+        
+        const tableBody = document.querySelector('table tbody');
+        if (!tableBody) return;
+        
+        // Применяем эффект затухания
+        tableBody.classList.add('table-fade-enter');
+        
+        // Вызываем оригинальную функцию
+        originalRenderItems(items, resources);
+        
+        // Запускаем анимацию появления
+        requestAnimationFrame(() => {
+            tableBody.classList.remove('table-fade-enter');
+            tableBody.classList.add('table-fade-enter-active');
+            
+            setTimeout(() => {
+                tableBody.classList.remove('table-fade-enter-active');
+            }, 300);
+        });
+    }
+
+    // Добавляем анимации к существующей функции createPagination
+    const originalCreatePagination = window.createPagination;
+    window.createPagination = function(total, currentPage, perPage) {
+        const paginationContainer = document.querySelector('.pagination-container');
+        if (!paginationContainer) return;
+        
+        // Скрываем пагинацию перед обновлением
+        paginationContainer.style.opacity = '0';
+        
+        // Вызываем оригинальную функцию
+        originalCreatePagination(total, currentPage, perPage);
+        
+        // Плавно показываем обновленную пагинацию
+        requestAnimationFrame(() => {
+            paginationContainer.style.opacity = '1';
+        });
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        // Добавляем обработчики для анимации кнопок пагинации
+        document.querySelector('.pagination-container')?.addEventListener('click', (e) => {
+            if (e.target.matches('button')) {
+                e.target.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    e.target.style.transform = '';
+                }, 200);
+            }
+        });
+    });
 
     // Основная функция инициализации
     async function initialize() {
@@ -874,7 +689,9 @@
         const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
 
         if (!tableBody) return;
-        
+
+        const itemsHTML_table_headers = '{% block table_headers %}\n\t<th>🖼️</th>\n\t<th>Название</th>\n\t<th>Описание</th>\n\t<th>Вес</th>\n\t<th>Класс</th>\n{% endblock %}'
+
         const itemsHTML = items.map(item => `
             <tr>
                 <td>
@@ -902,7 +719,7 @@
             </tr>
         `).join('');
     
-        tableBody.innerHTML = itemsHTML;
+        tableBody.innerHTML = itemsHTML_table_headers + itemsHTML;
     }
 
     // Создание пагинации
@@ -950,10 +767,14 @@
 
     // Обновление URL
     function updateURL(params) {
+
         const url = new URL(window.location.href);
-        url.search = params.toString();
+        const searchParams = new URLSearchParams(params); // Создаем URLSearchParams из объекта params
+        url.search = searchParams.toString(); // Преобразуем параметры в строку формата key=value
         history.pushState({}, '', url);
+        console.log(url.toString()); // Выводим обновленный URL в консоль
     }
+
 
     // Обновление счетчика предметов
     function updateTotalCount(count) {
@@ -962,7 +783,7 @@
             totalCount.textContent = `Найдено предметов: ${count}`;
         }
     }
-
+    
     // Глобальная функция смены страницы
     window.changePage = function(page) {
         applyFilters(page);
