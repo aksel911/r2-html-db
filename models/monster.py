@@ -6,18 +6,68 @@ class Monster:
     """Data class for monsters"""
     MID: int
     MName: str
-    MClass: int
-    MLevel: int
+    mLevel: int
+    MClass: str
+    MExp: int
+    MHIT: float
+    MMinD: float
+    MMaxD: float
+    MAttackRateOrg: float
+    MMoveRateOrg: float
+    MAttackRateNew: float
+    MMoveRateNew: float
     MHP: int
     MMP: int
-    MExp: int
-    mRaceType: int
-    mIsShowHp: bool
+    MMoveRange: float
+    MGbjType: int
+    MRaceType: int
+    MAiType: int
+    MCastingDelay: int
     MChaotic: int
+    MSameRace1: int
+    MSameRace2: int
+    MSameRace3: int
+    MSameRace4: int
+    mSightRange: float
+    mAttackRange: float
+    mSkillRange: float
+    mBodySize: float
     mDetectTransF: bool
     mDetectTransP: bool
-    mDetectChao: int
+    mDetectChao: bool
+    mAiEx: int
+    mScale: float
     mIsResistTransF: bool
+    mIsEvent: bool
+    mIsTest: bool
+    mHPNew: int
+    mMPNew: int
+    mBuyMerchanID: int
+    mSellMerchanID: int
+    mChargeMerchanID: int
+    mTransformWeight: float
+    mNationOp: int
+    mHPRegen: float
+    mMPRegen: float
+    IContentsLv: int
+    mIsEventTest: bool
+    mIsShowHp: bool
+    mSupportType: int
+    mVolitionOfHonor: int
+    mWMapIconType: int
+    mIsAmpliableTermOfValidity: bool
+    mAttackType: int
+    mTransType: int
+    mDPV: float
+    mMPV: float
+    mRPV: float
+    mDDV: float
+    mMDV: float
+    mRDV: float
+    mSubDDWhenCritical: float
+    mEnemySubCriticalHit: float
+    mEventQuest: bool
+    mEScale: float
 
     def to_dict(self) -> Dict:
         """Convert monster to dictionary with formatted fields"""

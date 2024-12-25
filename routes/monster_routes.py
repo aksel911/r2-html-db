@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, current_app
+from flask import Blueprint, render_template, current_app, abort, jsonify, request
 import requests
 from services.monster_service import (
     get_monster_by_id,
@@ -10,7 +10,11 @@ from services.monster_service import (
     get_monster_attribute_add_data,
     get_monster_attribute_resist_data,
     get_monster_protect_data,
-    get_monster_slain_data
+    get_monster_slain_data,
+    apply_monster_filters,
+    monster_to_dict,
+    
+    
 )
 from services.utils import get_google_sheets_data
 from services.merchant_service import (
@@ -20,8 +24,109 @@ from services.merchant_service import (
 from services.database import execute_query
 from config.settings import MONSTER_CLASS_URL, MONSTER_RACE_URL, MONSTER_LOCATION_URL
 import pandas as pd
+from functools import wraps
 
 bp = Blueprint('monsters', __name__)
+
+
+MONSTER_ROUTES = {
+    'monster_all': {
+        'classes': list(range(1, 39)),  # Все классы монстров
+        'title': '[Монстры] Все монстры',
+        'header': 'Все монстры'
+    },
+    'monster_regular': {
+        'classes': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+        'title': '[Монстры] Обычные монстры',
+        'header': 'Обычные монстры'
+    },
+    'monster_boss': {
+        'classes': [29, 38, 37, 36, 34],
+        'title': '[Монстры] Боссы',
+        'header': 'Боссы'
+    },
+    'monster_raidboss': {
+    'classes': [26],
+    'title': '[Монстры] Рейд-Боссы',
+    'header': 'Рейд-Боссы'
+    },
+    'monster_imennoy': {
+    'classes': [28],
+    'title': '[Монстры] Именные-Боссы',
+    'header': 'Именные-Боссы'
+    },
+    'monster_npc': {
+        'classes': [23],
+        'title': '[Монстры] NPC',
+        'header': 'NPC'
+    },
+    'monster_event': {
+        'classes': [27],
+        'title': '[Монстры] Монстры события',
+        'header': 'Монстры события'
+    }
+}
+
+# Route decorator for monster filtering
+def with_monster_filters(allowed_classes):
+    """Enhanced decorator for filtering with pagination and class restrictions"""
+    def decorator(original_route):
+        @wraps(original_route)
+        def wrapped_route(*args, **kwargs):
+            try:
+                # Get search term
+                search_term = request.args.get('search', '')
+                
+                monsters = []
+                file_paths = {}
+                
+                # for monsters_type in allowed_classes:
+                #     type_monsters, type_paths = get_monsters_by_class([monsters_type], search_term)
+                #     monsters.extend(type_monsters)
+                #     file_paths.update(type_paths)
+                
+                type_monsters, type_paths = get_monsters_by_class(allowed_classes, search_term)
+                monsters.extend(type_monsters)
+                file_paths.update(type_paths)
+                
+                
+                # If it's an AJAX request, handle filtering
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    filters = request.args.to_dict()
+                    
+                    # Apply filters
+                    filtered_monsters = apply_monster_filters(monsters, filters)
+                    
+                    # Get pagination parameters
+                    page = request.args.get('page', 1, type=int)
+                    per_page = request.args.get('per_page', 25000, type=int) # ! PP LIMIT
+                
+                    # Apply pagination
+                    start_idx = (page - 1) * per_page
+                    end_idx = start_idx + per_page
+                    paginated_monsters = filtered_monsters[start_idx:end_idx]
+                    
+                    # Convert to dict for response
+                    monsters_dict = [monster_to_dict(item) for item in paginated_monsters]
+                    
+                    return jsonify({
+                        'monsters': monsters_dict,
+                        'resources': file_paths,
+                        'total': len(filtered_monsters),
+                        'pages': (len(filtered_monsters) + per_page - 1) // per_page
+                    })
+                    
+                # For normal request, pass data to route
+                return original_route(items=monsters, item_resources=file_paths, *args, **kwargs)
+                
+            except Exception as e:
+                print(f"Error in route: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return jsonify({'error': str(e)}), 500
+                
+        return wrapped_route
+    return decorator
 
 
 
@@ -31,6 +136,35 @@ def monster_detail(monster_id: int):
     # Получение данных монстра
     if not (monster := get_monster_by_id(monster_id)):
         return "Monster not found", 404
+
+    # Преобразуем monster в словарь для удобства работы
+    monster_dict = {
+        'MID': monster.MID,
+        'MName': monster.MName,
+        'MClass': monster.MClass,
+        'mLevel': monster.mLevel,
+        'mExp': monster.MExp,
+        'MHIT': monster.MHIT,
+        'MMinD': monster.MMinD,
+        'MMaxD': monster.MMaxD,
+        'MAttackRateOrg': monster.MAttackRateOrg,
+        'MMoveRateOrg': monster.MMoveRateOrg,
+        'MHP': monster.MHP,
+        'MMP': monster.MMP,
+        'MMoveRange': monster.MMoveRange,
+        'MRaceType': monster.MRaceType,
+        'mSightRange': monster.mSightRange,
+        'mAttackRange': monster.mAttackRange,
+        'mSkillRange': monster.mSkillRange,
+        'mScale': monster.mScale,
+        'mIsEvent': monster.mIsEvent,
+        'mIsTest': monster.mIsTest,
+        'mHPRegen': monster.mHPRegen,
+        'mMPRegen': monster.mMPRegen,
+        'mIsShowHp': monster.mIsShowHp,
+        'mAttackType': monster.mAttackType,
+        'mVolitionOfHonor': monster.mVolitionOfHonor
+    }
 
     # Получение данных из Google Sheets
     sheets_data = {
@@ -42,14 +176,14 @@ def monster_detail(monster_id: int):
     # Получение информации о классе
     class_info = {"MName": ""}
     if not sheets_data['class'].empty:
-        class_match = sheets_data['class'][sheets_data['class']['MClass'] == monster['MClass']]
+        class_match = sheets_data['class'][sheets_data['class']['MClass'] == monster_dict['MClass']]
         if not class_match.empty:
             class_info["MName"] = class_match.iloc[0]['MName']
 
     # Получение информации о расе
     race_info = {"mDesc": None}
     if not sheets_data['race'].empty:
-        race_match = sheets_data['race'][sheets_data['race']['MRaceType'] == monster['mRaceType']]
+        race_match = sheets_data['race'][sheets_data['race']['MRaceType'] == monster_dict['MRaceType']]
         if not race_match.empty:
             race_info["mDesc"] = race_match.iloc[0]['mDesc']
 
@@ -86,19 +220,16 @@ def monster_detail(monster_id: int):
     if model_result := get_monster_resource(monster_id):
         monster_model_no = f"{int(model_result.RFileName):05}"
 
-    # Получение данных о сопротивлении Абнормал
+    # Получение дополнительных данных
     monster_abnormalResist_data = get_monsterabnormalResist_data(monster_id) or None
-    
     monster_attribute_add_data = get_monster_attribute_add_data(monster_id) or None
     monster_attribute_resist_data = get_monster_attribute_resist_data(monster_id) or None
-    
     monster_protect_data = get_monster_protect_data(monster_id) or None
-
     monster_slain_data = get_monster_slain_data(monster_id) or None
-    
+
     return render_template(
         'monster_core/monster_page_detail.html',
-        item=monster,
+        item=monster_dict,  # Передаем словарь вместо объекта
         file_path=file_path,
         file_path_gif=file_path_gif,
         classinfo=class_info,
@@ -115,35 +246,67 @@ def monster_detail(monster_id: int):
         monster_slain_data=monster_slain_data,
         prefix=prefix
     )
+    
+    
+    
+# Изменим определение маршрута
+@bp.route('/monster_<type>')  # изменили паттерн маршрута
+def monster_page(type):  # теперь параметр называется type
+    print(f"Monster route hit with type: {type}")  # отладка
+    
+    route_key = f'monster_{type}'  # формируем ключ для поиска в MONSTER_ROUTES
+    print(f"Looking for route key: {route_key}")  # отладка
+    
+    config = MONSTER_ROUTES.get(route_key)
+    print(f"Found config: {config}")  # отладка
+    
+    if not config:
+        print("No config found!")
+        abort(404)
+    
+    @with_monster_filters(config['classes'])
+    def handle_monster_page(items=None, item_resources=None):
+        return render_template(
+            'monster_core/monster_page_route.html',
+            items=items,
+            item_resources=item_resources,
+            title=config["title"],
+            header=config['header']
+        )
+    
+    return handle_monster_page()
 
-@bp.route('/monster_regular')
-def monster_regular():
-    monsters, file_paths = get_monsters_by_class(
-        [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 31, 32, 2]
-    )
-    return render_template('monster/monster_regular.html', items=monsters, item_resources=file_paths)
 
-@bp.route('/monster_imennoy')
-def monster_imennoy():
-    monsters, file_paths = get_monsters_by_class([28])
-    return render_template('monster/monster_imennoy.html', items=monsters, item_resources=file_paths)
 
-@bp.route('/monster_boss')
-def monster_boss():
-    monsters, file_paths = get_monsters_by_class([29, 33, 34, 35, 36, 37, 38])
-    return render_template('monster/monster_boss.html', items=monsters, item_resources=file_paths)
 
-@bp.route('/monster_raidboss')
-def monster_raid_boss():
-    monsters, file_paths = get_monsters_by_class([26])
-    return render_template('monster/monster_raidboss.html', items=monsters, item_resources=file_paths)
+# @bp.route('/monster_regular')
+# def monster_regular():
+#     monsters, file_paths = get_monsters_by_class(
+#         [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 31, 32, 2]
+#     )
+#     return render_template('monster/monster_regular.html', items=monsters, item_resources=file_paths)
 
-@bp.route('/monster_event')
-def monster_event():
-    monsters, file_paths = get_monsters_by_class([27])
-    return render_template('monster/monster_event.html', items=monsters, item_resources=file_paths)
+# @bp.route('/monster_imennoy')
+# def monster_imennoy():
+#     monsters, file_paths = get_monsters_by_class([28])
+#     return render_template('monster/monster_imennoy.html', items=monsters, item_resources=file_paths)
 
-@bp.route('/monster_npc')
-def monster_npc():
-    monsters, file_paths = get_monsters_by_class([23, 35])
-    return render_template('monster/monster_npc.html', items=monsters, item_resources=file_paths)
+# @bp.route('/monster_boss')
+# def monster_boss():
+#     monsters, file_paths = get_monsters_by_class([29, 33, 34, 35, 36, 37, 38])
+#     return render_template('monster/monster_boss.html', items=monsters, item_resources=file_paths)
+
+# @bp.route('/monster_raidboss')
+# def monster_raid_boss():
+#     monsters, file_paths = get_monsters_by_class([26])
+#     return render_template('monster/monster_raidboss.html', items=monsters, item_resources=file_paths)
+
+# @bp.route('/monster_event')
+# def monster_event():
+#     monsters, file_paths = get_monsters_by_class([27])
+#     return render_template('monster/monster_event.html', items=monsters, item_resources=file_paths)
+
+# @bp.route('/monster_npc')
+# def monster_npc():
+#     monsters, file_paths = get_monsters_by_class([23, 35])
+#     return render_template('monster/monster_npc.html', items=monsters, item_resources=file_paths)

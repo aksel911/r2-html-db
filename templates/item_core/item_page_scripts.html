@@ -275,10 +275,11 @@
             const itemName = highlightMatch(item.IName, searchTerm);
             const itemId = highlightMatch(item.IID.toString(), searchTerm);
             const imageUrl = window.data.resources[item.IID] || 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
-    
+            const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
+            
             return `
                 <a href="/item/${item.IID}" class="search-suggestion" data-id="${item.IID}">
-                    <img src="${imageUrl}" alt="${item.IName}">
+                    <img src="${imageUrl}" alt="${item.IName} onerror="this.onerror=null; this.src='${fallbackImage}';">
                     <span>[${itemId}] ${itemName}</span>
                 </a>
             `;

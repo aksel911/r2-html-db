@@ -139,7 +139,7 @@ def apply_filters(items, filters):
 
 
 
-
+# Какие ячейки из запроса передаем на сайт 
 def item_to_dict(item):
     """Конвертирует объект DT_Item в словарь со всеми нужными атрибутами"""
     return {
@@ -174,8 +174,64 @@ def item_to_dict(item):
         'IMPRegen': item.IMPRegen,
         'IAttackRate': item.IAttackRate,
         'IMoveRate': item.IMoveRate,
-        'ICritical': item.ICritical
+        'ICritical': item.ICritical,
+        'IUseType': item.IUseType,
+        'IUseNum': item.IUseNum,
+        'IRecycle': item.IRecycle,
+        'IStatus': item.IStatus,
+        'IFakeID': item.IFakeID,
+        'IFakeName': item.IFakeName,
+        'IUseMsg': item.IUseMsg,
+        'IRange': item.IRange,
+        'IDropEffect': item.IDropEffect,
+        'IUseLevel': item.IUseLevel,
+        'IUseEternal': item.IUseEternal,
+        'IUseDelay': item.IUseDelay,
+        'IUseInAttack': item.IUseInAttack,
+        'IAddWeight': item.IAddWeight,
+        'ISubType': item.ISubType,
+        'INationOp': item.INationOp,
+        'IPShopItemType': item.IPShopItemType,
+        'IQuestNeedCnt': item.IQuestNeedCnt,
+        'IContentsLv': item.IContentsLv,
+        'IIsConfirm': item.IIsConfirm,
+        'IIsSealable': item.IIsSealable,
+        'IAddDDWhenCritical': item.IAddDDWhenCritical,
+        'mSealRemovalNeedCnt': item.mSealRemovalNeedCnt,
+        'mIsPracticalPeriod': item.mIsPracticalPeriod,
+        'mIsReceiveTown': item.mIsReceiveTown,
+        'IIsReinforceDestroy': item.IIsReinforceDestroy,
+        'IAddPotionRestore': item.IAddPotionRestore,
+        'IAddMaxHpWhenTransform': item.IAddMaxHpWhenTransform,
+        'IAddMaxMpWhenTransform': item.IAddMaxMpWhenTransform,
+        'IAddAttackRateWhenTransform': item.IAddAttackRateWhenTransform,
+        'IAddMoveRateWhenTransform': item.IAddMoveRateWhenTransform,
+        'ISupportType': item.ISupportType,
+        'ITermOfValidityLv': item.ITermOfValidityLv,
+        'mIsUseableUTGWSvr': item.mIsUseableUTGWSvr,
+        'IAddShortAttackRange': item.IAddShortAttackRange,
+        'IAddLongAttackRange': item.IAddLongAttackRange,
+        'IWeaponPoisonType': item.IWeaponPoisonType,
+        'IDPV': item.IDPV,
+        'IMPV': item.IMPV,
+        'IRPV': item.IRPV,
+        'IDDV': item.IDDV,
+        'IMDV': item.IMDV,
+        'IRDV': item.IRDV,
+        'IHDPV': item.IHDPV,
+        'IHMPV': item.IHMPV,
+        'IHRPV': item.IHRPV,
+        'IHDDV': item.IHDDV,
+        'IHMDV': item.IHMDV,
+        'IHRDV': item.IHRDV,
+        'ISubDDWhenCritical': item.ISubDDWhenCritical,
+        'IGetItemFeedback': item.IGetItemFeedback,
+        'IEnemySubCriticalHit': item.IEnemySubCriticalHit,
+        'IMaxBeadHoleCount': item.IMaxBeadHoleCount,
+        'ISubTypeOption': item.ISubTypeOption,
+        'mIsDeleteArenaSvr': item.mIsDeleteArenaSvr
     }
+
 
 
 

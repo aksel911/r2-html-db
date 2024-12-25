@@ -9,6 +9,163 @@ from config.settings import MONSTER_CLASS_URL, ATTRIBUTE_TYPE_WEAPON_URL, ATTRIB
 from models.monster import DT_MonsterResource, DT_MonsterAbnormalResist, DT_MonsterAttributeAdd, DT_MonsterAttributeResist, DT_MonsterProtect, DT_MonsterSlain
 
 
+
+def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monster]:
+    """Apply filters to monster list"""
+    
+    if not monsters or not filters:
+        return monsters
+
+    filtered_monsters = monsters
+
+    try:
+        # Remove empty filters
+        filters = {k: v for k, v in filters.items() if v and k != ''}
+        if not filters:
+            return monsters
+
+        # Class filter
+        if class_filter := filters.get('classFilter'):
+            filtered_monsters = [m for m in filtered_monsters if m.MClass == class_filter]
+
+        # Level range
+        if level_min := filters.get('levelMin'):
+            filtered_monsters = [m for m in filtered_monsters if m.mLevel >= int(level_min)]
+        if level_max := filters.get('levelMax'):
+            filtered_monsters = [m for m in filtered_monsters if m.mLevel <= int(level_max)]
+
+        # Race filter
+        if race_filter := filters.get('raceFilter'):
+            filtered_monsters = [m for m in filtered_monsters if m.MRaceType == int(race_filter)]
+
+        # Attack type filter
+        if attack_type := filters.get('attackTypeFilter'):
+            filtered_monsters = [m for m in filtered_monsters if m.mAttackType == int(attack_type)]
+
+        # Experience range
+        if exp_min := filters.get('expMin'):
+            filtered_monsters = [m for m in filtered_monsters if m.MExp >= int(exp_min)]
+        if exp_max := filters.get('expMax'):
+            filtered_monsters = [m for m in filtered_monsters if m.MExp <= int(exp_max)]
+
+        # Boolean filters
+        if filters.get('eventMonsterFilter') == '1':
+            filtered_monsters = [m for m in filtered_monsters if m.mIsEvent]
+        if filters.get('testMonsterFilter') == '1':
+            filtered_monsters = [m for m in filtered_monsters if m.mIsTest]
+        if filters.get('showHpFilter') == '1':
+            filtered_monsters = [m for m in filtered_monsters if m.mIsShowHp]
+
+        # Advanced numeric filters
+        numeric_fields = {
+            'MHIT': 'MHIT',
+            'MMinD': 'MMinD',
+            'MMaxD': 'MMaxD',
+            'MHP': 'MHP',
+            'MMP': 'MMP',
+            'MAttackRateOrg': 'MAttackRateOrg',
+            'MMoveRateOrg': 'MMoveRateOrg',
+            'MMoveRange': 'MMoveRange',
+            'mSightRange': 'mSightRange',
+            'mAttackRange': 'mAttackRange',
+            'mSkillRange': 'mSkillRange',
+            'mScale': 'mScale',
+            'mHPRegen': 'mHPRegen',
+            'mMPRegen': 'mMPRegen',
+            'mVolitionOfHonor': 'mVolitionOfHonor'
+        }
+
+        for filter_id, field_name in numeric_fields.items():
+            min_val = filters.get(f'{filter_id}Min')
+            max_val = filters.get(f'{filter_id}Max')
+            
+            if min_val:
+                filtered_monsters = [m for m in filtered_monsters if getattr(m, field_name, 0) >= float(min_val)]
+            if max_val:
+                filtered_monsters = [m for m in filtered_monsters if getattr(m, field_name, 0) <= float(max_val)]
+
+        return filtered_monsters
+
+    except Exception as e:
+        print(f"Error in apply_monster_filters: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+def monster_to_dict(monster: Monster) -> dict:
+   """Convert monster object to dictionary for JSON response"""
+   return {
+       'MID': monster.MID,
+       'MName': monster.MName, 
+       'mLevel': monster.mLevel,
+       'MClass': monster.MClass,
+       'MExp': monster.MExp,
+       'MHIT': monster.MHIT,
+       'MMinD': monster.MMinD,
+       'MMaxD': monster.MMaxD,
+       'MAttackRateOrg': monster.MAttackRateOrg,
+       'MMoveRateOrg': monster.MMoveRateOrg,
+       'MAttackRateNew': monster.MAttackRateNew,
+       'MMoveRateNew': monster.MMoveRateNew,
+       'MHP': monster.MHP,
+       'MMP': monster.MMP,
+       'MMoveRange': monster.MMoveRange,
+       'MGbjType': monster.MGbjType,
+       'MRaceType': monster.MRaceType,
+       'MAiType': monster.MAiType,
+       'MCastingDelay': monster.MCastingDelay,
+       'MChaotic': monster.MChaotic,
+       'MSameRace1': monster.MSameRace1,
+       'MSameRace2': monster.MSameRace2,
+       'MSameRace3': monster.MSameRace3, 
+       'MSameRace4': monster.MSameRace4,
+       'mSightRange': monster.mSightRange,
+       'mAttackRange': monster.mAttackRange,
+       'mSkillRange': monster.mSkillRange,
+       'mBodySize': monster.mBodySize,
+       'mDetectTransF': monster.mDetectTransF,
+       'mDetectTransP': monster.mDetectTransP,
+       'mDetectChao': monster.mDetectChao,
+       'mAiEx': monster.mAiEx,
+       'mScale': monster.mScale,
+       'mIsResistTransF': monster.mIsResistTransF,
+       'mIsEvent': monster.mIsEvent,
+       'mIsTest': bool(monster.mIsTest),
+       'mHPNew': monster.mHPNew,
+       'mMPNew': monster.mMPNew,
+       'mBuyMerchanID': monster.mBuyMerchanID,
+       'mSellMerchanID': monster.mSellMerchanID,
+       'mChargeMerchanID': monster.mChargeMerchanID,
+       'mTransformWeight': monster.mTransformWeight,
+       'mNationOp': monster.mNationOp,
+       'mHPRegen': monster.mHPRegen,
+       'mMPRegen': monster.mMPRegen,
+       'IContentsLv': monster.IContentsLv,
+       'mIsEventTest': monster.mIsEventTest,
+       'mIsShowHp': monster.mIsShowHp,
+       'mSupportType': monster.mSupportType,
+       'mVolitionOfHonor': monster.mVolitionOfHonor,
+       'mWMapIconType': monster.mWMapIconType,
+       'mIsAmpliableTermOfValidity': monster.mIsAmpliableTermOfValidity,
+       'mAttackType': monster.mAttackType,
+       'mTransType': monster.mTransType,
+       'mDPV': monster.mDPV,
+       'mMPV': monster.mMPV,
+       'mRPV': monster.mRPV,
+       'mDDV': monster.mDDV,
+       'mMDV': monster.mMDV,
+       'mRDV': monster.mRDV,
+       'mSubDDWhenCritical': monster.mSubDDWhenCritical,
+       'mEnemySubCriticalHit': monster.mEnemySubCriticalHit,
+       'mEventQuest': monster.mEventQuest,
+       'mEScale': monster.mEScale
+   }
+
+
+
+
+
 def get_monster_resource(monster_id: int) -> Optional[DT_MonsterResource]:
     """Get monster resource by MID with caching"""
     query = "SELECT RFileName FROM DT_MonsterResource WHERE ROwnerID = ?"
@@ -38,25 +195,83 @@ def get_monster_mtick(monster_id: int) -> Union[str, int]:
     return respawn_result[0]
 
 
-def get_monster_by_id(monster_id: int) -> Optional[Dict]:
-    """Get monster information by ID"""
+def get_monster_by_id(monster_id: int) -> Optional[Monster]:
+    """Get monster by ID"""
     query = """
-    SELECT MID, MName, MClass, MLevel, MHP, MMP, MExp, 
-           mRaceType, mIsShowHp, MChaotic, mDetectTransF, 
-           mDetectTransP, mDetectChao, mIsResistTransF 
+    SELECT *
     FROM DT_Monster 
     WHERE MID = ?
     """
-    row = execute_query(query, (monster_id,), fetch_one=True)
     
+    row = execute_query(query, (monster_id,), fetch_one=True)
+    print(row)
     if row:
-        monster = Monster(
-            row.MID, row.MName, row.MClass, row.MLevel,
-            row.MHP, row.MMP, row.MExp, row.mRaceType,
-            row.mIsShowHp, row.MChaotic, row.mDetectTransF,
-            row.mDetectTransP, row.mDetectChao, row.mIsResistTransF
+        return Monster(
+            MID=row.MID,
+            MName=row.MName,
+            mLevel=row.mLevel,
+            MClass=row.MClass,
+            MExp=row.MExp,
+            MHIT=row.MHIT,
+            MMinD=row.MMinD,
+            MMaxD=row.MMaxD,
+            MAttackRateOrg=row.MAttackRateOrg,
+            MMoveRateOrg=row.MMoveRateOrg,
+            MAttackRateNew=row.MAttackRateNew,
+            MMoveRateNew=row.MMoveRateNew,
+            MHP=row.MHP,
+            MMP=row.MMP,
+            MMoveRange=row.MMoveRange,
+            MGbjType=row.MGbjType,
+            MRaceType=row.MRaceType,
+            MAiType=row.MAiType,
+            MCastingDelay=row.MCastingDelay,
+            MChaotic=row.MChaotic,
+            MSameRace1=row.MSameRace1,
+            MSameRace2=row.MSameRace2,
+            MSameRace3=row.MSameRace3,
+            MSameRace4=row.MSameRace4,
+            mSightRange=row.mSightRange,
+            mAttackRange=row.mAttackRange,
+            mSkillRange=row.mSkillRange,
+            mBodySize=row.mBodySize,
+            mDetectTransF=int(row.mDetectTransF),
+            mDetectTransP=int(row.mDetectTransP),
+            mDetectChao=int(row.mDetectChao),
+            mAiEx=row.mAiEx,
+            mScale=row.mScale,
+            mIsResistTransF=bool(row.mIsResistTransF),
+            mIsEvent=int(row.mIsEvent),
+            mIsTest=int(row.mIsTest),
+            mHPNew=row.mHPNew,
+            mMPNew=row.mMPNew,
+            mBuyMerchanID=row.mBuyMerchanID,
+            mSellMerchanID=row.mSellMerchanID,
+            mChargeMerchanID=row.mChargeMerchanID,
+            mTransformWeight=row.mTransformWeight,
+            mNationOp=row.mNationOp,
+            mHPRegen=row.mHPRegen,
+            mMPRegen=row.mMPRegen,
+            IContentsLv=row.IContentsLv,
+            mIsEventTest=int(row.mIsEventTest),
+            mIsShowHp=int(row.mIsShowHp),
+            mSupportType=row.mSupportType,
+            mVolitionOfHonor=row.mVolitionOfHonor,
+            mWMapIconType=row.mWMapIconType,
+            mIsAmpliableTermOfValidity=int(row.mIsAmpliableTermOfValidity),
+            mAttackType=row.mAttackType,
+            mTransType=row.mTransType,
+            mDPV=row.mDPV,
+            mMPV=row.mMPV,
+            mRPV=row.mRPV,
+            mDDV=row.mDDV,
+            mMDV=row.mMDV,
+            mRDV=row.mRDV,
+            mSubDDWhenCritical=row.mSubDDWhenCritical,
+            mEnemySubCriticalHit=row.mEnemySubCriticalHit,
+            mEventQuest=int(row.mEventQuest),
+            mEScale=row.mEScale
         )
-        return monster.to_dict()
     return None
 
 def get_monster_drops(monster_id: int) -> List[Dict]:
@@ -200,24 +415,104 @@ def get_monster_drop_info(item_id: int) -> List[Dict]:
     return results
 
 
-def get_monsters_by_class(class_ids: List[int]) -> Tuple[List[Tuple], Dict]:
-    """Get monsters by class IDs"""
+def get_monsters_by_class(class_ids: List[int], search_term: str = '') -> Tuple[List[Monster], Dict]:
+    """Get monsters by class IDs with optional search"""
     class_str = ','.join(str(c) for c in class_ids)
-    query = f"""
-        SELECT MID, MName, MClass 
+    #print(f"XXXXXXX {class_str}")
+    # Base query
+    query = """
+        SELECT *
         FROM DT_Monster 
-        WHERE MClass IN ({class_str}) 
-        ORDER BY MID
-    """
+        WHERE MClass IN ({})
+    """.format(class_str)
     
-    monsters = execute_query(query)
-    monsters = [(row.MID, row.MName, row.MClass) for row in monsters]
-
-    # Get file paths
-    file_paths = {
-        monster[0]: f"{current_app.config['GITHUB_URL']}{monster[0]}.png"
-        for monster in monsters
-    }
+    # Add search condition if provided
+    params = []
+    if search_term:
+        query += " AND (MName LIKE ? OR CAST(MID AS VARCHAR) LIKE ?)"
+        search_pattern = f'%{search_term}%'
+        params.extend([search_pattern, search_pattern])
+        
+    query += " ORDER BY MID"
+    
+    #print(query)
+    
+    # Execute query
+    rows = execute_query(query, params, fetch_one=False)
+    
+    # Convert to DT_Monster objects (with only needed fields)
+    monsters = []
+    file_paths = {}
+    
+    for row in rows:
+        monster = Monster(
+            MID=row.MID,
+            MName=row.MName,
+            mLevel=row.mLevel,
+            MClass=row.MClass,
+            MExp=row.MExp,
+            MHIT=row.MHIT,
+            MMinD=row.MMinD,
+            MMaxD=row.MMaxD,
+            MAttackRateOrg=row.MAttackRateOrg,
+            MMoveRateOrg=row.MMoveRateOrg,
+            MAttackRateNew=row.MAttackRateNew,
+            MMoveRateNew=row.MMoveRateNew,
+            MHP=row.MHP,
+            MMP=row.MMP,
+            MMoveRange=row.MMoveRange,
+            MGbjType=row.MGbjType,
+            MRaceType=row.MRaceType,
+            MAiType=row.MAiType,
+            MCastingDelay=row.MCastingDelay,
+            MChaotic=row.MChaotic,
+            MSameRace1=row.MSameRace1,
+            MSameRace2=row.MSameRace2,
+            MSameRace3=row.MSameRace3,
+            MSameRace4=row.MSameRace4,
+            mSightRange=row.mSightRange,
+            mAttackRange=row.mAttackRange,
+            mSkillRange=row.mSkillRange,
+            mBodySize=row.mBodySize,
+            mDetectTransF=int(row.mDetectTransF),
+            mDetectTransP=int(row.mDetectTransP),
+            mDetectChao=int(row.mDetectChao),
+            mAiEx=row.mAiEx,
+            mScale=row.mScale,
+            mIsResistTransF=bool(row.mIsResistTransF),
+            mIsEvent=int(row.mIsEvent),
+            mIsTest=int(row.mIsTest),
+            mHPNew=row.mHPNew,
+            mMPNew=row.mMPNew,
+            mBuyMerchanID=row.mBuyMerchanID,
+            mSellMerchanID=row.mSellMerchanID,
+            mChargeMerchanID=row.mChargeMerchanID,
+            mTransformWeight=row.mTransformWeight,
+            mNationOp=row.mNationOp,
+            mHPRegen=row.mHPRegen,
+            mMPRegen=row.mMPRegen,
+            IContentsLv=row.IContentsLv,
+            mIsEventTest=int(row.mIsEventTest),
+            mIsShowHp=int(row.mIsShowHp),
+            mSupportType=row.mSupportType,
+            mVolitionOfHonor=row.mVolitionOfHonor,
+            mWMapIconType=row.mWMapIconType,
+            mIsAmpliableTermOfValidity=int(row.mIsAmpliableTermOfValidity),
+            mAttackType=row.mAttackType,
+            mTransType=row.mTransType,
+            mDPV=row.mDPV,
+            mMPV=row.mMPV,
+            mRPV=row.mRPV,
+            mDDV=row.mDDV,
+            mMDV=row.mMDV,
+            mRDV=row.mRDV,
+            mSubDDWhenCritical=row.mSubDDWhenCritical,
+            mEnemySubCriticalHit=row.mEnemySubCriticalHit,
+            mEventQuest=int(row.mEventQuest),
+            mEScale=row.mEScale
+        )
+        monsters.append(monster)
+        file_paths[row.MID] = f"{current_app.config['GITHUB_URL']}{row.MID}.png"
 
     return monsters, file_paths
 

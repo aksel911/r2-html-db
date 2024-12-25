@@ -34,7 +34,7 @@ bp = Blueprint('items', __name__)
 # Словарь с маппингом URL -> конфигурация
 # TODO: Квестовые предметы
 ITEM_ROUTES = {
-    'all_items': {
+    'item_all': {
         'types': list(range(43)),
         'title': '[Предметы] Все предметы',
         'header': 'Все предметы'

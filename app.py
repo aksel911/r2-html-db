@@ -43,6 +43,10 @@ def method_not_allowed(error):
 def home():
     return render_template('home.html')
 
+# Выведем отладочную информацию при импорте
+# from routes.monster_routes import bp as monster_bp
+# print("Monster blueprint loaded:", monster_bp.name, monster_bp.url_prefix)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=app.config['PORT'], debug=True)
     
