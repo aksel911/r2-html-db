@@ -94,12 +94,13 @@
     });
 </script>
 
-<!-- Window Resize Handler Script -->
+<!-- Window Resize Handler Script 
 <script>
     $(window).resize(_.debounce(function() {
         window.table.columns.adjust();
     }, 250));
 </script>
+-->
 
 <!-- Tooltip Initialization Script -->
 <script>
@@ -326,7 +327,127 @@
 
 
 
-
+<!-- Функции поиска -->
+<script>
+    // Функция инициализации поиска
+    function initializeSearch() {
+        const searchInput = document.getElementById('itemSearch');
+        const suggestionsContainer = document.getElementById('searchSuggestions');
+        const clearButton = document.getElementById('clearSearch');
+        let searchDebounceTimer;
+    
+        if (!searchInput || !suggestionsContainer || !clearButton) {
+            console.error('Search elements not found:', {
+                searchInput: !!searchInput,
+                suggestionsContainer: !!suggestionsContainer,
+                clearButton: !!clearButton
+            });
+            return;
+        }
+    
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.trim().toLowerCase();
+            clearTimeout(searchDebounceTimer);
+    
+            if (searchTerm === '') {
+                suggestionsContainer.style.display = 'none';
+                app.applyFilters(1);
+                return;
+            }
+    
+            searchDebounceTimer = setTimeout(() => {
+                const suggestions = findSuggestions(searchTerm);
+                displaySuggestions(suggestions, searchTerm);
+                app.applyFilters(1); // Применяем фильтры после обновления строки поиска
+            }, 300);
+        });
+    
+        clearButton.addEventListener('click', () => {
+            searchInput.value = '';
+            suggestionsContainer.style.display = 'none';
+            app.applyFilters(1);
+        });
+    
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+    }
+    
+    // Поиск подходящих предметов
+    function findSuggestions(searchTerm) {
+        const cachedData = app?.stateManager?.getState('cachedData');
+        if (!cachedData?.items) {
+            console.log('No cached data available for suggestions');
+            return [];
+        }
+    
+        return cachedData.items
+            .filter(item => {
+                const matchesId = item.IID.toString().toLowerCase().includes(searchTerm);
+                const matchesName = item.IName.toLowerCase().includes(searchTerm);
+                return matchesId || matchesName;
+            })
+            .slice(0, 8);
+    }
+    
+    // Отображение подсказок
+    function displaySuggestions(suggestions, searchTerm) {
+        const suggestionsContainer = document.getElementById('searchSuggestions');
+        if (!suggestionsContainer) return;
+    
+        if (!suggestions.length) {
+            suggestionsContainer.style.display = 'none';
+            return;
+        }
+    
+        const resources = app?.stateManager?.getState('cachedData')?.resources || {};
+        
+        const suggestionsHtml = suggestions.map(item => {
+            const itemName = highlightMatch(item.IName, searchTerm);
+            const itemId = highlightMatch(item.IID.toString(), searchTerm);
+            const imageUrl = resources[item.IID] || CONSTANTS.FALLBACK_IMAGE;
+            
+            return `
+                <a href="/item/${item.IID}" class="search-suggestion" data-id="${item.IID}">
+                    <img src="${imageUrl}" alt="${item.IName}" onerror="this.src='${CONSTANTS.FALLBACK_IMAGE}';">
+                    <span>[${itemId}] ${itemName}</span>
+                </a>
+            `;
+        }).join('');
+    
+        suggestionsContainer.innerHTML = suggestionsHtml;
+        suggestionsContainer.style.display = 'block';
+    }
+    
+    // Подсветка совпадений
+    function highlightMatch(text, searchTerm) {
+        if (!searchTerm) return text;
+        const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedSearchTerm})`, 'gi');
+        return text.replace(regex, '<span class="highlight">$1</span>');
+    }
+    
+    // FilterManager с поддержкой поиска
+    FilterManager.filterData = function(items, filters) {
+        const searchTerm = document.getElementById('itemSearch')?.value.trim().toLowerCase();
+    
+        // Применяем поисковый фильтр перед остальными фильтрами
+        let filteredData = items;
+        if (searchTerm) {
+            filteredData = items.filter(item => {
+                const matchesId = item.IID.toString().toLowerCase().includes(searchTerm);
+                const matchesName = item.IName.toLowerCase().includes(searchTerm);
+                return matchesId || matchesName;
+            });
+        }
+    
+        // Применяем остальные фильтры
+        return filteredData.filter(item => 
+            FilterManager._applyAllFilters(item, filters));
+    }
+</script>
 
 
 <!-- Звук при клике     /-> курсоры

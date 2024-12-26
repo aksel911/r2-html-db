@@ -672,6 +672,7 @@
             this.uiManager.initializeUI();
             this.setupEventListeners();
             this.applyFilters(1);
+            initializeSearch(); 
         }
 
         setupEventListeners() {
@@ -682,6 +683,8 @@
 
         async applyFilters(page = 1) {
             const cachedData = this.stateManager.getState('cachedData');
+
+            
             if (!cachedData) return;
 
             const filters = FilterManager.collectFilters();

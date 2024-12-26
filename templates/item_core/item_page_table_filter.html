@@ -386,7 +386,7 @@
             const filters = {};
             document.querySelectorAll('.form-control, .custom-control-input')
                 .forEach(input => {
-                    if (input.id === 'perPageSelect') return;
+                    if (input.id === 'perPageSelect' || input.id === 'itemSearch') return;
                     
                     const value = input.type === 'checkbox' ? input.checked : input.value;
                     if ((input.type === 'checkbox' && value) || 
@@ -398,7 +398,20 @@
         }
     
         static filterData(items, filters) {
-            return items.filter(item => this._applyAllFilters(item, filters));
+            // Сначала применяем поиск
+            const searchTerm = document.getElementById('itemSearch')?.value.trim().toLowerCase();
+            let filteredData = items;
+    
+            if (searchTerm) {
+                filteredData = items.filter(item => {
+                    const matchesId = item.IID.toString().toLowerCase().includes(searchTerm);
+                    const matchesName = item.IName.toLowerCase().includes(searchTerm);
+                    return matchesId || matchesName;
+                });
+            }
+    
+            // Затем применяем остальные фильтры
+            return filteredData.filter(item => this._applyAllFilters(item, filters));
         }
     
         static _applyAllFilters(item, filters) {
@@ -466,7 +479,6 @@
             return item[mappings[baseKey] || baseKey] || 0;
         }
     }
-    
     
     // UI Management
     class ItemUIManager {
@@ -883,6 +895,7 @@
             this.uiManager.initializeUI();
             this.setupEventListeners();
             this.applyFilters(1);
+            initializeSearch(); 
         }
     
         setupEventListeners() {

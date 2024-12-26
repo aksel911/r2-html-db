@@ -251,7 +251,7 @@
     });
 </script>
 
-<!-- Window Resize Handler Script -->
+<!-- Window Resize Handler Script 
 <script>
     $(document).ready(function() {
         $(window).resize(_.debounce(function() {
@@ -259,6 +259,8 @@
         }, 250));
     });
 </script>
+-->
+
 
 <!-- Tooltip Initialization Script -->
 <script>
@@ -370,32 +372,29 @@
     
         if (!searchInput || !suggestionsContainer || !clearButton) return;
     
-        // Обработчик ввода в поисковое поле 
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.trim().toLowerCase();
             clearTimeout(searchDebounceTimer);
     
             if (searchTerm === '') {
                 suggestionsContainer.style.display = 'none';
-                applyFilters(1);
+                app.applyFilters(1);
                 return;
             }
     
             searchDebounceTimer = setTimeout(() => {
                 const suggestions = findSuggestions(searchTerm);
                 displaySuggestions(suggestions, searchTerm);
-                applyFilters(1);
+                app.applyFilters(1);
             }, 300);
         });
     
-        // Обработчик клика по кнопке очистки
         clearButton.addEventListener('click', () => {
             searchInput.value = '';
             suggestionsContainer.style.display = 'none';
-            applyFilters(1);
+            app.applyFilters(1);
         });
     
-        // Скрытие подсказок при клике вне поиска
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-container')) {
                 suggestionsContainer.style.display = 'none';
@@ -405,9 +404,10 @@
     
     // Поиск подходящих монстров
     function findSuggestions(searchTerm) {
-        if (!cachedData || !cachedData.monsters) return [];
+        const monsters = app?.stateManager?.getState('cachedData')?.monsters;
+        if (!monsters) return [];
     
-        return cachedData.monsters
+        return monsters
             .filter(monster => {
                 const matchesId = monster.MID.toString().toLowerCase().includes(searchTerm);
                 const matchesName = monster.MName.toLowerCase().includes(searchTerm);
@@ -426,15 +426,16 @@
             return;
         }
     
+        const resources = app?.stateManager?.getState('cachedData')?.resources || {};
+        
         const suggestionsHtml = suggestions.map(monster => {
             const monsterName = highlightMatch(monster.MName, searchTerm);
             const monsterMID = highlightMatch(monster.MID.toString(), searchTerm);
-            const imageUrl = cachedData.resources[monster.MID] || 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
-            const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
+            const imageUrl = resources[monster.MID] || CONSTANTS.FALLBACK_IMAGE;
             
             return `
                 <a href="/monster/${monster.MID}" class="search-suggestion" data-id="${monster.MID}">
-                    <img src="${imageUrl}" alt="${monster.MName}" onerror="this.onerror=null; this.src='${fallbackImage}';">
+                    <img src="${imageUrl}" alt="${monster.MName}" onerror="this.src='${CONSTANTS.FALLBACK_IMAGE}';">
                     <span>[${monsterMID}] ${monsterName}</span>
                 </a>
             `;
@@ -452,9 +453,9 @@
         return text.replace(regex, '<span class="highlight">$1</span>');
     }
     
-    // Модифицируем функцию filterData для поддержки поиска
-    const originalFilterData = window.filterData;
-    window.filterData = function(monsters, filters) {
+    
+    // FilterManager с поддержкой поиска
+    FilterManager.filterData = function(monsters, filters) {
         const searchTerm = document.getElementById('monsterSearch')?.value.trim().toLowerCase();
     
         // Применяем поисковый фильтр перед остальными фильтрами
@@ -467,7 +468,8 @@
             });
         }
     
-        // Вызываем оригинальную функцию фильтрации
-        return originalFilterData(filteredData, filters);
+        // Применяем остальные фильтры
+        return filteredData.filter(monster => 
+            FilterManager._applyAllFilters(monster, filters));
     }
-    </script>
+</script>
