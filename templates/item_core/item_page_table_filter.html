@@ -41,7 +41,7 @@
 
         <!-- Основные фильтры -->
         <div class="col-12 collapse" id="mainFilters">
-            <div class="card card-body mb-3">
+            <div class="card card-body mb-3 filter-card-container">
                 <div class="filterrow">
                     <!-- Тип предмета -->
                     <div class="filter-group">
@@ -161,7 +161,24 @@
 
 <!-- ГЛАВНЫЕ СКРИПТЫ ФИЛЬТРА -->
 <script>
-    // Type mappings для разных маршрутов
+
+    // Constants and Configuration
+    const CONSTANTS = {
+        DEBOUNCE_DELAY: 300,
+        DEFAULT_PER_PAGE: 25,
+        LOADING_FADE_DELAY: 500,
+        ERROR_DISPLAY_TIME: 5000,
+        PAGINATION_RADIUS: 2,
+        FALLBACK_IMAGE: 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png',
+        TABLE_FADE_DURATION: 300,
+        BUTTON_ANIMATION_DURATION: 200,
+        ANIMATION_CLASSES: {
+            FADE_ENTER: 'table-fade-enter',
+            FADE_ENTER_ACTIVE: 'table-fade-enter-active'
+        },
+        PER_PAGE_OPTIONS: [10, 25, 50, 75, 100, 150, 200]
+    };
+    
     const TYPE_MAPPINGS = {
         '/weapon': [1, 18, 20],
         '/armor': [3],
@@ -180,10 +197,9 @@
         '/potions': [10],
         '/etc': [14, 16, 13, 11],
         '/sphere': [22, 23, 24, 25, 26, 27, 28, 29],
-        '/quest': [] // Quest items use special handling
+        '/quest': [15, 16]
     };
-
-    // Описания типов предметов
+    
     const TYPE_DESCRIPTIONS = {
         1: 'Оружие Ближнего Боя',
         2: 'Щит, Браслет',
@@ -215,668 +231,694 @@
         29: 'Сфера 3 Слот',
         42: 'Серьги'
     };
-
-    // Описания расширенных фильтров
-    const ADVANCED_FILTERS = [
-        { id: 'IDHIT', label: 'Точность в ближнем бою', icon: '🎯', type: 'range' },
-        { id: 'IDDD', label: 'Урон в ближнем бою', icon: '⚔️', type: 'range' },
-        { id: 'IRHIT', label: 'Точность в дальнем бою', icon: '🏹', type: 'range' },
-        { id: 'IRDD', label: 'Урон в дальнем бою', icon: '🎯', type: 'range' },
-        { id: 'IMHIT', label: 'Магическая точность', icon: '✨', type: 'range' },
-        { id: 'IMDD', label: 'Магический урон', icon: '🔮', type: 'range' },
-        { id: 'IHPPlus', label: 'Доп. HP', icon: '❤️', type: 'range' },
-        { id: 'IMPPlus', label: 'Доп. MP', icon: '💧', type: 'range' },
-        { id: 'ISTR', label: 'Сила', icon: '💪', type: 'range' },
-        { id: 'IDEX', label: 'Ловкость', icon: '🏃', type: 'range' },
-        { id: 'IINT', label: 'Интеллект', icon: '🧠', type: 'range' },
-        { id: 'IHPRegen', label: 'Реген HP', icon: '♥️', type: 'range' },
-        { id: 'IMPRegen', label: 'Реген MP', icon: '💫', type: 'range' },
-        { id: 'IAttackRate', label: 'Скорость атаки', icon: '⚡', type: 'range' },
-        { id: 'IMoveRate', label: 'Скорость передвижения', icon: '🏃', type: 'range' },
-        { id: 'ICritical', label: 'Шанс крита', icon: '🎯', type: 'range' }
-    ];
-
-    // Глобальные переменные
-    let debounceTimer;
-    let lastRequest = null;
-    let currentPage = 1;
-    let cachedData = null;
     
-
-    // Элементы для отображения загрузки и ошибок
-    const loadingMessage = document.getElementById('loadingMessage');
-    const errorMessage = document.getElementById('errorMessage');
-
-    // Инициализация при загрузке DOM
-    document.addEventListener('DOMContentLoaded', function() {
-        initialize();
-    });
-
-
-    async function fetchData(forceReload = false) {
-        if (cachedData && !forceReload) {
-            return cachedData;
+    const ADVANCED_FILTERS = [
+        { id: 'IDHIT', label: 'Точность в ближнем бою', icon: '🎯' },
+        { id: 'IDDD', label: 'Урон в ближнем бою', icon: '⚔️' },
+        { id: 'IRHIT', label: 'Точность в дальнем бою', icon: '🏹' },
+        { id: 'IRDD', label: 'Урон в дальнем бою', icon: '🎯' },
+        { id: 'IMHIT', label: 'Магическая точность', icon: '✨' },
+        { id: 'IMDD', label: 'Магический урон', icon: '🔮' },
+        { id: 'IHPPlus', label: 'Доп. HP', icon: '❤️' },
+        { id: 'IMPPlus', label: 'Доп. MP', icon: '💧' },
+        { id: 'ISTR', label: 'Сила', icon: '💪' },
+        { id: 'IDEX', label: 'Ловкость', icon: '🏃' },
+        { id: 'IINT', label: 'Интеллект', icon: '🧠' },
+        { id: 'IHPRegen', label: 'Реген HP', icon: '♥️' },
+        { id: 'IMPRegen', label: 'Реген MP', icon: '💫' },
+        { id: 'IAttackRate', label: 'Скорость атаки', icon: '⚡' },
+        { id: 'IMoveRate', label: 'Скорость передвижения', icon: '🏃' },
+        { id: 'ICritical', label: 'Шанс крита', icon: '🎯' }
+    ];
+    
+    // Utilities
+    class EventEmitter {
+        constructor() {
+            this.events = {};
         }
-
-        // Показать индикатор загрузки
-        toggleLoadingState(true);
-
-        try {
-            const response = await fetch(`${window.location.pathname}?all=1&page=1`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    
+        on(event, callback) {
+            if (!this.events[event]) {
+                this.events[event] = [];
+            }
+            this.events[event].push(callback);
+            return () => this.off(event, callback);
+        }
+    
+        off(event, callback) {
+            if (!this.events[event]) return;
+            this.events[event] = this.events[event].filter(cb => cb !== callback);
+        }
+    
+        emit(event, data) {
+            if (!this.events[event]) return;
+            this.events[event].forEach(callback => callback(data));
+        }
+    }
+    
+    // State Management
+    class StateManager extends EventEmitter {
+        constructor() {
+            super();
+            this._state = {
+                currentPage: 1,
+                cachedData: null,
+                debounceTimer: null,
+                isLoading: false,
+                error: null,
+                filters: {},
+                perPage: CONSTANTS.DEFAULT_PER_PAGE
+            };
+        }
+    
+        setState(key, value) {
+            const oldValue = this._state[key];
+            this._state[key] = value;
+            
+            if (oldValue !== value) {
+                this.emit('stateChange', { key, value, oldValue });
+            }
+        }
+    
+        getState(key) {
+            return this._state[key];
+        }
+    
+        resetState() {
+            Object.keys(this._state).forEach(key => {
+                if (key !== 'cachedData') {
+                    this.setState(key, null);
+                }
             });
-
-            if (!response.ok) throw new Error('Network response was not ok');
-
+        }
+    }
+    
+    // Data Service
+    class ItemDataService {
+        constructor(stateManager) {
+            this.stateManager = stateManager;
+        }
+    
+        async fetchData(forceReload = false) {
+            if (this.stateManager.getState('cachedData') && !forceReload) {
+                return this.stateManager.getState('cachedData');
+            }
+    
+            this.stateManager.setState('isLoading', true);
+    
+            try {
+                const data = await this._fetchAllPages();
+                this.stateManager.setState('cachedData', data);
+                return data;
+            } catch (error) {
+                this.stateManager.setState('error', error.message);
+                return null;
+            } finally {
+                this.stateManager.setState('isLoading', false);
+            }
+        }
+    
+        async _fetchAllPages() {
+            const firstPageResponse = await this._fetchPage(1);
+            let allItems = [...firstPageResponse.items];
+            
+            const totalPages = firstPageResponse.pages;
+            const remainingPages = Array.from(
+                { length: totalPages - 1 }, 
+                (_, i) => i + 2
+            );
+            
+            const pageResponses = await Promise.all(
+                remainingPages.map(page => this._fetchPage(page))
+            );
+    
+            pageResponses.forEach(response => {
+                if (response.items) {
+                    allItems = allItems.concat(response.items);
+                }
+            });
+    
+            return { ...firstPageResponse, items: allItems };
+        }
+    
+        async _fetchPage(page) {
+            const response = await fetch(
+                `${window.location.pathname}?all=1&page=${page}`,
+                { headers: { 'X-Requested-With': 'XMLHttpRequest' } }
+            );
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
             const data = await response.json();
             if (data.error) {
-                throw new Error(`Error: ${data.error}`);
+                throw new Error(data.error);
             }
-
-            const totalPages = data.pages;
-            let allItems = [...data.items];
-
-            // Загружаем все страницы
-            for (let page = 2; page <= totalPages; page++) {
-                const pageResponse = await fetch(`${window.location.pathname}?all=1&page=${page}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    
+            return data;
+        }
+    }
+    
+    // Filter Logic
+    class ItemFilterManager {
+        static collectFilters() {
+            const filters = {};
+            document.querySelectorAll('.form-control, .custom-control-input')
+                .forEach(input => {
+                    if (input.id === 'perPageSelect') return;
+                    
+                    const value = input.type === 'checkbox' ? input.checked : input.value;
+                    if ((input.type === 'checkbox' && value) || 
+                        (input.type !== 'checkbox' && value)) {
+                        filters[input.id] = input.type === 'checkbox' ? '1' : value;
+                    }
                 });
-                const pageData = await pageResponse.json();
-                if (pageData.items) {
-                    allItems = allItems.concat(pageData.items);
+            return filters;
+        }
+    
+        static filterData(items, filters) {
+            return items.filter(item => this._applyAllFilters(item, filters));
+        }
+    
+        static _applyAllFilters(item, filters) {
+            return Object.entries(filters).every(([key, value]) => {
+                // Базовые фильтры
+                if (key === 'typeFilter') {
+                    return item.IType === Number(value);
+                }
+                
+                // Фильтры диапазонов
+                if (key.endsWith('Min') || key.endsWith('Max')) {
+                    return this._applyRangeFilter(item, key, value);
+                }
+    
+                // Булевы фильтры
+                if (this._isBooleanFilter(key)) {
+                    return this._applyBooleanFilter(item, key);
+                }
+    
+                return true;
+            });
+        }
+    
+        static _applyRangeFilter(item, key, value) {
+            const baseKey = key.replace(/(Min|Max)$/, '');
+            const isMin = key.endsWith('Min');
+            const itemValue = this._getItemValue(item, baseKey);
+            const filterValue = Number(value);
+    
+            return isMin ? 
+                itemValue >= filterValue : 
+                itemValue <= filterValue;
+        }
+    
+        static _isBooleanFilter(key) {
+            return [
+                'eventItemFilter',
+                'testItemFilter',
+                'indictFilter',
+                'chargeFilter',
+                'partyDropFilter'
+            ].includes(key);
+        }
+    
+        static _applyBooleanFilter(item, key) {
+            const mappings = {
+                eventItemFilter: 'IIsEvent',
+                testItemFilter: 'IIsTest',
+                indictFilter: 'IIsIndict',
+                chargeFilter: 'IIsCharge',
+                partyDropFilter: 'IIsPartyDrop'
+            };
+            
+            return item[mappings[key]] === true;
+        }
+    
+        static _getItemValue(item, baseKey) {
+            const mappings = {
+                level: 'ILevel',
+                weight: 'IWeight',
+                validityDays: 'ITermOfValidity',
+                validityMinutes: 'ITermOfValidityMi'
+            };
+    
+            return item[mappings[baseKey] || baseKey] || 0;
+        }
+    }
+    
+    
+    // UI Management
+    class ItemUIManager {
+        constructor(stateManager) {
+            this.stateManager = stateManager;
+            this.setupStateSubscriptions();
+            this.setupAnimations();
+        }
+    
+        setupStateSubscriptions() {
+            this.stateManager.on('stateChange', ({key, value}) => {
+                switch(key) {
+                    case 'isLoading':
+                        this.toggleLoadingState(value);
+                        break;
+                    case 'error':
+                        if (value) this.showError(value);
+                        break;
+                }
+            });
+        }
+    
+        setupAnimations() {
+            this.setupTableAnimations();
+            this.setupPaginationAnimations();
+        }
+    
+        setupTableAnimations() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .table-fade-enter {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                .table-fade-enter-active {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition: opacity 300ms ease-in-out, transform 300ms ease-out;
+                }
+                .pagination-fade {
+                    transition: opacity 200ms ease-in-out;
+                }
+                .pagination-button-active {
+                    transform: scale(0.95);
+                    transition: transform 200ms ease-out;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    
+        setupPaginationAnimations() {
+            document.addEventListener('click', e => {
+                if (e.target.matches('.pagination-container button')) {
+                    e.target.classList.add('pagination-button-active');
+                    setTimeout(() => {
+                        e.target.classList.remove('pagination-button-active');
+                    }, CONSTANTS.BUTTON_ANIMATION_DURATION);
+                }
+            });
+        }
+    
+        initializeUI() {
+            this.initializeFilters();
+            this.setupEventListeners();
+        }
+    
+        initializeFilters() {
+            this.initializeTypeFilter();
+            this.initializeAdvancedFilters();
+            this.initializePerPageSelect();
+        }
+    
+        initializeTypeFilter() {
+            const typeFilter = document.getElementById('typeFilter');
+            if (!typeFilter) return;
+    
+            const allowedTypes = this._getAllowedTypes();
+            
+            typeFilter.innerHTML = this._createTypeFilterOptions(allowedTypes);
+        }
+    
+        _getAllowedTypes() {
+            return TYPE_MAPPINGS[window.location.pathname] || 
+                   Object.keys(TYPE_DESCRIPTIONS);
+        }
+    
+        _createTypeFilterOptions(types) {
+            const options = ['<option value="">Все</option>'];
+            
+            types.forEach(type => {
+                options.push(`
+                    <option value="${type}">
+                        ${TYPE_DESCRIPTIONS[type] || `Тип ${type}`}
+                    </option>
+                `);
+            });
+            
+            return options.join('');
+        }
+    
+        initializeAdvancedFilters() {
+            const container = document.querySelector('.advanced-filters-grid');
+            if (!container) return;
+    
+            container.innerHTML = ADVANCED_FILTERS
+                .map(this._createFilterCard)
+                .join('');
+        }
+    
+        _createFilterCard(filter) {
+            return `
+                <div class="filter-card" data-filter="${filter.id}">
+                    <div class="filter-card-header">
+                        <span class="filter-icon">${filter.icon}</span>
+                        <span class="filter-label">${filter.label}</span>
+                    </div>
+                    <div class="filter-inputs">
+                        <div class="input-group">
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="${filter.id}Min" 
+                                   placeholder="Мин" 
+                                   step="any">
+                            <div class="input-group-text">-</div>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="${filter.id}Max" 
+                                   placeholder="Макс" 
+                                   step="any">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    
+        initializePerPageSelect() {
+            const perPageSelect = document.getElementById('perPageSelect');
+            if (!perPageSelect) return;
+    
+            perPageSelect.innerHTML = CONSTANTS.PER_PAGE_OPTIONS
+                .map(n => `<option value="${n}">${n} на странице</option>`)
+                .join('');
+            
+            perPageSelect.value = this.stateManager.getState('perPage').toString();
+        }
+    
+        setupEventListeners() {
+            this._setupFilterContainerListener();
+            this._setupResetButton();
+            this._setupPerPageSelect();
+        }
+    
+        _setupFilterContainerListener() {
+            const container = document.querySelector('.filters-container');
+            if (!container) return;
+    
+            container.addEventListener('input', event => {
+                if (this._isFilterInput(event.target)) {
+                    this._handleFilterInput();
+                }
+            });
+        }
+    
+        _isFilterInput(element) {
+            return element.classList.contains('form-control') || 
+                   element.classList.contains('custom-control-input');
+        }
+    
+        _handleFilterInput() {
+            clearTimeout(this.stateManager.getState('debounceTimer'));
+            
+            const timer = setTimeout(
+                () => this._triggerFiltersUpdate(),
+                CONSTANTS.DEBOUNCE_DELAY
+            );
+            
+            this.stateManager.setState('debounceTimer', timer);
+        }
+    
+        _setupResetButton() {
+            const resetButton = document.getElementById('resetFilters');
+            if (!resetButton) return;
+    
+            resetButton.addEventListener('click', () => {
+                this._resetAllFilters();
+                this._triggerFiltersUpdate();
+            });
+        }
+    
+        _resetAllFilters() {
+            document.querySelectorAll('.form-control, .custom-control-input')
+                .forEach(input => {
+                    if (input.id === 'perPageSelect') return;
+                    
+                    if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
+        }
+    
+        _setupPerPageSelect() {
+            const perPageSelect = document.getElementById('perPageSelect');
+            if (!perPageSelect) return;
+    
+            perPageSelect.addEventListener('change', () => {
+                this.stateManager.setState('currentPage', 1);
+                this.stateManager.setState('perPage', 
+                    Number(perPageSelect.value));
+                this._triggerFiltersUpdate();
+            });
+        }
+    
+        _triggerFiltersUpdate() {
+            document.dispatchEvent(new CustomEvent('filtersUpdated'));
+        }
+    
+        renderItems(items, resources) {
+            const tableBody = document.querySelector('table tbody');
+            if (!tableBody) return;
+    
+            this._animateTableUpdate(tableBody, () => {
+                tableBody.innerHTML = this._generateItemsHTML(items, resources);
+            });
+        }
+    
+        _animateTableUpdate(tableBody, updateFn) {
+            tableBody.classList.add(CONSTANTS.ANIMATION_CLASSES.FADE_ENTER);
+            
+            requestAnimationFrame(() => {
+                updateFn();
+                
+                tableBody.classList.remove(CONSTANTS.ANIMATION_CLASSES.FADE_ENTER);
+                tableBody.classList.add(CONSTANTS.ANIMATION_CLASSES.FADE_ENTER_ACTIVE);
+                
+                setTimeout(() => {
+                    tableBody.classList.remove(
+                        CONSTANTS.ANIMATION_CLASSES.FADE_ENTER_ACTIVE
+                    );
+                }, CONSTANTS.TABLE_FADE_DURATION);
+            });
+        }
+    
+        _generateItemsHTML(items, resources) {
+            const tableHeaders = this._generateTableHeaders();
+            const itemsRows = items.map(item => 
+                this._generateItemRow(item, resources)
+            ).join('');
+    
+            return tableHeaders + itemsRows;
+        }
+    
+        _generateTableHeaders() {
+            return `
+                {% block table_headers %}
+                    <th>🖼️</th>
+                    <th>Название</th>
+                    <th>Описание</th>
+                    <th>Вес</th>
+                    <th>Класс</th>
+                {% endblock %}
+            `;
+        }
+    
+        _generateItemRow(item, resources) {
+            return `
+                <tr>
+                    <td>
+                        <div class="hover-text-wrapper">
+                            <a href="/item/${item.IID}">
+                                <img src="${resources[item.IID] || CONSTANTS.FALLBACK_IMAGE}"
+                                    alt="${item.IName}"
+                                    title="${item.IName}"
+                                    width="48"
+                                    height="48"
+                                    loading="lazy"
+                                    class="item-image"
+                                    onerror="this.src='${CONSTANTS.FALLBACK_IMAGE}';">
+                            </a>
+                            <div class="hover-text">[${item.IID}] ${item.IName}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="item-name">
+                            <a href="/item/${item.IID}">${item.IName}</a>
+                        </div>
+                    </td>
+                    <td class="item-desc">${item.IDesc || 'Нет описания'}</td>
+                    <td>${item.IWeight || 'N/A'}</td>
+                    <td><img src="${item.IUseClass || 'N/A'}" alt="${item.IName}"></td>
+                </tr>
+            `;
+        }
+    
+        createPagination(total, currentPage, perPage) {
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (!paginationContainer) return;
+    
+            const totalPages = Math.ceil(total / perPage);
+            
+            paginationContainer.style.opacity = '0';
+            paginationContainer.innerHTML = this._generatePaginationHTML(
+                totalPages, currentPage
+            );
+            
+            requestAnimationFrame(() => {
+                paginationContainer.style.opacity = '1';
+            });
+        }
+    
+        _generatePaginationHTML(totalPages, currentPage) {
+            const buttons = [];
+    
+            // Previous button
+            buttons.push(this._createPaginationButton(
+                'Предыдущая',
+                currentPage - 1,
+                currentPage === 1
+            ));
+    
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (this._shouldShowPageNumber(i, currentPage, totalPages)) {
+                    buttons.push(this._createPaginationButton(
+                        i.toString(),
+                        i,
+                        false,
+                        i === currentPage
+                    ));
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    buttons.push('<span class="pagination-ellipsis">...</span>');
                 }
             }
-
-            // Сохраняем данные в кэше
-            cachedData = { ...data, items: allItems };
-
-            // Скрыть индикатор загрузки
-            toggleLoadingState(false);
-
-            return cachedData;
-        } catch (error) {
-            // Показываем сообщение об ошибке
-            toggleLoadingState(false);
-            showError(error.message);
-            return null;
+    
+            // Next button
+            buttons.push(this._createPaginationButton(
+                'Следующая',
+                currentPage + 1,
+                currentPage === totalPages
+            ));
+    
+            return buttons.join('');
         }
-    }
-
-
-    // Обновленная функция toggleLoadingState
-    function toggleLoadingState(isLoading) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const errorMessage = document.getElementById('errorMessage');
-        
-        if (isLoading) {
-            loadingOverlay.classList.add('show');
-            errorMessage?.classList.remove('show');
-        } else {
-            setTimeout(() => {
-                loadingOverlay.classList.remove('show');
-            }, 500);
+    
+        _shouldShowPageNumber(pageNum, currentPage, totalPages) {
+            return pageNum === 1 || 
+                   pageNum === totalPages || 
+                   (pageNum >= currentPage - CONSTANTS.PAGINATION_RADIUS && 
+                    pageNum <= currentPage + CONSTANTS.PAGINATION_RADIUS);
         }
-    }
-
-    // Обновленная функция showError
-    function showError(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
+    
+        _createPaginationButton(text, pageNum, isDisabled, isActive = false) {
+            const className = isActive ? 'btn-primary' : 'btn-secondary';
+            const disabled = isDisabled ? 'disabled' : '';
+            return `
+                <button class="btn ${className} ${disabled}"
+                        onclick="app.applyFilters(${pageNum})"
+                        ${disabled}>
+                    ${text}
+                </button>
+            `;
+        }
+    
+        updateTotalCount(count) {
+            const totalCount = document.getElementById('totalCount');
+            if (totalCount) {
+                totalCount.textContent = `Найдено предметов: ${count}`;
+            }
+        }
+    
+        updateURL(params) {
+            const url = new URL(window.location.href);
+            url.search = new URLSearchParams(params).toString();
+            history.pushState({}, '', url);
+        }
+    
+        toggleLoadingState(isLoading) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (!loadingOverlay) return;
+    
+            if (isLoading) {
+                loadingOverlay.classList.add('show');
+            } else {
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('show');
+                }, CONSTANTS.LOADING_FADE_DELAY);
+            }
+        }
+    
+        showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (!errorMessage) return;
+    
             errorMessage.textContent = `Произошла ошибка: ${message}`;
             errorMessage.classList.add('show');
-            
+    
             setTimeout(() => {
                 errorMessage.classList.remove('show');
-            }, 5000);
+            }, CONSTANTS.ERROR_DISPLAY_TIME);
         }
     }
-
-    // Добавляем анимации к существующей функции renderItems
-    const originalRenderItems = window.renderItems;
-    window.renderItems = function(items, resources) {
-        if (!items) return;
-        
-        const tableBody = document.querySelector('table tbody');
-        if (!tableBody) return;
-        
-        // Применяем эффект затухания
-        tableBody.classList.add('table-fade-enter');
-        
-        // Вызываем оригинальную функцию
-        originalRenderItems(items, resources);
-        
-        // Запускаем анимацию появления
-        requestAnimationFrame(() => {
-            tableBody.classList.remove('table-fade-enter');
-            tableBody.classList.add('table-fade-enter-active');
+    
+    // Main Application Class
+    class ItemFilterApp {
+        constructor() {
+            this.stateManager = new StateManager();
+            this.dataService = new ItemDataService(this.stateManager);
+            this.uiManager = new ItemUIManager(this.stateManager);
+        }
+    
+        async initialize() {
+            await this.dataService.fetchData();
+            this.uiManager.initializeUI();
+            this.setupEventListeners();
+            this.applyFilters(1);
+        }
+    
+        setupEventListeners() {
+            document.addEventListener('filtersUpdated', () => {
+                this.applyFilters(1);
+            });
+        }
+    
+        async applyFilters(page = 1) {
+            const cachedData = this.stateManager.getState('cachedData');
+            if (!cachedData) return;
+    
+            const filters = ItemFilterManager.collectFilters();
+            const filteredData = ItemFilterManager.filterData(cachedData.items, filters);
             
-            setTimeout(() => {
-                tableBody.classList.remove('table-fade-enter-active');
-            }, 300);
-        });
+            const perPage = this.stateManager.getState('perPage');
+            const paginatedData = this._paginateData(filteredData, page, perPage);
+            
+            this.stateManager.setState('currentPage', page);
+            this.uiManager.updateTotalCount(filteredData.length);
+            this.uiManager.renderItems(paginatedData, cachedData.resources);
+            this.uiManager.createPagination(filteredData.length, page, perPage);
+            this.uiManager.updateURL(filters);
+        }
+    
+        _paginateData(data, page, perPage) {
+            const start = (page - 1) * perPage;
+            return data.slice(start, start + perPage);
+        }
     }
-
-    // Добавляем анимации к существующей функции createPagination
-    const originalCreatePagination = window.createPagination;
-    window.createPagination = function(total, currentPage, perPage) {
-        const paginationContainer = document.querySelector('.pagination-container');
-        if (!paginationContainer) return;
-        
-        // Скрываем пагинацию перед обновлением
-        paginationContainer.style.opacity = '0';
-        
-        // Вызываем оригинальную функцию
-        originalCreatePagination(total, currentPage, perPage);
-        
-        // Плавно показываем обновленную пагинацию
-        requestAnimationFrame(() => {
-            paginationContainer.style.opacity = '1';
-        });
-    }
-
-    // Инициализация при загрузке страницы
+    
+    // Initialize application
+    let app;
     document.addEventListener('DOMContentLoaded', () => {
-        // Добавляем обработчики для анимации кнопок пагинации
-        document.querySelector('.pagination-container')?.addEventListener('click', (e) => {
-            if (e.target.matches('button')) {
-                e.target.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    e.target.style.transform = '';
-                }, 200);
-            }
-        });
+        app = new ItemFilterApp();
+        app.initialize();
     });
-
-    // Основная функция инициализации
-    async function initialize() {
-        const data = await fetchData();
-        if (!data) return;
-        window.data = data;
-        initializeTypeFilter();
-        initializeAdvancedFilters();
-
-        // Обработчик всех фильтров
-        document.querySelector('.filters-container').addEventListener('input', event => {
-            if (event.target.classList.contains('form-control') || 
-                event.target.classList.contains('custom-control-input')) {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => applyFilters(data, 1), 300);
-            }
-        });
-
-        // Сброс фильтров
-        document.getElementById('resetFilters')?.addEventListener('click', () => {
-            document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
-                if (input.type === 'checkbox') {
-                    input.checked = false;
-                } else if (input.id !== 'perPageSelect') {
-                    input.value = '';
-                }
-            });
-            applyFilters(data, 1);
-        });
-
-        // Выбор количества элементов на странице
-        document.getElementById('perPageSelect')?.addEventListener('change', () => {
-            applyFilters(data, 1);
-        });
-
-        // Начальная загрузка
-        applyFilters(data, 1);
-    }
-
-    // Инициализация фильтра типов
-    function initializeTypeFilter() {
-        const typeFilter = document.getElementById('typeFilter');
-        if (!typeFilter) return;
-
-        const allowedTypes = getAllowedTypes();
-        
-        // Очищаем существующие опции
-        typeFilter.innerHTML = '<option value="">Все</option>';
-
-        // Добавляем только разрешенные типы
-        allowedTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = TYPE_DESCRIPTIONS[type] || `Тип ${type}`;
-            typeFilter.appendChild(option);
-        });
-
-
-        const perPageSelect = document.getElementById('perPageSelect');
-        if (!perPageSelect) return;
-
-        // Определяем доступные варианты количества элементов на странице
-        const perPageOptions = [10, 25, 50, 75, 100, 150, 200];
-
-        // Очищаем существующие опции
-        perPageSelect.innerHTML = '';
-
-        // Добавляем новые опции
-        perPageOptions.forEach(option => {
-            const optionElement = document.createElement('option');
-            optionElement.value = option;
-            optionElement.textContent = `${option} на странице`;
-            perPageSelect.appendChild(optionElement);
-        });
-
-        // Устанавливаем значение по умолчанию (25)
-        perPageSelect.value = '25';
-
-        // Устанавливаем начальное значение из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('per_page')) {
-            const urlPerPage = urlParams.get('per_page');
-            if (perPageOptions.includes(Number(urlPerPage))) {
-                perPageSelect.value = urlPerPage;
-            }
-        }
-    }
-
-    // Получение разрешенных типов для текущей страницы
-    function getAllowedTypes() {
-        const path = window.location.pathname;
-        return TYPE_MAPPINGS[path] || [];
-    }
-
-    // Инициализация расширенных фильтров
-    function initializeAdvancedFilters() {
-        const container = document.querySelector('.advanced-filters-grid');
-        if (!container) return;
-
-        const filterCards = ADVANCED_FILTERS.map(filter => `
-            <div class="filter-card" data-filter="${filter.id}">
-                <div class="filter-card-header">
-                    <span class="filter-icon">${filter.icon}</span>
-                    <span class="filter-label">${filter.label}</span>
-                </div>
-                <div class="filter-inputs">
-                    <div class="input-group">
-                        <input type="number" 
-                            class="form-control" 
-                            id="${filter.id}Min"
-                            placeholder="Мин" 
-                            step="any">
-                        <div class="input-group-text">-</div>
-                        <input type="number" 
-                            class="form-control" 
-                            id="${filter.id}Max"
-                            placeholder="Макс" 
-                            step="any">
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        container.innerHTML = filterCards;
-    }
-
-    // Применение фильтров
-    function applyFilters(data, page = 1) {
-        const tableBody = document.querySelector('table tbody');
-        if (!tableBody) return;
-
-        // Собираем все фильтры
-        const filters = {};
-        
-        document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
-            if (input.id === 'perPageSelect') return;
-            if ((input.type === 'checkbox' && input.checked) || 
-                (input.type !== 'checkbox' && input.value)) {
-                filters[input.id] = input.type === 'checkbox' ? '1' : input.value;
-            }
-        });
-
-        // Применяем фильтры к данным
-        let filteredData = data.items;
-        
-        // Фильтрация по типу
-        if (filters.typeFilter) {
-            filteredData = filteredData.filter(item => item.IType === Number(filters.typeFilter));
-        }
-
-
-        // Применение фильтра для уровня
-        if (filters.levelMin || filters.levelMax) {
-            filteredData = filteredData.filter(item => {
-                const level = item.ILevel || 0;
-                return (!filters.levelMin || level >= Number(filters.levelMin)) &&
-                    (!filters.levelMax || level <= Number(filters.levelMax));
-            });
-        }
-
-        // Применение фильтра для веса
-        if (filters.weightMin || filters.weightMax) {
-            filteredData = filteredData.filter(item => {
-                const weight = item.IWeight || 0;
-                return (!filters.weightMin || weight >= Number(filters.weightMin)) &&
-                    (!filters.weightMax || weight <= Number(filters.weightMax));
-            });
-        }
-
-        // Фильтрация по стакаемости
-        if (filters.stackableFilter) {
-            filteredData = filteredData.filter(item => item.IMaxStack === Number(filters.stackableFilter));
-        }
-
-        // Фильтрация по сроку действия в днях
-        if (filters.validityDaysMin || filters.validityDaysMax) {
-            filteredData = filteredData.filter(item => {
-                const validityDays = item.ITermOfValidity || 0;
-                return (!filters.validityDaysMin || validityDays >= Number(filters.validityDaysMin)) && 
-                    (!filters.validityDaysMax || validityDays <= Number(filters.validityDaysMax));
-            });
-        }
-
-        // Фильтрация по сроку действия в минутах
-        if (filters.validityMinutesMin || filters.validityMinutesMax) {
-            filteredData = filteredData.filter(item => {
-                const validityMinutes = item.ITermOfValidityMi || 0;
-                return (!filters.validityMinutesMin || validityMinutes >= Number(filters.validityMinutesMin)) && 
-                    (!filters.validityMinutesMax || validityMinutes <= Number(filters.validityMinutesMax));
-            });
-        }
-
-
-        // Фильтрация по номеру квеста
-        if (filters.questNoFilter) {
-            filteredData = filteredData.filter(item => item.IQuestNo === Number(filters.questNoFilter));
-        }
-
-        // Фильтрация по чекбоксам
-        if (filters.eventItemFilter) {
-            filteredData = filteredData.filter(item => item.IIsEvent === true);
-        }
-        if (filters.testItemFilter) {
-            filteredData = filteredData.filter(item => item.IIsTest === true);
-        }
-        if (filters.indictFilter) {
-            filteredData = filteredData.filter(item => item.IIsIndict === true);
-        }
-        if (filters.chargeFilter) {
-            filteredData = filteredData.filter(item => item.IIsCharge === true);
-        }
-        if (filters.partyDropFilter) {
-            filteredData = filteredData.filter(item => item.IIsPartyDrop === true);
-        }
-
-        // Обновляем общее количество отфильтрованных предметов (до пагинации)
-        updateTotalCount(filteredData.length);
-
-        // Пагинация
-        const perPage = Number(document.getElementById('perPageSelect')?.value) || 25;
-        const startIndex = (page - 1) * perPage;
-        const endIndex = startIndex + perPage;
-        const paginatedData = filteredData.slice(startIndex, endIndex);
-
-        renderItems(paginatedData, data.resources);
-        createPagination(filteredData.length, page, perPage);
-        updateURL(filters);
-
-        currentPage = page;
-    }
-
-
-    // Отрисовка предметов
-    function renderItems(items, resources) {
-        const tableBody = document.querySelector('table tbody');
-        const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
-
-        if (!tableBody) return;
-
-        const itemsHTML_table_headers = '{% block table_headers %}\n\t<th>🖼️</th>\n\t<th>Название</th>\n\t<th>Описание</th>\n\t<th>Вес</th>\n\t<th>Класс</th>\n{% endblock %}'
-
-        const itemsHTML = items.map(item => `
-            <tr>
-                <td>
-                    <div class="hover-text-wrapper">
-                        <a href="/item/${item.IID}">
-                            <img src="${resources[item.IID] || fallbackImage}"
-                                alt="${item.IName}"
-                                title="${item.IName}"
-                                width="48"
-                                height="48"
-                                loading="lazy"
-                                class="item-image">
-                        </a>
-                        <div class="hover-text">[${item.IID}] ${item.IName}</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="item-name">
-                        <a href="/item/${item.IID}">${item.IName}</a>
-                    </div>
-                </td>
-                <td class="item-desc">${item.IDesc || 'Нет описания'}</td>
-                <td>${item.IWeight || 'N/A'}</td>
-                <td><img src="${item.IUseClass || 'N/A'}" alt="${item.IName}"></td>
-            </tr>
-        `).join('');
     
-        tableBody.innerHTML = itemsHTML_table_headers + itemsHTML;
-    }
-
-    // Создание пагинации
-    function createPagination(total, currentPage, perPage) {
-        const paginationContainer = document.querySelector('.pagination-container');
-        if (!paginationContainer) return;
-    
-        const totalPages = Math.ceil(total / perPage);
-        let paginationHTML = [];
-
-        // Кнопка "Предыдущая"
-        paginationHTML.push(`
-            <button class="btn btn-secondary ${currentPage === 1 ? 'disabled' : ''}"
-                    onclick="applyFilters(data, ${currentPage - 1})"
-                    ${currentPage === 1 ? 'disabled' : ''}>
-                Предыдущая
-            </button>
-        `);
-    
-        // Номера страниц
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                paginationHTML.push(`
-                    <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}"
-                            onclick="applyFilters(data, ${i})">
-                        ${i}
-                    </button>
-                `);
-            } else if (i === currentPage - 3 || i === currentPage + 3) {
-                paginationHTML.push('<span class="pagination-ellipsis">...</span>');
-            }
-        }
-    
-        // Кнопка "Следующая"
-        paginationHTML.push(`
-            <button class="btn btn-secondary ${currentPage === totalPages ? 'disabled' : ''}"
-                    onclick="applyFilters(data, ${currentPage + 1})"
-                    ${currentPage === totalPages ? 'disabled' : ''}>
-                Следующая
-            </button>
-        `);
-    
-        paginationContainer.innerHTML = paginationHTML.join('');
-    }
-
-    // Обновление URL
-    function updateURL(params) {
-
-        const url = new URL(window.location.href);
-        const searchParams = new URLSearchParams(params); // Создаем URLSearchParams из объекта params
-        url.search = searchParams.toString(); // Преобразуем параметры в строку формата key=value
-        history.pushState({}, '', url);
-        console.log(url.toString()); // Выводим обновленный URL в консоль
-    }
-
-
-    // Обновление счетчика предметов
-    function updateTotalCount(count) {
-        const totalCount = document.getElementById('totalCount');
-        if (totalCount) {
-            totalCount.textContent = `Найдено предметов: ${count}`;
-        }
-    }
-    
-    // Глобальная функция смены страницы
-    window.changePage = function(page) {
-        applyFilters(page);
-    };
-
 </script>
-
-
-
-<style>
-    /* Filter Styles */
-    .filter-card-container {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        transition: all 0.3s ease;
-    }
-    
-    .filter-group {
-        margin-bottom: 1rem;
-    }
-    
-    .filter-label {
-        display: flex;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #2d3748;
-        font-size: 0.9rem;
-        flex-wrap: wrap; /* Для переноса строк */
-        justify-content: center; /* Центровка по горизонтали */
-        align-items: center; /* Центровка по вертикали */
-    }
-    
-    .filter-select {
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        padding: 0.5rem;
-        width: 100%;
-        background: white;
-        transition: all 0.2s ease;
-    }
-    
-    .filter-select:hover {
-        border-color: #cbd5e0;
-    }
-    
-    .filter-select:focus {
-        border-color: #4299e1;
-        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-    }
-    
-    .filter-range {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .range-separator {
-        background: none;
-        border: none;
-        color: #718096;
-    }
-    
-    .input-group-text {
-        background-color: #f7fafc;
-        border: 1px solid #e2e8f0;
-        color: #4a5568;
-    }
-    
-    .filter-toggles {
-        display: flex;
-        gap: 2rem;
-        justify-content: center;
-        padding: 1rem;
-        border-top: 1px solid #e2e8f0;
-    }
-    
-    .custom-switch {
-        padding: 0.5rem 1rem;
-        background: #f7fafc;
-        border-radius: 20px;
-        transition: all 0.3s ease;
-    }
-    
-    .custom-switch:hover {
-        background: #edf2f7;
-        transform: translateY(-1px);
-    }
-    
-    .custom-control-label {
-        cursor: pointer;
-        padding-left: 0.5rem;
-    }
-    
-    /* Dark mode support */
-    .dark-theme .filter-card-container {
-        background: rgba(26, 32, 44, 0.95);
-        border-color: rgba(255, 255, 255, 0.08);
-    }
-    
-    .dark-theme .filter-label {
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .filter-select,
-    .dark-theme .form-control {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .input-group-text {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .custom-switch {
-        background: #2d3748;
-    }
-    
-    .dark-theme .custom-switch:hover {
-        background: #4a5568;
-    }
-    
-    /* Animations */
-    .filter-select:focus,
-    .form-control:focus {
-        transform: translateY(-1px);
-    }
-    
-    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
-        background-color: #4299e1;
-        border-color: #4299e1;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .filter-toggles {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-        }
-        
-        .custom-switch {
-            width: 100%;
-            text-align: center;
-        }
-    }
-    .filterrow {
-        display: flex;
-        flex-wrap: wrap; /* Для переноса строк */
-        justify-content: center; /* Центровка по горизонтали */
-        align-items: center; /* Центровка по вертикали */
-        gap: 1rem; /* Промежутки между элементами */
-    }
-    
-    
-</style>

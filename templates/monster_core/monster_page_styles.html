@@ -255,15 +255,6 @@
        perspective: 1000px;
      }
 
-
-     /* Add this to your CSS */
-   .hover-text-wrapper  { 
-       position: relative;
-       perspective: 1000px;
-   }
-
-
-
    .item-image  { 
        transition: transform 0.3s ease, box-shadow 0.3s ease;
        transform-style: preserve-3d;
@@ -277,36 +268,106 @@
    }
 
 
+
+
+   
+
    /* 
     * Стили для всплывающих подсказок
     */
-   .hover-text-wrapper  { 
-       position: relative;
-       perspective: 1000px;
-       display: inline-block;
-   }
+    .hover-text-wrapper {
+        position: relative;
+        display: inline-block;
+        z-index: 99999 !important;
+    }
+    
+    .hover-text {
+        position: absolute;
+        top: 50%;
+        left: calc(100% + 15px); /* Отступ справа от элемента */
+        transform: translateY(-50%) translateX(5px);
+        background: linear-gradient(
+            135deg,
+            rgba(30, 41, 59, 0.98),
+            rgba(15, 23, 42, 0.99)
+        );
+        color: rgba(255, 255, 255, 0.95);
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        pointer-events: none;
+        box-shadow: 
+            0 8px 16px rgba(0, 0, 0, 0.2),
+            0 2px 4px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        letter-spacing: 0.01em;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        z-index: 99999 !important;
+        will-change: transform, opacity; /* Оптимизация производительности */
+        text-rendering: optimizeLegibility; /* Улучшение рендеринга текста */
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Стрелочка тултипа (теперь слева) */
+    .hover-text::before {
+        content: '';
+        position: absolute;
+        left: -5px;
+        top: 50%;
+        transform: translateY(-50%) rotate(45deg);
+        width: 10px;
+        height: 10px;
+        background: inherit;
+        border-left: 1px solid rgba(255, 255, 255, 0.15);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        z-index: 99998 !important;
+    }
+    
+    .hover-text-wrapper:hover .hover-text {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(-50%) translateX(0);
+    }
+    
+    /* Темная тема */
+    .dark-theme .hover-text {
+        background: linear-gradient(
+            135deg,
+            rgba(51, 65, 85, 0.99),
+            rgba(30, 41, 59, 0.98)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.3),
+            0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Медиа-запрос для мобильных устройств */
+    @media (max-width: 768px) {
+        .hover-text {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        
+        .hover-text::before {
+            width: 8px;
+            height: 8px;
+        }
+    }
 
 
-   .hover-text  { 
-       position: absolute;
-       bottom: -30px;
-       left: 50%;
-       transform: translateX(-50%);
-       background: rgba(0, 0, 0, 0.8);
-       color: white;
-       padding: 4px 8px;
-       border-radius: 4px;
-       font-size: 12px;
-       white-space: nowrap;
-       opacity: 0;
-       transition: opacity 0.3s ease;
-       pointer-events: none;
-   }
 
-   
-   .hover-text-wrapper:hover .hover-text  { 
-       opacity: 1;
-   }
+
+
+
+
+
 
    /* 
     * Стили для select элементов
@@ -419,6 +480,46 @@
    /* 
     * Стили для фильтров
     */
+
+    .card {
+        background: linear-gradient(135deg, 
+            rgba(250, 250, 252, 0.98), /* Чуть темнее чем у filter-card-container */
+            rgba(246, 247, 249, 0.95)  /* Чуть темнее чем у filter-card-container */
+        );
+        border-radius: 16px;
+        box-shadow: 
+            0 8px 32px rgba(31, 38, 135, 0.1),
+            0 2px 8px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(220, 224, 228, 0.9);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Стили для элементов внутри карточки */
+    .card input,
+    .card select {
+        background: rgba(250, 251, 254, 0.95);
+        border: 1px solid rgba(190, 196, 204, 0.6);
+        border-radius: 10px;
+        padding: 0.625rem 1rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card input:hover,
+    .card select:hover {
+        border-color: rgba(66, 153, 225, 0.4);
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.06);
+    }
+    
+    .card input:focus,
+    .card select:focus {
+        border-color: rgba(66, 153, 225, 0.7);
+        box-shadow: 
+            0 0 0 3px rgba(66, 153, 225, 0.12),
+            0 4px 12px rgba(66, 153, 225, 0.08);
+        outline: none;
+    }
+
     .filters-container  { 
        background: rgba(255, 255, 255, 0.95);
        padding: 20px;
@@ -691,10 +792,39 @@
    }
 
    
-   .dark-theme .card  { 
-       background: rgba(40, 40, 40, 0.95);
-       border-color: #2c3e50;
-   }
+   .dark-theme .card {
+        background: linear-gradient(135deg, 
+            rgba(25, 32, 45, 0.98), /* Чуть темнее чем у filter-card-container */
+            rgba(22, 27, 38, 0.95)  /* Чуть темнее чем у filter-card-container */
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1); /* Чуть менее заметная граница */
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),  /* Усиленная тень */
+            0 2px 8px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    /* Дополнительные стили для элементов внутри карточки */
+    .dark-theme .card input,
+    .dark-theme .card select {
+        background: rgba(15, 19, 28, 0.8); /* Темнее чем в основном контейнере */
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .dark-theme .card input:hover,
+    .dark-theme .card select:hover {
+        border-color: rgba(66, 153, 225, 0.5);
+        background: rgba(20, 24, 34, 0.9);
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.08);
+    }
+
+    .dark-theme .card input:focus,
+    .dark-theme .card select:focus {
+        border-color: rgba(66, 153, 225, 0.5);
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.08);
+        background: rgba(20, 24, 34, 0.95);
+    }
 
    
    .dark-theme .form-control, .dark-theme .input-group-text  { 
@@ -733,14 +863,6 @@
    
    .filter-card:nth-child(n)  { 
        animation-delay: calc(0.05s * var(--index, 0));
-   }
-
-
-
-   /* Dark theme support for hover text */
-   .dark-theme .hover-text  { 
-       background: rgba(44, 62, 80, 0.95);
-       color: white;
    }
 
 
@@ -1129,6 +1251,191 @@
 
 
 
+</style>
+
+
+<!-- /* Filter Styles */ -->
+<style>
+    /* Base container styles */
+    .filter-card-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(252, 252, 252, 0.95));
+        border-radius: 16px;
+        box-shadow: 
+            0 8px 32px rgba(31, 38, 135, 0.08),
+            0 2px 8px rgba(0, 0, 0, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(230, 232, 236, 0.8);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 1.5rem;
+    }
+    
+    /* Enhanced input and select styles */
+    .filter-card-container input,
+    .filter-card-container select,
+    .filter-select {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(200, 206, 214, 0.6);
+        border-radius: 10px;
+        padding: 0.625rem 1rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.95rem;
+        color: #2d3748;
+        min-height: 42px;
+    }
+    
+    /* Improved hover states */
+    .filter-card-container input:hover,
+    .filter-card-container select:hover,
+    .filter-select:hover {
+        border-color: rgba(66, 153, 225, 0.5);
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.08);
+        transform: translateY(-1px);
+    }
+    
+    /* Enhanced focus states */
+    .filter-card-container input:focus,
+    .filter-card-container select:focus,
+    .filter-select:focus {
+        border-color: rgba(66, 153, 225, 0.8);
+        box-shadow: 
+            0 0 0 3px rgba(66, 153, 225, 0.15),
+            0 4px 12px rgba(66, 153, 225, 0.1);
+        outline: none;
+        transform: translateY(-1px);
+    }
+    
+    /* Filter group improvements */
+    .filter-group {
+        margin-bottom: 1.25rem;
+        position: relative;
+        display: inline-block;
+    }
+    
+    /* Enhanced labels */
+    .filter-label {
+        display: flex;
+        margin-bottom: 0.625rem;
+        font-weight: 500;
+        color: #2d3748;
+        font-size: 0.925rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: 0.01em;
+    }
+    
+    /* Improved filter range */
+    .filter-range {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .range-separator {
+        color: #718096;
+        font-weight: 500;
+        user-select: none;
+    }
+    
+    /* Enhanced filter toggles */
+    .filter-toggles {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        padding: 1.25rem 1rem;
+        border-top: 1px solid rgba(226, 232, 240, 0.6);
+        margin-top: 1rem;
+    }
+    
+    .custom-switch {
+        padding: 0.625rem 1.25rem;
+        background: rgba(247, 250, 252, 0.8);
+        border-radius: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    
+    /* Dark theme enhancements */
+    .dark-theme .filter-card-container {
+        background: linear-gradient(135deg, rgba(30, 38, 52, 0.98), rgba(26, 32, 44, 0.95));
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.25),
+            0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .dark-theme .filter-card-container input,
+    .dark-theme .filter-card-container select,
+    .dark-theme .filter-select {
+        background: rgba(20, 24, 34, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .dark-theme .filter-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .dark-theme .custom-switch {
+        background: rgba(45, 55, 72, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .dark-theme .range-separator {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    /* Improved hover states for dark theme */
+    .dark-theme .filter-card-container input:hover,
+    .dark-theme .filter-card-container select:hover,
+    .dark-theme .filter-select:hover {
+        border-color: rgba(66, 153, 225, 0.4);
+        background: rgba(26, 32, 44, 0.9);
+    }
+    
+    /* Enhanced focus states for dark theme */
+    .dark-theme .filter-card-container input:focus,
+    .dark-theme .filter-card-container select:focus,
+    .dark-theme .filter-select:focus {
+        border-color: rgba(66, 153, 225, 0.6);
+        box-shadow: 
+            0 0 0 3px rgba(66, 153, 225, 0.2),
+            0 4px 12px rgba(0, 0, 0, 0.2);
+        background: rgba(26, 32, 44, 0.95);
+    }
+    
+    /* Improved filter row */
+    .filterrow {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 0.5rem;
+    }
+    
+    /* Enhanced responsive design */
+    @media (max-width: 768px) {
+        .filter-toggles {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        
+        .custom-switch {
+            width: 100%;
+            text-align: center;
+            padding: 0.75rem;
+        }
+        
+        .filterrow {
+            gap: 1rem;
+        }
+        
+        .filter-card-container {
+            padding: 1rem;
+        }
+    }
 </style>
 
 

@@ -869,12 +869,22 @@ body.dark-theme {
 .normal {
     color: white;
 }
+.dark-theme .normal {
+    color: white;
+}
+
 
 .blessed {
     color: yellow;
 }
+.dark-theme .blessed {
+    color: yellow;
+}
 
 .cursed {
+    color: red;
+}
+.dark-theme .cursed {
     color: red;
 }
 
@@ -882,7 +892,9 @@ body.dark-theme {
 .random-color {
     animation: color-cycle 5s infinite, stop-on-random 6s forwards;
 }
-
+.dark-theme .random-color {
+    animation: color-cycle 5s infinite, stop-on-random 6s forwards;
+}
 /* Анимация для плавного перелива от желтого в красный и в белый */
 @keyframes color-cycle {
     0% {

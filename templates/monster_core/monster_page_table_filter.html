@@ -176,49 +176,29 @@
 <div id="errorMessage" class="message-container error-message"></div>
 
 <script>
+    // Constants and configurations
+    const CONSTANTS = {
+        DEBOUNCE_DELAY: 300,
+        DEFAULT_PER_PAGE: 25,
+        FALLBACK_IMAGE: 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png',
+        PAGINATION_RADIUS: 2,
+        ERROR_DISPLAY_TIME: 5000
+    };
 
-    // Описания классов монстров
     const MONSTER_CLASS_DESCRIPTIONS = {
-        1: 'A класс',
-        2: 'B класс',
-        3: 'C класс',
-        4: 'D класс',
-        5: 'E класс',
-        6: 'F класс',
-        7: 'G класс',
-        8: 'H класс',
-        9: 'I класс',
-        10: 'J класс',
-        11: 'K класс',
-        12: 'L класс',
-        13: 'M класс',
-        14: 'N класс',
-        15: 'O класс',
-        16: 'P класс',
-        17: 'Q класс',
-        18: 'R класс',
-        19: 'S класс',
-        20: 'T класс',
-        21: 'U класс',
-        22: 'V класс',
-        23: 'NPC',
-        24: 'W класс',
-        25: 'X класс',
-        26: 'Особый Монстр',
-        27: 'Событие',
-        28: 'Именной',
-        29: 'Босс',
-        31: 'S',
-        32: 'Налетчики',
-        33: 'Эпик Мобы (дем)',
-        34: 'Эпик Боссы (дем)',
-        35: 'Статуя',
-        36: 'Последователи (ХТЖ Боссы)',
-        37: 'Разъяренные Боссы',
+        1: 'A класс', 2: 'B класс', 3: 'C класс', 4: 'D класс',
+        5: 'E класс', 6: 'F класс', 7: 'G класс', 8: 'H класс',
+        9: 'I класс', 10: 'J класс', 11: 'K класс', 12: 'L класс',
+        13: 'M класс', 14: 'N класс', 15: 'O класс', 16: 'P класс',
+        17: 'Q класс', 18: 'R класс', 19: 'S класс', 20: 'T класс',
+        21: 'U класс', 22: 'V класс', 23: 'NPC', 24: 'W класс',
+        25: 'X класс', 26: 'Особый Монстр', 27: 'Событие',
+        28: 'Именной', 29: 'Босс', 31: 'S', 32: 'Налетчики',
+        33: 'Эпик Мобы (дем)', 34: 'Эпик Боссы (дем)', 35: 'Статуя',
+        36: 'Последователи (ХТЖ Боссы)', 37: 'Разъяренные Боссы',
         38: 'Падшие Боссы'
     };
 
-    // Маппинги типов монстров для разных маршрутов
     const MONSTER_TYPE_MAPPINGS = {
         '/monster_regular': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
         '/monster_boss': [29, 38, 37, 36, 34],
@@ -228,647 +208,516 @@
         '/monster_event': [27]
     };
 
-    // Advanced filter definitions
+    const RACE_TYPES = {
+        1: 'Человек',
+        2: 'Нежить',
+        3: 'Демон',
+        4: 'Животное'
+    };
+
     const ADVANCED_FILTERS = [
-        { id: 'MHIT', label: 'Точность', icon: '🎯', type: 'range' },
-        { id: 'MMinD', label: 'Мин. урон', icon: '⚔️', type: 'range' },
-        { id: 'MMaxD', label: 'Макс. урон', icon: '⚔️', type: 'range' },
-        { id: 'MHP', label: 'HP', icon: '❤️', type: 'range' },
-        { id: 'MMP', label: 'MP', icon: '💧', type: 'range' },
-        { id: 'MAttackRateOrg', label: 'Скорость атаки', icon: '⚡', type: 'range' },
-        { id: 'MMoveRateOrg', label: 'Скорость передвижения', icon: '🏃', type: 'range' },
-        { id: 'MMoveRange', label: 'Радиус преследования', icon: '📏', type: 'range' },
-        { id: 'mSightRange', label: 'Радиус обзора', icon: '👁️', type: 'range' },
-        { id: 'mAttackRange', label: 'Дальность атаки', icon: '🎯', type: 'range' },
-        { id: 'mSkillRange', label: 'Дальность навыков', icon: '✨', type: 'range' },
-        { id: 'mScale', label: 'Размер модели', icon: '📐', type: 'range' },
-        { id: 'mHPRegen', label: 'Реген HP', icon: '♥️', type: 'range' },
-        { id: 'mMPRegen', label: 'Реген MP', icon: '💫', type: 'range' },
-        { id: 'mVolitionOfHonor', label: 'Очки чести', icon: '🏆', type: 'range' }
+        { id: 'MHIT', label: 'Точность', icon: '🎯' },
+        { id: 'MMinD', label: 'Мин. урон', icon: '⚔️' },
+        { id: 'MMaxD', label: 'Макс. урон', icon: '⚔️' },
+        { id: 'MHP', label: 'HP', icon: '❤️' },
+        { id: 'MMP', label: 'MP', icon: '💧' },
+        { id: 'MAttackRateOrg', label: 'Скорость атаки', icon: '⚡' },
+        { id: 'MMoveRateOrg', label: 'Скорость передвижения', icon: '🏃' },
+        { id: 'MMoveRange', label: 'Радиус преследования', icon: '📏' },
+        { id: 'mSightRange', label: 'Радиус обзора', icon: '👁️' },
+        { id: 'mAttackRange', label: 'Дальность атаки', icon: '🎯' },
+        { id: 'mSkillRange', label: 'Дальность навыков', icon: '✨' },
+        { id: 'mScale', label: 'Размер модели', icon: '📐' },
+        { id: 'mHPRegen', label: 'Реген HP', icon: '♥️' },
+        { id: 'mMPRegen', label: 'Реген MP', icon: '💫' },
+        { id: 'mVolitionOfHonor', label: 'Очки чести', icon: '🏆' }
     ];
 
-    // Global variables
-    let debounceTimer;
-    let currentPage = 1;
-    let cachedData = null;
+    // State Management
+    class StateManager {
+        constructor() {
+            this._state = {
+                currentPage: 1,
+                cachedData: null,
+                debounceTimer: null,
+                isLoading: false,
+                error: null
+            };
+            
+            this._subscribers = new Set();
+        }
 
-    // Initialize when DOM loads
-    document.addEventListener('DOMContentLoaded', function() {
-        initialize();
-        initializeAdvancedFilters();
-    });
+        setState(key, value) {
+            const oldValue = this._state[key];
+            this._state[key] = value;
+            
+            if (oldValue !== value) {
+                this._notifySubscribers(key, value, oldValue);
+            }
+        }
 
-    // Main initialization function
-    async function initialize() {
-        await fetchData();
-        setupEventListeners();
-        initializePerPageSelect();
-        applyFilters(1);
-        initializeSearch(); 
+        getState(key) {
+            return this._state[key];
+        }
+
+        subscribe(callback) {
+            this._subscribers.add(callback);
+            return () => this._subscribers.delete(callback);
+        }
+
+        _notifySubscribers(key, newValue, oldValue) {
+            this._subscribers.forEach(callback => 
+                callback(key, newValue, oldValue));
+        }
     }
 
-    function setupEventListeners() {
-        // Filter container event listener
-        document.querySelector('.filters-container').addEventListener('input', event => {
-            if (event.target.classList.contains('form-control') || 
-                event.target.classList.contains('custom-control-input')) {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => applyFilters(1), 300);
-            }
-        });
+    // Data Service
+    class DataService {
+        constructor(stateManager) {
+            this.stateManager = stateManager;
+        }
 
-        // Reset filters button
-        document.getElementById('resetFilters')?.addEventListener('click', () => {
+        async fetchData(forceReload = false) {
+            const cachedData = this.stateManager.getState('cachedData');
+            if (cachedData && !forceReload) {
+                return cachedData;
+            }
+
+            this.stateManager.setState('isLoading', true);
+
+            try {
+                const response = await fetch(`${window.location.pathname}?all=1`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                this.stateManager.setState('cachedData', data);
+                return data;
+
+            } catch (error) {
+                this.stateManager.setState('error', error.message);
+                return null;
+            } finally {
+                this.stateManager.setState('isLoading', false);
+            }
+        }
+    }
+
+    // Filter Logic
+    class FilterManager {
+        static collectFilters() {
+            const filters = {};
             document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
-                if (input.type === 'checkbox') {
-                    input.checked = false;
-                } else if (input.id !== 'perPageSelect') {
-                    input.value = '';
+                if (input.id === 'perPageSelect') return;
+                
+                const value = input.type === 'checkbox' ? input.checked : input.value;
+                if ((input.type === 'checkbox' && value) || 
+                    (input.type !== 'checkbox' && value)) {
+                    filters[input.id] = input.type === 'checkbox' ? '1' : value;
                 }
             });
-            applyFilters(1);
-        });
-
-        // Per page select
-        document.getElementById('perPageSelect')?.addEventListener('change', () => {
-            applyFilters(1);
-        });
-    }
-
-    // Initialize advanced filters
-    function initializeAdvancedFilters() {
-        const container = document.querySelector('.advanced-filters-grid');
-        if (!container) return;
-
-        const filterCards = ADVANCED_FILTERS.map(filter => `
-            <div class="filter-card" data-filter="${filter.id}">
-                <div class="filter-card-header">
-                    <span class="filter-icon">${filter.icon}</span>
-                    <span class="filter-label">${filter.label}</span>
-                </div>
-                <div class="filter-inputs">
-                    <div class="input-group">
-                        <input type="number" 
-                            class="form-control" 
-                            id="${filter.id}Min"
-                            placeholder="Мин" 
-                            step="any">
-                        <div class="input-group-text">-</div>
-                        <input type="number" 
-                            class="form-control" 
-                            id="${filter.id}Max"
-                            placeholder="Макс" 
-                            step="any">
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        container.innerHTML = filterCards;
-    }
-
-    function initializePerPageSelect() {
-        const perPageSelect = document.getElementById('perPageSelect');
-        if (!perPageSelect) return;
-
-        const options = [10, 25, 50, 75, 100];
-        perPageSelect.innerHTML = options.map(n => 
-            `<option value="${n}">${n} на странице</option>`
-        ).join('');
-        
-        perPageSelect.value = '25';
-    }
-
-
-
-
-    function getAllowedTypes() {
-        const path = window.location.pathname;
-        return MONSTER_TYPE_MAPPINGS[path] || [];
-    }
-    
-    // Инициализация фильтра типов
-    function initializeTypeFilter() {
-        const typeFilter = document.getElementById('classFilter');
-        if (!typeFilter) return;
-    
-        const allowedTypes = getAllowedTypes();
-        
-        // Очищаем существующие опции
-        typeFilter.innerHTML = '<option value="">Все</option>';
-    
-        // Если есть ограничения по типам для текущего маршрута
-        if (allowedTypes.length > 0) {
-            // Добавляем только разрешенные типы
-            allowedTypes.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = MONSTER_CLASS_DESCRIPTIONS[type] || `Класс ${type}`;
-                typeFilter.appendChild(option);
-            });
-        } else {
-            // Если ограничений нет, добавляем все возможные типы
-            Object.entries(MONSTER_CLASS_DESCRIPTIONS).forEach(([type, description]) => {
-                const option = document.createElement('option');
-                option.value = type;
-                option.textContent = description;
-                typeFilter.appendChild(option);
-            });
+            return filters;
         }
-    
-        // Инициализация выбора количества элементов на странице
-        const perPageSelect = document.getElementById('perPageSelect');
-        if (!perPageSelect) return;
-    
-        // Определяем доступные варианты количества элементов на странице
-        const perPageOptions = [10, 25, 50, 75, 100, 150, 200];
-    
-        // Очищаем существующие опции
-        perPageSelect.innerHTML = '';
-    
-        // Добавляем новые опции
-        perPageOptions.forEach(option => {
-            const optionElement = document.createElement('option');
-            optionElement.value = option;
-            optionElement.textContent = `${option} на странице`;
-            perPageSelect.appendChild(optionElement);
-        });
-    
-        // Устанавливаем значение по умолчанию (25)
-        perPageSelect.value = '25';
-    
-        // Устанавливаем начальное значение из URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('per_page')) {
-            const urlPerPage = urlParams.get('per_page');
-            if (perPageOptions.includes(Number(urlPerPage))) {
-                perPageSelect.value = urlPerPage;
-            }
+
+        static filterData(monsters, filters) {
+            return monsters.filter(monster => 
+                this._applyAllFilters(monster, filters));
         }
-    }
 
-
-    // Apply filters function
-    async function applyFilters(page = 1) {
-        if (!cachedData) return;
-
-        const filters = collectFilters();
-        let filteredData = filterData(cachedData.monsters, filters);
-
-        updateTotalCount(filteredData.length);
-
-        // Pagination
-        const perPage = Number(document.getElementById('perPageSelect')?.value) || 25;
-        const paginatedData = paginate(filteredData, page, perPage);
-
-        renderMonsters(paginatedData);
-        createPagination(filteredData.length, page, perPage);
-        updateURL(filters);
-
-        currentPage = page;
-    }
-
-    // Helper functions for filtering
-    function collectFilters() {
-        const filters = {};
-        document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
-            if (input.id === 'perPageSelect') return;
-            if ((input.type === 'checkbox' && input.checked) || 
-                (input.type !== 'checkbox' && input.value)) {
-                filters[input.id] = input.type === 'checkbox' ? '1' : input.value;
-            }
-        });
-        return filters;
-    }
-
-    function filterData(data, filters) {
-        return data.filter(monster => {
+        static _applyAllFilters(monster, filters) {
             return Object.entries(filters).every(([key, value]) => {
-                // Add specific filtering logic for each field
-                return true; // Placeholder
+                if (key.endsWith('Min') || key.endsWith('Max')) {
+                    return this._applyRangeFilter(monster, key, value);
+                }
+                return this._applyBasicFilter(monster, key, value);
             });
-        });
-    }
-
-    function paginate(data, page, perPage) {
-        const start = (page - 1) * perPage;
-        const end = start + perPage;
-        return data.slice(start, end);
-    }
-
-    // Render functions
-    function renderMonsters(monsters) {
-        const tableBody = document.querySelector('table tbody');
-        const fallbackImage = 'https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png';
-        if (!tableBody) return;
-        
-        const monstersHTML_table_headers = '{% block table_headers %}\n\t<th>🖼️</th>\n\t<th>Название</th>\n\t<th>Уровень</th>\n\t<th>Класс</th>\n\t<th>MExp</th>\n\t<th>MHP</th>\n\t<th>MRaceType</th>\n{% endblock %}'
-        const monstersHTML = monsters.map(monster => `
-            <tr>
-                <td>
-                    <div class="hover-text-wrapper">
-                        <a href="/monster/${monster.MID}">
-                            <img src="${cachedData.resources[monster.MID] || fallbackImage}"
-                                alt="${monster.MName}"
-                                title="${monster.MName}"
-                                width="48"
-                                height="48"
-                                loading="lazy"
-                                class="monster-image"
-                                onerror="this.onerror=null; this.src='${fallbackImage}';">
-                        </a>
-                        <div class="hover-text">[${monster.MID}] ${monster.MName}</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="monster-name">
-                        <a href="/monster/${monster.MID}">${monster.MName}</a>
-                    </div>
-                </td>
-                <td>${monster.mLevel || '0'}</td>
-                <td>${monster.MClass || 'N/A'}</td>
-                <td>${monster.MExp || '0'}</td>
-                <td>${monster.MHP || 'N/A'}</td>
-                <td>${monster.MRaceType ? getRaceTypeName(monster.MRaceType) : 'N/A'}</td>
-            </tr>
-        `).join('');
-    
-        tableBody.innerHTML = monstersHTML_table_headers + monstersHTML;
-    }
-
-    function getRaceTypeName(raceType) {
-        const raceTypes = {
-            1: 'Человек',
-            2: 'Нежить',
-            3: 'Демон',
-            4: 'Животное'
-        };
-        return raceTypes[raceType] || 'Неизвестно';
-    }
-
-    // Data fetch and management
-    async function fetchData(forceReload = false) {
-        if (cachedData && !forceReload) {
-            return cachedData;
         }
-    
-        toggleLoadingState(true);
-    
-        try {
-            const response = await fetch(`${window.location.pathname}?all=1`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+
+        static _applyRangeFilter(monster, key, value) {
+            const baseKey = key.replace(/(Min|Max)$/, '');
+            const isMin = key.endsWith('Min');
+            const monsterValue = monster[baseKey] || 0;
+            const filterValue = Number(value);
+
+            return isMin ? 
+                monsterValue >= filterValue : 
+                monsterValue <= filterValue;
+        }
+
+        static _applyBasicFilter(monster, key, value) {
+            switch(key) {
+                case 'classFilter':
+                    return monster.MClass === Number(value);
+                case 'raceFilter':
+                    return monster.MRaceType === Number(value);
+                case 'eventMonsterFilter':
+                    return monster.mIsEvent;
+                case 'testMonsterFilter':
+                    return monster.mIsTest;
+                case 'showHpFilter':
+                    return monster.mIsShowHp;
+                default:
+                    return true;
+            }
+        }
+    }
+
+    // UI Management
+    class UIManager {
+        constructor(stateManager) {
+            this.stateManager = stateManager;
+            this.setupStateSubscriptions();
+        }
+
+        setupStateSubscriptions() {
+            this.stateManager.subscribe((key, value) => {
+                switch(key) {
+                    case 'isLoading':
+                        this.toggleLoadingState(value);
+                        break;
+                    case 'error':
+                        if (value) this.showError(value);
+                        break;
+                }
             });
-    
-            if (!response.ok) throw new Error('Network response was not ok');
-    
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(`Error: ${data.error}`);
-            }
-    
-            cachedData = data;
-            toggleLoadingState(false);
-            return cachedData;
-    
-        } catch (error) {
-            toggleLoadingState(false);
-            showError(error.message);
-            return null;
         }
-    }
 
-    // В функции filterData:
-    function filterData(monsters, filters) {
-    // Логируем входные данные
-    //console.log('Filters:', filters);
-    //console.log('First monster data:', monsters[0]);
+        initializeUI() {
+            this.initializeAdvancedFilters();
+            this.initializePerPageSelect();
+            this.setupEventListeners();
+            this.initializeTypeFilter();
+        }
 
-    return monsters.filter(monster => {
-        // Логируем сравнения для первого монстра в первой итерации
-        const isFirstMonster = monster === monsters[0];
-        if (isFirstMonster) {
-            if (filters.attackTypeFilter) {
-                console.log('Attack type comparison:', {
-                    filterValue: filters.attackTypeFilter,
-                    monsterValue: monster.mAttackType,
-                    parsed: parseInt(monster.mAttackType) !== parseInt(filters.attackTypeFilter)
+        initializeAdvancedFilters() {
+            const container = document.querySelector('.advanced-filters-grid');
+            if (!container) return;
+
+            container.innerHTML = ADVANCED_FILTERS
+                .map(this.createFilterCard)
+                .join('');
+        }
+
+        createFilterCard(filter) {
+            return `
+                <div class="filter-card" data-filter="${filter.id}">
+                    <div class="filter-card-header">
+                        <span class="filter-icon">${filter.icon}</span>
+                        <span class="filter-label">${filter.label}</span>
+                    </div>
+                    <div class="filter-inputs">
+                        <div class="input-group">
+                            <input type="number" 
+                                class="form-control" 
+                                id="${filter.id}Min" 
+                                placeholder="Мин" 
+                                step="any">
+                            <div class="input-group-text">-</div>
+                            <input type="number" 
+                                class="form-control" 
+                                id="${filter.id}Max" 
+                                placeholder="Макс" 
+                                step="any">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        setupEventListeners() {
+            const filtersContainer = document.querySelector('.filters-container');
+            if (filtersContainer) {
+                filtersContainer.addEventListener('input', this._handleFilterInput.bind(this));
+            }
+
+            const resetButton = document.getElementById('resetFilters');
+            if (resetButton) {
+                resetButton.addEventListener('click', this._handleResetFilters.bind(this));
+            }
+
+            const perPageSelect = document.getElementById('perPageSelect');
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', () => {
+                    this.stateManager.setState('currentPage', 1);
+                    this._triggerFiltersUpdate();
                 });
             }
-            if (filters.eventMonsterFilter) {
-                console.log('Event filter comparison:', {
-                    filterValue: filters.eventMonsterFilter,
-                    monsterValue: monster.mIsEvent
+        }
+
+        _handleFilterInput(event) {
+            if (event.target.classList.contains('form-control') || 
+                event.target.classList.contains('custom-control-input')) {
+                
+                clearTimeout(this.stateManager.getState('debounceTimer'));
+                
+                const timer = setTimeout(
+                    () => this._triggerFiltersUpdate(), 
+                    CONSTANTS.DEBOUNCE_DELAY
+                );
+                
+                this.stateManager.setState('debounceTimer', timer);
+            }
+        }
+
+        _handleResetFilters() {
+            document.querySelectorAll('.form-control, .custom-control-input')
+                .forEach(input => {
+                    if (input.type === 'checkbox') {
+                        input.checked = false;
+                    } else if (input.id !== 'perPageSelect') {
+                        input.value = '';
+                    }
                 });
-            }
-            if (filters.testMonsterFilter) {
-                console.log('Test filter comparison:', {
-                    filterValue: filters.testMonsterFilter,
-                    monsterValue: monster.mIsTest
+            
+            this._triggerFiltersUpdate();
+        }
+
+        _triggerFiltersUpdate() {
+            const event = new CustomEvent('filtersUpdated');
+            document.dispatchEvent(event);
+        }
+
+        initializeTypeFilter() {
+            const typeFilter = document.getElementById('classFilter');
+            if (!typeFilter) return;
+
+            const allowedTypes = this._getAllowedTypes();
+            typeFilter.innerHTML = '<option value="">Все</option>';
+
+            (allowedTypes.length ? allowedTypes : Object.keys(MONSTER_CLASS_DESCRIPTIONS))
+                .forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = MONSTER_CLASS_DESCRIPTIONS[type] || `Класс ${type}`;
+                    typeFilter.appendChild(option);
                 });
+        }
+
+        _getAllowedTypes() {
+            return MONSTER_TYPE_MAPPINGS[window.location.pathname] || [];
+        }
+
+        initializePerPageSelect() {
+            const perPageSelect = document.getElementById('perPageSelect');
+            if (!perPageSelect) return;
+
+            const options = [10, 25, 50, 75, 100];
+            perPageSelect.innerHTML = options
+                .map(n => `<option value="${n}">${n} на странице</option>`)
+                .join('');
+            
+            perPageSelect.value = CONSTANTS.DEFAULT_PER_PAGE.toString();
+        }
+
+        renderMonsters(monsters) {
+            const tableBody = document.querySelector('table tbody');
+            if (!tableBody) return;
+            const cachedData = this.stateManager.getState('cachedData');
+            
+            const monstersHTML_table_headers = '{% block table_headers %}\n\t<th>🖼️</th>\n\t<th>Название</th>\n\t<th>Уровень</th>\n\t<th>Класс</th>\n\t<th>MExp</th>\n\t<th>MHP</th>\n\t<th>MRaceType</th>\n{% endblock %}';
+            
+            const monstersHTML = monsters
+                .map(monster => this._createMonsterRow(monster, cachedData.resources))
+                .join('');
+            
+            tableBody.innerHTML = monstersHTML_table_headers + monstersHTML;
+        }
+
+        _createMonsterRow(monster, resources) {
+            return `
+                <tr>
+                    <td>
+                        <div class="hover-text-wrapper">
+                            <a href="/monster/${monster.MID}">
+                                <img src="${resources[monster.MID] || CONSTANTS.FALLBACK_IMAGE}"
+                                    alt="${monster.MName}"
+                                    title="${monster.MName}"
+                                    width="48"
+                                    height="48"
+                                    loading="lazy"
+                                    class="monster-image"
+                                    onerror="this.src='${CONSTANTS.FALLBACK_IMAGE}';">
+                            </a>
+                            <div class="hover-text">[${monster.MID}] ${monster.MName}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="monster-name">
+                            <a href="/monster/${monster.MID}">${monster.MName}</a>
+                        </div>
+                    </td>
+                    <td>${monster.mLevel || '0'}</td>
+                    <td>${MONSTER_CLASS_DESCRIPTIONS[monster.MClass] || 'N/A'}</td>
+                    <td>${monster.MExp || '0'}</td>
+                    <td>${monster.MHP || 'N/A'}</td>
+                    <td>${RACE_TYPES[monster.MRaceType] || 'N/A'}</td>
+                </tr>
+            `;
+        }
+
+        createPagination(total, currentPage, perPage) {
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (!paginationContainer) return;
+
+            const totalPages = Math.ceil(total / perPage);
+            const paginationHTML = [];
+
+            // Previous button
+            paginationHTML.push(this._createPaginationButton(
+                'Предыдущая',
+                currentPage - 1,
+                currentPage === 1
+            ));
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (this._shouldShowPageNumber(i, currentPage, totalPages)) {
+                    paginationHTML.push(this._createPaginationButton(
+                        i.toString(),
+                        i,
+                        false,
+                        i === currentPage
+                    ));
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML.push('<span class="pagination-ellipsis">...</span>');
+                }
             }
-            if (filters.showHpFilter) {
-                console.log('Show HP comparison:', {
-                    filterValue: filters.showHpFilter,
-                    monsterValue: monster.mIsShowHp
-                });
+
+            // Next button
+            paginationHTML.push(this._createPaginationButton(
+                'Следующая',
+                currentPage + 1,
+                currentPage === totalPages
+            ));
+
+            paginationContainer.innerHTML = paginationHTML.join('');
+        }
+
+        _shouldShowPageNumber(pageNum, currentPage, totalPages) {
+            return pageNum === 1 || 
+                pageNum === totalPages || 
+                (pageNum >= currentPage - CONSTANTS.PAGINATION_RADIUS && 
+                    pageNum <= currentPage + CONSTANTS.PAGINATION_RADIUS);
+        }
+
+        _createPaginationButton(text, pageNum, isDisabled, isActive = false) {
+            const className = isActive ? 'btn-primary' : 'btn-secondary';
+            const disabled = isDisabled ? 'disabled' : '';
+            return `
+                <button class="btn ${className} ${disabled}"
+                        onclick="app.applyFilters(${pageNum})"
+                        ${disabled}>
+                    ${text}
+                </button>
+            `;
+        }
+
+        updateTotalCount(count) {
+            const totalCount = document.getElementById('totalCount');
+            if (totalCount) {
+                totalCount.textContent = `Найдено монстров: ${count}`;
             }
         }
 
-        // Фильтрация
-        if (filters.classFilter && parseInt(monster.MClass) !== parseInt(filters.classFilter)) {
-            if (isFirstMonster) console.log('Failed on class filter');
-            return false;
-        }
-        
-        if (filters.levelMin && monster.mLevel < Number(filters.levelMin)) {
-            if (isFirstMonster) console.log('Failed on level min');
-            return false;
-        }
-        if (filters.levelMax && monster.mLevel > Number(filters.levelMax)) {
-            if (isFirstMonster) console.log('Failed on level max');
-            return false;
-        }
-        
-        if (filters.raceFilter && parseInt(monster.MRaceType) !== parseInt(filters.raceFilter)) {
-            if (isFirstMonster) console.log('Failed on race filter');
-            return false;
-        }
-        
-        if (filters.attackTypeFilter && parseInt(monster.mAttackType) !== parseInt(filters.attackTypeFilter)) {
-            if (isFirstMonster) console.log('Failed on attack type');
-            return false;
-        }
-        
-        if (filters.expMin && monster.MExp < Number(filters.expMin)) {
-            if (isFirstMonster) console.log('Failed on exp min');
-            return false;
-        }
-        if (filters.expMax && monster.MExp > Number(filters.expMax)) {
-            if (isFirstMonster) console.log('Failed on exp max');
-            return false;
-        }
-        
-        if (filters.eventMonsterFilter === '1' && !monster.mIsEvent) {
-            if (isFirstMonster) console.log('Failed on event filter');
-            return false;
-        }
-        if (filters.testMonsterFilter === '1' && !monster.mIsTest) {
-            if (isFirstMonster) console.log('Failed on test filter');
-            return false;
-        }
-        if (filters.showHpFilter === '1' && !monster.mIsShowHp) {
-            if (isFirstMonster) console.log('Failed on show HP filter');
-            return false;
+        updateURL(params) {
+            const url = new URL(window.location.href);
+            url.search = new URLSearchParams(params).toString();
+            history.pushState({}, '', url);
         }
 
-        return true;
-    });
-}
+        toggleLoadingState(isLoading) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (!loadingOverlay) return;
 
-    // Pagination and UI updates
-    function createPagination(total, currentPage, perPage) {
-        const paginationContainer = document.querySelector('.pagination-container');
-        if (!paginationContainer) return;
-    
-        const totalPages = Math.ceil(total / perPage);
-        let paginationHTML = [];
-
-        // Previous button
-        paginationHTML.push(`
-            <button class="btn btn-secondary ${currentPage === 1 ? 'disabled' : ''}"
-                    onclick="applyFilters(${currentPage - 1})"
-                    ${currentPage === 1 ? 'disabled' : ''}>
-                Предыдущая
-            </button>
-        `);
-    
-        // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                paginationHTML.push(`
-                    <button class="btn ${i === currentPage ? 'btn-primary' : 'btn-secondary'}"
-                            onclick="applyFilters(${i})">
-                        ${i}
-                    </button>
-                `);
-            } else if (i === currentPage - 3 || i === currentPage + 3) {
-                paginationHTML.push('<span class="pagination-ellipsis">...</span>');
+            if (isLoading) {
+                loadingOverlay.classList.add('show');
+            } else {
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('show');
+                }, 500);
             }
         }
-    
-        // Next button
-        paginationHTML.push(`
-            <button class="btn btn-secondary ${currentPage === totalPages ? 'disabled' : ''}"
-                    onclick="applyFilters(${currentPage + 1})"
-                    ${currentPage === totalPages ? 'disabled' : ''}>
-                Следующая
-            </button>
-        `);
-    
-        paginationContainer.innerHTML = paginationHTML.join('');
-    }
 
-    function updateTotalCount(count) {
-        const totalCount = document.getElementById('totalCount');
-        if (totalCount) {
-            totalCount.textContent = `Найдено монстров: ${count}`;
-        }
-    }
+        showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            if (!errorMessage) return;
 
-    function updateURL(params) {
-        const url = new URL(window.location.href);
-        const searchParams = new URLSearchParams(params);
-        url.search = searchParams.toString();
-        history.pushState({}, '', url);
-    }
-
-    function toggleLoadingState(isLoading) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const errorMessage = document.getElementById('errorMessage');
-        
-        if (isLoading) {
-            loadingOverlay.classList.add('show');
-            errorMessage?.classList.remove('show');
-        } else {
-            setTimeout(() => {
-                loadingOverlay.classList.remove('show');
-            }, 500);
-        }
-    }
-
-    function showError(message) {
-        const errorMessage = document.getElementById('errorMessage');
-        if (errorMessage) {
             errorMessage.textContent = `Произошла ошибка: ${message}`;
             errorMessage.classList.add('show');
-            
+
             setTimeout(() => {
                 errorMessage.classList.remove('show');
-            }, 5000);
+            }, CONSTANTS.ERROR_DISPLAY_TIME);
         }
     }
 
+    // Main Application Class
+    class MonsterFilterApp {
+        constructor() {
+            this.stateManager = new StateManager();
+            this.dataService = new DataService(this.stateManager);
+            this.uiManager = new UIManager(this.stateManager);
+        }
 
-    // Инициализация при загрузке страницы
+        async initialize() {
+            await this.dataService.fetchData();
+            this.uiManager.initializeUI();
+            this.setupEventListeners();
+            this.applyFilters(1);
+        }
+
+        setupEventListeners() {
+            document.addEventListener('filtersUpdated', () => {
+                this.applyFilters(1);
+            });
+        }
+
+        async applyFilters(page = 1) {
+            const cachedData = this.stateManager.getState('cachedData');
+            if (!cachedData) return;
+
+            const filters = FilterManager.collectFilters();
+            const filteredData = FilterManager.filterData(cachedData.monsters, filters);
+            const perPage = this._getPerPage();
+            
+            this.stateManager.setState('currentPage', page);
+            
+            const paginatedData = this._paginateData(filteredData, page, perPage);
+            
+            this.uiManager.updateTotalCount(filteredData.length);
+            this.uiManager.renderMonsters(paginatedData);
+            this.uiManager.createPagination(filteredData.length, page, perPage);
+            this.uiManager.updateURL(filters);
+        }
+
+        _getPerPage() {
+            return Number(document.getElementById('perPageSelect')?.value) || 
+                CONSTANTS.DEFAULT_PER_PAGE;
+        }
+
+        _paginateData(data, page, perPage) {
+            const start = (page - 1) * perPage;
+            return data.slice(start, start + perPage);
+        }
+    }
+
+    // Initialize application
+    let app;
     document.addEventListener('DOMContentLoaded', () => {
-        initializeTypeFilter();
+        app = new MonsterFilterApp();
+        app.initialize();
     });
 
-    // Initialize the component
-    initialize();
 </script>
 
 
 
-<style>
-    /* Filter Styles */
-    .filter-card-container {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        transition: all 0.3s ease;
-    }
-    
-    .filter-group {
-        margin-bottom: 1rem;
-    }
-    
-    .filter-label {
-        display: flex;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #2d3748;
-        font-size: 0.9rem;
-        flex-wrap: wrap; /* Для переноса строк */
-        justify-content: center; /* Центровка по горизонтали */
-        align-items: center; /* Центровка по вертикали */
-
-    }
-    
-    .filter-select {
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        padding: 0.5rem;
-        width: 100%;
-        background: white;
-        transition: all 0.2s ease;
-    }
-    
-    .filter-select:hover {
-        border-color: #cbd5e0;
-    }
-    
-    .filter-select:focus {
-        border-color: #4299e1;
-        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-    }
-    
-    .filter-range {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .range-separator {
-        background: none;
-        border: none;
-        color: #718096;
-    }
-    
-    .input-group-text {
-        background-color: #f7fafc;
-        border: 1px solid #e2e8f0;
-        color: #4a5568;
-    }
-    
-    .filter-toggles {
-        display: flex;
-        gap: 2rem;
-        justify-content: center;
-        padding: 1rem;
-        border-top: 1px solid #e2e8f0;
-    }
-    
-    .custom-switch {
-        padding: 0.5rem 1rem;
-        background: #f7fafc;
-        border-radius: 20px;
-        transition: all 0.3s ease;
-    }
-    
-    .custom-switch:hover {
-        background: #edf2f7;
-        transform: translateY(-1px);
-    }
-    
-    .custom-control-label {
-        cursor: pointer;
-        padding-left: 0.5rem;
-    }
-    
-    /* Dark mode support */
-    .dark-theme .filter-card-container {
-        background: rgba(26, 32, 44, 0.95);
-        border-color: rgba(255, 255, 255, 0.08);
-    }
-    
-    .dark-theme .filter-label {
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .filter-select,
-    .dark-theme .form-control {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .input-group-text {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .dark-theme .custom-switch {
-        background: #2d3748;
-    }
-    
-    .dark-theme .custom-switch:hover {
-        background: #4a5568;
-    }
-    
-    /* Animations */
-    .filter-select:focus,
-    .form-control:focus {
-        transform: translateY(-1px);
-    }
-    
-    .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
-        background-color: #4299e1;
-        border-color: #4299e1;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .filter-toggles {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-        }
-        
-        .custom-switch {
-            width: 100%;
-            text-align: center;
-        }
-    }
-    .filterrow {
-        display: flex;
-        flex-wrap: wrap; /* Для переноса строк */
-        justify-content: center; /* Центровка по горизонтали */
-        align-items: center; /* Центровка по вертикали */
-        gap: 1rem; /* Промежутки между элементами */
-    }
-</style>
 

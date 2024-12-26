@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <a class="navbar-brand" href="/">R2 Online Game</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
@@ -11,9 +11,13 @@
                 <a class="nav-link dropdown-toggle" href="#" id="itemsDropdown" data-toggle="dropdown">
                     Предметы
                 </a>
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="/item_all"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item17_144_96.png" alt="All_Items"> Все предметы</a>
-                    <a class="dropdown-item" href="/weapon"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item06_432_384.png" alt="Weapons"> Оружие</a>
+                <div class="dropdown-menu dropdown-menu-scrollable">
+                    <a class="dropdown-item" href="/item_all">
+                        <img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item17_144_96.png" alt="All_Items"> Все предметы
+                    </a>
+                    <a class="dropdown-item" href="/weapon">
+                        <img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item06_432_384.png" alt="Weapons"> Оружие
+                    </a>
                     <a class="dropdown-item" href="/helmet"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item06_96_384.png" alt="Helmet"> Шлем</a>
                     <a class="dropdown-item" href="/armor"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item06_288_432.png" alt="Armor"> Броня</a>
                     <a class="dropdown-item" href="/gloves"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/item06_144_384.png" alt="Gloves"> Перчатки</a>
@@ -40,7 +44,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="monstersDropdown" data-toggle="dropdown">
                     Монстры
                 </a>
-                <div class="dropdown-menu">
+                <div class="dropdown-menu dropdown-menu-scrollable">
                     <a class="dropdown-item" href="/monster_all"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/77.png" alt="All_Monsters"> Все монстры</a>
                     <a class="dropdown-item" href="/monster_regular"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/33.png" alt="Обычные"> Обычные</a>
                     <a class="dropdown-item" href="/monster_imennoy"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/361.png" alt="Именные"> Именные</a>
@@ -56,7 +60,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="merchantsDropdown" data-toggle="dropdown">
                     Остальное
                 </a>
-                <div class="dropdown-menu">
+                <div class="dropdown-menu dropdown-menu-scrollable">
                     <a class="dropdown-item" href="/merchants"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/2360.png" alt="Все продавцы"> Продавцы</a>
                     <a class="dropdown-item" href="/skills"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/skillicon05_336_48.png" alt="Все скиллы"> Скиллы</a>
                     <a class="dropdown-item" href="/abnormals"><img src="https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/Abnormal01_64_384.png" alt="Все абнормал"> Абнормал</a>
@@ -65,6 +69,7 @@
         </ul>
     </div>
 </nav>
+
 <style>
 
     /* 
@@ -100,4 +105,12 @@
         transform: rotate(360deg);
     }
 
+    /* Стили для компактности на малых экранах */
+    @media (max-width: 576px) {
+        .theme-toggle {
+            right: 80px;
+        }
+    }
+
 </style>
+
