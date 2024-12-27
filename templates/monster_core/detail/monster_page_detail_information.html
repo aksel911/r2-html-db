@@ -1,52 +1,64 @@
-<!-- Информация -->
-<div class="skill-section fadeIn ">
-	<h2 class="section-title">Информация</h2>
-	{% if file_path %}
-		<p class="fadeIn mb-4">
-			<img src="{{ file_path }}"
-				 onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
-		</p>
-		{% else %}
-		<p class="fadeIn mb-4">No image available</p>
-	{% endif %}
+<div class="skill-section fadeIn">
+    <h2 class="section-title">Информация</h2>
+    {% if file_path %}
+    <p class="fadeIn mb-4">
+        <img src="{{ file_path }}"
+             onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/no_monster/no_monster_image.png'">
+    </p>
+    {% else %}
+    <p class="fadeIn mb-4">No image available</p>
+    {% endif %}
 
-	<div class="skill-content">
-
-		<div class="stat-grid">
-			<div class="stat-row">
-				<span class="stat-label">Уровень</span>
-				<span class="stat-value">{{ item.MLevel }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Класс</span>
-				<span class="stat-value">{{ item.MClass }}, {{ classinfo.MName }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Раса</span>
-				<span class="stat-value">{{ raceinfo.mDesc }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Отображается HP</span>
-				<span class="stat-value">{{ item.mIsShowHp }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Агрессивность</span>
-				<span class="stat-value">{{ item.mIsResistTransF }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Агр. на перевоплощение</span>
-				<span class="stat-value">{{ item.mDetectTransP }}</span>
-			</div>
-			<div class="stat-row">
-				<span class="stat-label">Агр. на невидимость</span>
-				<span class="stat-value">{{ item.mDetectTransF }}</span>
-			</div>
+    <div class="skill-content">
+        <div class="stat-grid">
+            <div class="stat-row">
+                <span class="stat-label">Уровень</span>
+                <span class="stat-value">{{ item.MLevel }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Класс</span>
+                <span class="stat-value">{{ item.MClass }}, {{ classinfo.MName }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Раса</span>
+                <span class="stat-value">{{ raceinfo.mDesc }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Отображается HP</span>
+                <span class="stat-value">{% if item.mIsShowHp == 1 %}Да{% else %}Нет{% endif %}</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Агрессивность</span>
+                <span class="stat-value"{% if item.mIsResistTransF %}style="color: red;"{% endif %}>
+                    {% if item.mIsResistTransF %}Да{% else %}Нет{% endif %}
+                </span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Агр. на перевоплощение</span>
+                <span class="stat-value"{% if item.mDetectTransP %}style="color: red;"{% endif %}>
+                    {% if item.mDetectTransP %}Да{% else %}Нет{% endif %}
+                </span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Агр. на невидимость</span>
+                <span class="stat-value"{% if item.mDetectTransF %}style="color: red;"{% endif %}>
+                    {% if item.mDetectTransF %}Да{% else %}Нет{% endif %}
+                </span>
+            </div>
 			{% if respawntimeinfo.mTick != 0.001 %}
 			<div class="stat-row">
 				<span class="stat-label">Время возрождения</span>
-				<span class="stat-value">{{ respawntimeinfo.mTickMin }} мин. или {{ respawntimeinfo.mTick }} сек.</span>
+				<span class="stat-value">
+					{% if respawntimeinfo.mTickMin > 0 %}
+						{{ respawntimeinfo.mTickMin }} мин.
+					{% endif %}
+					{% if respawntimeinfo.mTickSec > 0 %}
+						{{ respawntimeinfo.mTickSec }} сек.
+					{% endif %}
+					<span class="original-time">({{ respawntimeinfo.mTick }} сек.)</span>
+				</span>
 			</div>
 			{% endif %}
-		</div>
-	</div>
+        </div>
+    </div>
 </div>

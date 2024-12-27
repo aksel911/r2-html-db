@@ -11,7 +11,7 @@ from models.monster import DT_MonsterResource, DT_MonsterAbnormalResist, DT_Mons
 
 
 def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monster]:
-    """Apply filters to monster list"""
+    """Apply filters to monster list with improved numeric handling"""
     
     if not monsters or not filters:
         return monsters
@@ -20,69 +20,80 @@ def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monste
 
     try:
         # Remove empty filters
-        filters = {k: v for k, v in filters.items() if v and k != ''}
+        filters = {k: v for k, v in filters.items() if v and k != '' and v != ''}
+        
         if not filters:
             return monsters
 
-        # Class filter
-        if class_filter := filters.get('classFilter'):
-            filtered_monsters = [m for m in filtered_monsters if m.MClass == class_filter]
+        # Debug log
+        print("Applied filters:", filters)
 
         # Level range
-        if level_min := filters.get('levelMin'):
-            filtered_monsters = [m for m in filtered_monsters if m.mLevel >= int(level_min)]
-        if level_max := filters.get('levelMax'):
-            filtered_monsters = [m for m in filtered_monsters if m.mLevel <= int(level_max)]
+        if level_min := filters.get('mLevelMin'):
+            try:
+                level_min = int(level_min)
+                filtered_monsters = [m for m in filtered_monsters if m.mLevel >= level_min]
+            except (ValueError, TypeError):
+                pass
+                
+        if level_max := filters.get('mLevelMax'):
+            try:
+                level_max = int(level_max)
+                filtered_monsters = [m for m in filtered_monsters if m.mLevel <= level_max]
+            except (ValueError, TypeError):
+                pass
 
-        # Race filter
+        # Experience range
+        if exp_min := filters.get('MExpMin'):
+            try:
+                exp_min = int(exp_min)
+                filtered_monsters = [m for m in filtered_monsters if m.MExp >= exp_min]
+            except (ValueError, TypeError):
+                pass
+                
+        if exp_max := filters.get('MExpMax'):
+            try:
+                exp_max = int(exp_max)
+                filtered_monsters = [m for m in filtered_monsters if m.MExp <= exp_max]
+            except (ValueError, TypeError):
+                pass
+
+        # Respawn Time range
+        if tick_min := filters.get('mTickMin'):
+            try:
+                tick_min = int(tick_min)
+                filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) >= tick_min]
+            except (ValueError, TypeError):
+                pass
+                
+        if tick_max := filters.get('mTickMax'):
+            try:
+                tick_max = int(tick_max)
+                filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) <= tick_max]
+            except (ValueError, TypeError):
+                pass
+
+        # Other filters remain the same...
+        if class_filter := filters.get('classFilter'):
+            filtered_monsters = [m for m in filtered_monsters if m.MClass == int(class_filter)]
+
         if race_filter := filters.get('raceFilter'):
             filtered_monsters = [m for m in filtered_monsters if m.MRaceType == int(race_filter)]
 
-        # Attack type filter
         if attack_type := filters.get('attackTypeFilter'):
-            filtered_monsters = [m for m in filtered_monsters if m.mAttackType == int(attack_type)]
-
-        # Experience range
-        if exp_min := filters.get('expMin'):
-            filtered_monsters = [m for m in filtered_monsters if m.MExp >= int(exp_min)]
-        if exp_max := filters.get('expMax'):
-            filtered_monsters = [m for m in filtered_monsters if m.MExp <= int(exp_max)]
+            try:
+                attack_type = int(attack_type)
+                filtered_monsters = [m for m in filtered_monsters if m.mAttackType == attack_type]
+            except ValueError:
+                pass
 
         # Boolean filters
         if filters.get('eventMonsterFilter') == '1':
-            filtered_monsters = [m for m in filtered_monsters if m.mIsEvent]
+            filtered_monsters = [m for m in filtered_monsters if bool(m.mIsEvent)]
         if filters.get('testMonsterFilter') == '1':
-            filtered_monsters = [m for m in filtered_monsters if m.mIsTest]
+            filtered_monsters = [m for m in filtered_monsters if bool(m.mIsTest)]
         if filters.get('showHpFilter') == '1':
-            filtered_monsters = [m for m in filtered_monsters if m.mIsShowHp]
-
-        # Advanced numeric filters
-        numeric_fields = {
-            'MHIT': 'MHIT',
-            'MMinD': 'MMinD',
-            'MMaxD': 'MMaxD',
-            'MHP': 'MHP',
-            'MMP': 'MMP',
-            'MAttackRateOrg': 'MAttackRateOrg',
-            'MMoveRateOrg': 'MMoveRateOrg',
-            'MMoveRange': 'MMoveRange',
-            'mSightRange': 'mSightRange',
-            'mAttackRange': 'mAttackRange',
-            'mSkillRange': 'mSkillRange',
-            'mScale': 'mScale',
-            'mHPRegen': 'mHPRegen',
-            'mMPRegen': 'mMPRegen',
-            'mVolitionOfHonor': 'mVolitionOfHonor'
-        }
-
-        for filter_id, field_name in numeric_fields.items():
-            min_val = filters.get(f'{filter_id}Min')
-            max_val = filters.get(f'{filter_id}Max')
-            
-            if min_val:
-                filtered_monsters = [m for m in filtered_monsters if getattr(m, field_name, 0) >= float(min_val)]
-            if max_val:
-                filtered_monsters = [m for m in filtered_monsters if getattr(m, field_name, 0) <= float(max_val)]
+            filtered_monsters = [m for m in filtered_monsters if bool(m.mIsShowHp)]
 
         return filtered_monsters
 
@@ -91,7 +102,6 @@ def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monste
         import traceback
         traceback.print_exc()
         return []
-
 
 def monster_to_dict(monster: Monster) -> dict:
    """Convert monster object to dictionary for JSON response"""
@@ -198,13 +208,77 @@ def get_monster_mtick(monster_id: int) -> Union[str, int]:
 def get_monster_by_id(monster_id: int) -> Optional[Monster]:
     """Get monster by ID"""
     query = """
-    SELECT *
+    SELECT 
+        MID,
+        MName,
+        mLevel,
+        MClass,
+        MExp,
+        MHIT,
+        MMinD,
+        MMaxD,
+        MAttackRateOrg,
+        MMoveRateOrg,
+        MAttackRateNew,
+        MMoveRateNew,
+        MHP,
+        MMP,
+        MMoveRange,
+        MGbjType,
+        MRaceType,
+        MAiType,
+        MCastingDelay,
+        MChaotic,
+        MSameRace1,
+        MSameRace2,
+        MSameRace3,
+        MSameRace4,
+        mSightRange,
+        mAttackRange,
+        mSkillRange,
+        mBodySize,
+        mDetectTransF,
+        mDetectTransP,
+        mDetectChao,
+        mAiEx,
+        mScale,
+        mIsResistTransF,
+        mIsEvent,
+        mIsTest,
+        mHPNew,
+        mMPNew,
+        mBuyMerchanID,
+        mSellMerchanID,
+        mChargeMerchanID,
+        mTransformWeight,
+        mNationOp,
+        mHPRegen,
+        mMPRegen,
+        IContentsLv,
+        mIsEventTest,
+        mIsShowHp,
+        mSupportType,
+        mVolitionOfHonor,
+        mWMapIconType,
+        mIsAmpliableTermOfValidity,
+        mAttackType,
+        mTransType,
+        mDPV,
+        mMPV,
+        mRPV,
+        mDDV,
+        mMDV,
+        mRDV,
+        mSubDDWhenCritical,
+        mEnemySubCriticalHit,
+        mEventQuest,
+        mEScale
     FROM DT_Monster 
     WHERE MID = ?
     """
     
     row = execute_query(query, (monster_id,), fetch_one=True)
-    print(row)
+    #print(row)
     if row:
         return Monster(
             MID=row.MID,
@@ -240,7 +314,7 @@ def get_monster_by_id(monster_id: int) -> Optional[Monster]:
             mDetectChao=int(row.mDetectChao),
             mAiEx=row.mAiEx,
             mScale=row.mScale,
-            mIsResistTransF=bool(row.mIsResistTransF),
+            mIsResistTransF=int(row.mIsResistTransF),
             mIsEvent=int(row.mIsEvent),
             mIsTest=int(row.mIsTest),
             mHPNew=row.mHPNew,
@@ -479,7 +553,7 @@ def get_monsters_by_class(class_ids: List[int], search_term: str = '') -> Tuple[
             mDetectChao=int(row.mDetectChao),
             mAiEx=row.mAiEx,
             mScale=row.mScale,
-            mIsResistTransF=bool(row.mIsResistTransF),
+            mIsResistTransF=int(row.mIsResistTransF),
             mIsEvent=int(row.mIsEvent),
             mIsTest=int(row.mIsTest),
             mHPNew=row.mHPNew,
@@ -767,3 +841,17 @@ def get_monster_slain_data(item_id: int) -> Optional[List[DT_MonsterSlain]]:
         )
     else:
         return None
+    
+    
+    
+
+# ? ^^ EASY Functions
+
+# Получить имя монстра по MID
+def get_monster_name(monster_id: int):
+    query = "SELECT MName FROM DT_Monster WHERE MID = ?"
+    mname = execute_query(query, (monster_id,), fetch_one=True)
+    
+    if mname:
+        return mname[0].replace("\\n", " ").replace("/n", " ")
+    return None

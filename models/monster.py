@@ -37,7 +37,7 @@ class Monster:
     mDetectChao: bool
     mAiEx: int
     mScale: float
-    mIsResistTransF: bool
+    mIsResistTransF: int
     mIsEvent: bool
     mIsTest: bool
     mHPNew: int
@@ -68,25 +68,24 @@ class Monster:
     mEnemySubCriticalHit: float
     mEventQuest: bool
     mEScale: float
-
-    def to_dict(self) -> Dict:
-        """Convert monster to dictionary with formatted fields"""
-        return {
-            "MID": self.MID,
-            "MName": self.MName.replace('/n', ' '),
-            "MClass": self.MClass,
-            "MLevel": self.MLevel,
-            "MHP": self.MHP,
-            "MMP": self.MMP,
-            "mExp": self.MExp,
-            "mRaceType": self.mRaceType,
-            "mIsShowHp": 'Да' if self.mIsShowHp else 'Нет',
-            "MChaotic": self.MChaotic,
-            "mDetectTransF": 'Да' if self.mDetectTransF else 'Нет',
-            "mDetectTransP": 'Да' if self.mDetectTransP else 'Нет',
-            "mDetectChao": self.mDetectChao,
-            "mIsResistTransF": 'Да' if self.mIsResistTransF else 'Нет'
-        }
+    # def to_dict(self) -> Dict:
+    #     """Convert monster to dictionary with formatted fields"""
+    #     return {
+    #         "MID": self.MID,
+    #         "MName": self.MName.replace('/n', ' '),
+    #         "MClass": self.MClass,
+    #         "MLevel": self.MLevel,
+    #         "MHP": self.MHP,
+    #         "MMP": self.MMP,
+    #         "mExp": self.MExp,
+    #         "mRaceType": self.mRaceType,
+    #         "mIsShowHp": 'Да' if self.mIsShowHp else 'Нет',
+    #         "MChaotic": self.MChaotic,
+    #         "mDetectTransF": 'Да' if self.mDetectTransF else 'Нет',
+    #         "mDetectTransP": 'Да' if self.mDetectTransP else 'Нет',
+    #         "mDetectChao": self.mDetectChao,
+    #         "mIsResistTransF": 'Да' if self.mIsResistTransF == 1 else 'Нет'
+    #     }
 
 
 @dataclass

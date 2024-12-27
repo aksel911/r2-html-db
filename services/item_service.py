@@ -11,7 +11,7 @@ from services.database import execute_query
 from services.utils import get_skill_icon_path, clean_description, get_google_sheets_data
 from config.settings import ATTRIBUTE_TYPE_WEAPON_URL, ATTRIBUTE_TYPE_ARMOR_URL
 
-
+# Фильтры
 def apply_filters(items, filters):
     """Optimized filter function with debugging"""
     print(f"Applying filters: {filters}")
@@ -137,9 +137,7 @@ def apply_filters(items, filters):
         traceback.print_exc()
         return []
 
-
-
-# Какие ячейки из запроса передаем на сайт 
+# Какие ячейки из запроса передаем на сайт для фильтров
 def item_to_dict(item):
     """Конвертирует объект DT_Item в словарь со всеми нужными атрибутами"""
     return {
@@ -368,6 +366,47 @@ def get_item_by_id(item_ids: Union[int, List[int]]) -> Union[Optional[DT_Item], 
         return items_dict.get(item_ids)
     return [items_dict.get(item_id) for item_id in ids]
 
+# ! Загрузка предметов (ГЛАВНАЯ СТРАНИЦА ПО /items/)
+def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
+    """Generic function to fetch items by type with optional search"""
+    # Используем параметризованный запрос для безопасности
+    placeholders = ','.join('?' * len(item_types))
+    
+    query = f"""
+    SELECT IID
+    FROM DT_ITem
+    WHERE IType IN ({placeholders})
+    AND IName LIKE ?
+    ORDER BY IID
+    """
+    
+    # Создаем список параметров: сначала item_types, затем search_term
+    params = item_types + [f'%{search_term}%']
+    
+    rows = execute_query(query, params, fetch_one=False)
+    item_ids = [row.IID for row in rows]
+    
+    if not item_ids:
+        return [], {}
+        
+    # Получаем все предметы и ресурсы одним запросом для всех ID
+    items = get_item_by_id(item_ids)
+    resources = get_item_resource(item_ids)
+   
+    # Формируем словарь путей к файлам
+    file_paths = {}
+    for item_id in item_ids:
+        if item_id in resources:
+            file_paths[item_id] = resources[item_id].file_path
+        else:
+            file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
+               
+    return items, file_paths
+
+
+
+
+
 #@lru_cache(maxsize=1000)
 def get_item_resource(item_ids: Union[int, List[int]]) -> Union[Optional[DT_ItemResource], Dict[int, DT_ItemResource]]:
     """Get item resource by ID with caching. Now supports both single ID and list of IDs"""
@@ -460,44 +499,6 @@ def get_specific_proc_item(item_id: int) -> Optional[TblSpecificProcItem]:
             row.mDParamDesc
             )
     return None
-
-
-# Загрузка предметов (ГЛАВНАЯ СТРАНИЦА ПО /items/)
-def get_items_by_type(item_types: List[int], search_term: str = '') -> Tuple[List[DT_Item], Dict[int, str]]:
-    """Generic function to fetch items by type with optional search"""
-    # Используем параметризованный запрос для безопасности
-    placeholders = ','.join('?' * len(item_types))
-    
-    query = f"""
-    SELECT IID
-    FROM DT_ITem
-    WHERE IType IN ({placeholders})
-    AND IName LIKE ?
-    ORDER BY IID
-    """
-    
-    # Создаем список параметров: сначала item_types, затем search_term
-    params = item_types + [f'%{search_term}%']
-    
-    rows = execute_query(query, params, fetch_one=False)
-    item_ids = [row.IID for row in rows]
-    
-    if not item_ids:
-        return [], {}
-        
-    # Получаем все предметы и ресурсы одним запросом для всех ID
-    items = get_item_by_id(item_ids)
-    resources = get_item_resource(item_ids)
-   
-    # Формируем словарь путей к файлам
-    file_paths = {}
-    for item_id in item_ids:
-        if item_id in resources:
-            file_paths[item_id] = resources[item_id].file_path
-        else:
-            file_paths[item_id] = f"{current_app.config['GITHUB_URL']}no_item_image.png"
-               
-    return items, file_paths
 
 
 # DT_ItemAbnormalResist Check
@@ -1041,3 +1042,25 @@ def get_item_panalty_data(item_id: int) -> Optional[List[DT_ItemPanalty]]:
         ))
     
     return results
+
+
+
+
+
+
+
+
+
+# ? ^^ EASY Functions
+
+# Получить имя предмета по IID
+def get_item_name(item_id: int):
+    query = "SELECT IName FROM DT_Item WHERE IID = ?"
+    iname = execute_query(query, (item_id,), fetch_one=True)
+    
+    if iname:
+        return iname[0]
+    return None
+
+
+

@@ -12,16 +12,36 @@ def get_db_connection():
     finally:
         conn.close()
 
-def execute_query(query, params=None, fetch_one=False):
+def execute_query(query: str, params=None, fetch_one=False):
     """Execute a database query and return results"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
+        try:
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
             
-        if fetch_one:
-            return cursor.fetchone()
-        return cursor.fetchall()
-    
+            # Определяем тип запроса
+            query_type = query.strip().upper().split()[0]
+            
+            # Для SELECT запросов возвращаем результаты
+            if query_type == 'SELECT':
+                if fetch_one:
+                    return cursor.fetchone()
+                return cursor.fetchall()
+            # Для остальных запросов (INSERT/UPDATE/DELETE) делаем commit и проверяем успешность
+            else:
+                conn.commit()
+                # После INSERT/UPDATE/DELETE проверяем количество затронутых строк
+                affected_rows = cursor.rowcount
+                if affected_rows >= 0:  # Если операция успешна
+                    return True
+                return False
+
+        except Exception as e:
+            conn.rollback()
+            print(f"Database error: {str(e)}")
+            print(f"Query: {query}")
+            print(f"Params: {params}")
+            raise

@@ -4,6 +4,7 @@ from routes.monster_routes import bp as monster_bp
 from routes.skill_routes import bp as skill_bp
 from routes.abnormal_routes import bp as abnormal_bp
 from routes.merchant_routes import bp as merchant_bp
+from routes.chest_routes import bp as chest_bp
 
 def register_routes(app: Flask):
     """Register all blueprint routes"""
@@ -12,3 +13,4 @@ def register_routes(app: Flask):
     app.register_blueprint(skill_bp)
     app.register_blueprint(abnormal_bp)
     app.register_blueprint(merchant_bp)
+    app.register_blueprint(chest_bp)

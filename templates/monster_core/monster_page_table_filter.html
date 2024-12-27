@@ -102,6 +102,24 @@
                         </div>
                     </div>
 
+
+                    <!-- RespawnTime 
+                    <div class="col-md-3 mb-3">
+                        <div class="filter-group">
+                            <label class="filter-label">
+                                <i class="fas fa-star me-2"></i>Время возрождения
+                            </label>
+                            <div class="input-group filter-range">
+                                <input type="number" class="form-control" id="tickMin" placeholder="Мин">
+                                <span class="input-group-text range-separator">
+                                    <i class="fas fa-arrows-alt-h"></i>
+                                </span>
+                                <input type="number" class="form-control" id="tickMax" placeholder="Макс">
+                            </div>
+                        </div>
+                    </div>
+                    -->
+
                     <!-- Experience -->
                     <div class="col-md-3 mb-3">
                         <div class="filter-group">
@@ -141,6 +159,28 @@
                                     <i class="fas fa-heart"></i> Показывает HP в игре
                                 </label>
                             </div>
+
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="showAgressiveFilter">
+                                <label class="custom-control-label" for="showAgressiveFilter">
+                                    <i class="fa-solid fa-face-angry"></i> Агрессивность
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="showAgressiveVoplotFilter">
+                                <label class="custom-control-label" for="showAgressiveVoplotFilter">
+                                    <i class="fa-regular fa-face-angry"></i> Агр. на перевоплощение
+                                </label>
+                            </div>
+
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="showAgressiveInvisFilter">
+                                <label class="custom-control-label" for="showAgressiveInvisFilter">
+                                    <i class="fa-regular fa-face-tired"></i> Агр. на невидимость
+                                </label>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -315,17 +355,48 @@
     class FilterManager {
         static collectFilters() {
             const filters = {};
+            
             document.querySelectorAll('.form-control, .custom-control-input').forEach(input => {
                 if (input.id === 'perPageSelect') return;
                 
-                const value = input.type === 'checkbox' ? input.checked : input.value;
-                if ((input.type === 'checkbox' && value) || 
-                    (input.type !== 'checkbox' && value)) {
-                    filters[input.id] = input.type === 'checkbox' ? '1' : value;
+                let value = input.type === 'checkbox' ? input.checked : input.value.trim();
+                
+                if (value !== '' && value !== false) {
+                    if (input.type === 'checkbox' && value === true) {
+                        value = '1';
+                    }
+    
+                    // Map input IDs to correct field names
+                    switch(input.id) {
+                        case 'levelMin':
+                            filters['mLevelMin'] = value;
+                            break;
+                        case 'levelMax':
+                            filters['mLevelMax'] = value;
+                            break;
+                        case 'expMin':
+                            filters['MExpMin'] = value;
+                            break;
+                        case 'expMax':
+                            filters['MExpMax'] = value;
+                            break;
+                        case 'tickMin':
+                            filters['mTickMin'] = value;
+                            break;
+                        case 'tickMax':
+                            filters['mTickMax'] = value;
+                            break;
+                        default:
+                            filters[input.id] = value;
+                    }
                 }
             });
+    
+            // Debug log
+            console.log('Collected filters:', filters);
             return filters;
         }
+    
 
         static filterData(monsters, filters) {
             return monsters.filter(monster => 
@@ -334,6 +405,11 @@
 
         static _applyAllFilters(monster, filters) {
             return Object.entries(filters).every(([key, value]) => {
+                if (!value || value === '') return true;
+    
+                // Let server handle tick filtering
+                if (key === 'mTickMin' || key === 'mTickMax') return true;
+    
                 if (key.endsWith('Min') || key.endsWith('Max')) {
                     return this._applyRangeFilter(monster, key, value);
                 }
@@ -342,14 +418,27 @@
         }
 
         static _applyRangeFilter(monster, key, value) {
-            const baseKey = key.replace(/(Min|Max)$/, '');
+            // Map filter keys to monster properties
+            let baseKey = key.replace(/(Min|Max)$/, '');
             const isMin = key.endsWith('Min');
-            const monsterValue = monster[baseKey] || 0;
+            let monsterValue;
+    
+            switch(baseKey) {
+                case 'mLevel':
+                    monsterValue = monster.mLevel;
+                    break;
+                case 'MExp':
+                    monsterValue = monster.MExp;
+                    break;
+                default:
+                    monsterValue = monster[baseKey];
+            }
+    
+            monsterValue = Number(monsterValue) || 0;
             const filterValue = Number(value);
-
-            return isMin ? 
-                monsterValue >= filterValue : 
-                monsterValue <= filterValue;
+    
+            if (isNaN(filterValue)) return true;
+            return isMin ? monsterValue >= filterValue : monsterValue <= filterValue;
         }
 
         static _applyBasicFilter(monster, key, value) {
@@ -358,12 +447,14 @@
                     return monster.MClass === Number(value);
                 case 'raceFilter':
                     return monster.MRaceType === Number(value);
+                case 'attackTypeFilter':
+                    return monster.mAttackType === Number(value);
                 case 'eventMonsterFilter':
-                    return monster.mIsEvent;
+                    return Boolean(monster.mIsEvent);
                 case 'testMonsterFilter':
-                    return monster.mIsTest;
+                    return Boolean(monster.mIsTest);
                 case 'showHpFilter':
-                    return monster.mIsShowHp;
+                    return Boolean(monster.mIsShowHp);
                 default:
                     return true;
             }

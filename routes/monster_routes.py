@@ -136,11 +136,11 @@ def monster_detail(monster_id: int):
     # Получение данных монстра
     if not (monster := get_monster_by_id(monster_id)):
         return "Monster not found", 404
-
+    print(monster)
     # Преобразуем monster в словарь для удобства работы
     monster_dict = {
         'MID': monster.MID,
-        'MName': monster.MName,
+        'MName': monster.MName.replace('/n', ' '),
         'MClass': monster.MClass,
         'mLevel': monster.mLevel,
         'mExp': monster.MExp,
@@ -163,8 +163,48 @@ def monster_detail(monster_id: int):
         'mMPRegen': monster.mMPRegen,
         'mIsShowHp': monster.mIsShowHp,
         'mAttackType': monster.mAttackType,
-        'mVolitionOfHonor': monster.mVolitionOfHonor
+        'mVolitionOfHonor': monster.mVolitionOfHonor,
+        'MAttackRateNew': monster.MAttackRateNew,
+        'MMoveRateNew': monster.MMoveRateNew,
+        'MGbjType': monster.MGbjType,
+        'MAiType': monster.MAiType,
+        'MCastingDelay': monster.MCastingDelay,
+        'MChaotic': monster.MChaotic,
+        'MSameRace1': monster.MSameRace1,
+        'MSameRace2': monster.MSameRace2,
+        'MSameRace3': monster.MSameRace3,
+        'MSameRace4': monster.MSameRace4,
+        'mBodySize': monster.mBodySize,
+        'mDetectTransF': int(monster.mDetectTransF),
+        'mDetectTransP': int(monster.mDetectTransP),
+        'mDetectChao': int(monster.mDetectChao),
+        'mAiEx': monster.mAiEx,
+        'mIsResistTransF': bool(monster.mIsResistTransF),
+        'mHPNew': monster.mHPNew,
+        'mMPNew': monster.mMPNew,
+        'mBuyMerchanID': monster.mBuyMerchanID,
+        'mSellMerchanID': monster.mSellMerchanID,
+        'mChargeMerchanID': monster.mChargeMerchanID,
+        'mTransformWeight': monster.mTransformWeight,
+        'mNationOp': monster.mNationOp,
+        'IContentsLv': monster.IContentsLv,
+        'mIsEventTest': int(monster.mIsEventTest),
+        'mSupportType': monster.mSupportType,
+        'mWMapIconType': monster.mWMapIconType,
+        'mIsAmpliableTermOfValidity': int(monster.mIsAmpliableTermOfValidity),
+        'mTransType': monster.mTransType,
+        'mDPV': monster.mDPV,
+        'mMPV': monster.mMPV,
+        'mRPV': monster.mRPV,
+        'mDDV': monster.mDDV,
+        'mMDV': monster.mMDV,
+        'mRDV': monster.mRDV,
+        'mSubDDWhenCritical': monster.mSubDDWhenCritical,
+        'mEnemySubCriticalHit': monster.mEnemySubCriticalHit,
+        'mEventQuest': int(monster.mEventQuest),
+        'mEScale': monster.mEScale
     }
+    
 
     # Получение данных из Google Sheets
     sheets_data = {
@@ -191,6 +231,7 @@ def monster_detail(monster_id: int):
     respawn_time = get_monster_mtick(monster_id)
     respawn_info = {
         "mTickMin": int(respawn_time / 60),
+        "mTickSec": respawn_time % 60,
         "mTick": respawn_time
     }
 
@@ -250,22 +291,52 @@ def monster_detail(monster_id: int):
     
     
 # Изменим определение маршрута
-@bp.route('/monster_<type>')  # изменили паттерн маршрута
-def monster_page(type):  # теперь параметр называется type
-    print(f"Monster route hit with type: {type}")  # отладка
-    
-    route_key = f'monster_{type}'  # формируем ключ для поиска в MONSTER_ROUTES
-    print(f"Looking for route key: {route_key}")  # отладка
-    
+@bp.route('/monster_<type>')
+def monster_page(type):
+    route_key = f'monster_{type}'
     config = MONSTER_ROUTES.get(route_key)
-    print(f"Found config: {config}")  # отладка
     
     if not config:
-        print("No config found!")
         abort(404)
-    
+        
     @with_monster_filters(config['classes'])
     def handle_monster_page(items=None, item_resources=None):
+        # If it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                # Get filters from request
+                filters = request.args.to_dict()
+                
+                # Apply filters
+                filtered_monsters = apply_monster_filters(items, filters)
+                
+                # Get pagination parameters
+                page = request.args.get('page', 1, type=int)
+                per_page = request.args.get('per_page', 25000, type=int)
+                
+                # Calculate pagination
+                start_idx = (page - 1) * per_page
+                end_idx = start_idx + per_page
+                paginated_monsters = filtered_monsters[start_idx:end_idx]
+                
+                # Convert monsters to dict for JSON response
+                monsters_dict = [monster_to_dict(monster) for monster in paginated_monsters]
+                
+                return jsonify({
+                    'monsters': monsters_dict,
+                    'resources': item_resources,
+                    'total': len(filtered_monsters),
+                    'filtered': len(filtered_monsters),
+                    'pages': (len(filtered_monsters) + per_page - 1) // per_page
+                })
+                
+            except Exception as e:
+                print(f"Error processing request: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return jsonify({'error': str(e)}), 500
+        
+        # For normal page load
         return render_template(
             'monster_core/monster_page_route.html',
             items=items,
