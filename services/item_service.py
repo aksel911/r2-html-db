@@ -14,8 +14,8 @@ from config.settings import ATTRIBUTE_TYPE_WEAPON_URL, ATTRIBUTE_TYPE_ARMOR_URL
 # Фильтры
 def apply_filters(items, filters):
     """Optimized filter function with debugging"""
-    print(f"Applying filters: {filters}")
-    print(f"Initial items count: {len(items)}")
+    #print(f"Applying filters: {filters}")
+    #print(f"Initial items count: {len(items)}")
 
     if not items or not filters:
         return items
@@ -30,10 +30,10 @@ def apply_filters(items, filters):
     try:
         # Process filters in order of most restrictive first
         if type_filter := filters.get('typeFilter'):
-            print(f"Applying type filter: {type_filter}")
+            #print(f"Applying type filter: {type_filter}")
             type_val = int(type_filter)
             filtered_items = [item for item in filtered_items if item.IType == type_val]
-            print(f"After type filter: {len(filtered_items)} items")
+            #print(f"After type filter: {len(filtered_items)} items")
             if not filtered_items:
                 return []
 
@@ -41,10 +41,10 @@ def apply_filters(items, filters):
         if filters.get('levelMin') or filters.get('levelMax'):
             level_min = int(filters.get('levelMin', 0))
             level_max = int(filters.get('levelMax', 999999))
-            print(f"Applying level filter: min={level_min}, max={level_max}")
+            #print(f"Applying level filter: min={level_min}, max={level_max}")
             filtered_items = [item for item in filtered_items 
                             if level_min <= item.ILevel <= level_max]
-            print(f"After level filter: {len(filtered_items)} items")
+            #print(f"After level filter: {len(filtered_items)} items")
             if not filtered_items:
                 return []
 
@@ -60,12 +60,12 @@ def apply_filters(items, filters):
 
         for filter_name, (attr, converter) in bool_fields.items():
             if filter_val := filters.get(filter_name):
-                print(f"Applying boolean filter {filter_name}: {filter_val}")
+                #print(f"Applying boolean filter {filter_name}: {filter_val}")
                 val = converter(filter_val)
                 if val is not None:
                     filtered_items = [item for item in filtered_items 
                                     if getattr(item, attr) == val]
-                    print(f"After {filter_name}: {len(filtered_items)} items")
+                    #print(f"After {filter_name}: {len(filtered_items)} items")
                     if not filtered_items:
                         return []
 
@@ -94,20 +94,20 @@ def apply_filters(items, filters):
             max_key = f"{field_base}Max"
             
             if min_val := filters.get(min_key):
-                print(f"Applying min filter {min_key}: {min_val}")
+                #print(f"Applying min filter {min_key}: {min_val}")
                 min_val = converter(min_val)
                 filtered_items = [item for item in filtered_items 
                                 if converter(getattr(item, attr, 0) or 0) >= min_val]
-                print(f"After {min_key}: {len(filtered_items)} items")
+                #print(f"After {min_key}: {len(filtered_items)} items")
                 if not filtered_items:
                     return []
                     
             if max_val := filters.get(max_key):
-                print(f"Applying max filter {max_key}: {max_val}")
+                #print(f"Applying max filter {max_key}: {max_val}")
                 max_val = converter(max_val)
                 filtered_items = [item for item in filtered_items 
                                 if converter(getattr(item, attr, 0) or 0) <= max_val]
-                print(f"After {max_key}: {len(filtered_items)} items")
+                #print(f"After {max_key}: {len(filtered_items)} items")
                 if not filtered_items:
                     return []
 
@@ -115,20 +115,20 @@ def apply_filters(items, filters):
         if filters.get('weightMin') or filters.get('weightMax'):
             weight_min = float(filters.get('weightMin', 0))
             weight_max = float(filters.get('weightMax', 999999))
-            print(f"Applying weight filter: min={weight_min}, max={weight_max}")
+            #print(f"Applying weight filter: min={weight_min}, max={weight_max}")
             filtered_items = [item for item in filtered_items 
                             if weight_min <= float(item.IWeight or 0) <= weight_max]
-            print(f"After weight filter: {len(filtered_items)} items")
+            #print(f"After weight filter: {len(filtered_items)} items")
 
         # Quest No filter
         if quest_no := filters.get('questNoFilter'):
-            print(f"Applying quest filter: {quest_no}")
+            #print(f"Applying quest filter: {quest_no}")
             quest_val = int(quest_no)
             filtered_items = [item for item in filtered_items 
                             if item.IQuestNo == quest_val]
-            print(f"After quest filter: {len(filtered_items)} items")
+            #print(f"After quest filter: {len(filtered_items)} items")
 
-        print(f"Final filtered items count: {len(filtered_items)}")
+        #print(f"Final filtered items count: {len(filtered_items)}")
         return filtered_items
 
     except Exception as e:

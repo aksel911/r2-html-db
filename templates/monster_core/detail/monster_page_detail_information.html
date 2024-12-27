@@ -45,20 +45,71 @@
                     {% if item.mDetectTransF %}Да{% else %}Нет{% endif %}
                 </span>
             </div>
-			{% if respawntimeinfo.mTick != 0.001 %}
-			<div class="stat-row">
-				<span class="stat-label">Время возрождения</span>
-				<span class="stat-value">
-					{% if respawntimeinfo.mTickMin > 0 %}
-						{{ respawntimeinfo.mTickMin }} мин.
-					{% endif %}
-					{% if respawntimeinfo.mTickSec > 0 %}
-						{{ respawntimeinfo.mTickSec }} сек.
-					{% endif %}
-					<span class="original-time">({{ respawntimeinfo.mTick }} сек.)</span>
-				</span>
-			</div>
+			{% if respawn_info_normal or respawn_info_event %}
+			<!-- Для обычного респауна (mIsEvent = 0) -->
+			{% if respawn_info_normal %}
+				<!-- Обычное время респауна -->
+				{% if respawn_info_normal.normal.mTick != 0 %}
+				<div class="stat-row">
+					<span class="stat-label">Время возрождения</span>
+					<span class="stat-value">
+						{{ respawn_info_normal.normal.formatted_time }}
+						{% if respawn_info_normal.normal.hours > 0 %}
+							<span class="original-time">({{ respawn_info_normal.normal.mTickMin }}мин./{{ respawn_info_normal.normal.mTick }} сек.)</span>
+						{% elif respawn_info_normal.normal.mTickMin > 0 %}
+							<span class="original-time">({{ respawn_info_normal.normal.mTick }} сек.)</span>
+						{% endif %}
+					</span>
+				</div>
+				{% endif %}
+		
+				<!-- Аналогично обновляем остальные блоки -->
+				{% if respawn_info_normal.event.mTick != 0 %}
+				<div class="stat-row">
+					<span class="stat-label">Время возрождения события</span>
+					<span class="stat-value">
+						{{ respawn_info_normal.event.formatted_time }}
+						{% if respawn_info_normal.event.hours > 0 %}
+							<span class="original-time">({{ respawn_info_normal.event.mTickMin }}мин./{{ respawn_info_normal.event.mTick }} сек.)</span>
+						{% elif respawn_info_normal.event.mTickMin > 0 %}
+							<span class="original-time">({{ respawn_info_normal.event.mTick }} сек.)</span>
+						{% endif %}
+					</span>
+				</div>
+				{% endif %}
 			{% endif %}
+		
+			<!-- Для событийного респауна (mIsEvent = 1) -->
+			{% if respawn_info_event %}
+				{% if respawn_info_event.normal.mTick != 0 %}
+				<div class="stat-row">
+					<span class="stat-label">Время возрождения (событие)</span>
+					<span class="stat-value">
+						{{ respawn_info_event.normal.formatted_time }}
+						{% if respawn_info_event.normal.hours > 0 %}
+							<span class="original-time">({{ respawn_info_event.normal.mTickMin }}мин./{{ respawn_info_event.normal.mTick }} сек.)</span>
+						{% elif respawn_info_event.normal.mTickMin > 0 %}
+							<span class="original-time">({{ respawn_info_event.normal.mTick }} сек.)</span>
+						{% endif %}
+					</span>
+				</div>
+				{% endif %}
+		
+				{% if respawn_info_event.event.mTick != 0 %}
+				<div class="stat-row">
+					<span class="stat-label">Время возрождения события (событие)</span>
+					<span class="stat-value">
+						{{ respawn_info_event.event.formatted_time }}
+						{% if respawn_info_event.event.hours > 0 %}
+							<span class="original-time">({{ respawn_info_event.event.mTickMin }}мин./{{ respawn_info_event.event.mTick }} сек.)</span>
+						{% elif respawn_info_event.event.mTickMin > 0 %}
+							<span class="original-time">({{ respawn_info_event.event.mTick }} сек.)</span>
+						{% endif %}
+					</span>
+				</div>
+				{% endif %}
+			{% endif %}
+		{% endif %}
         </div>
     </div>
 </div>

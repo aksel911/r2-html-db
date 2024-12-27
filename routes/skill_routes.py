@@ -83,7 +83,7 @@ def skills_list():
     """List all skills"""
     skills_data, file_paths = get_skills_list()
     return render_template(
-        'skill/skills.html',
+        'skill_core/skill_page_route.html', # TODO: Старый дизайн
         skills=skills_data,
         item_resources=file_paths
     )

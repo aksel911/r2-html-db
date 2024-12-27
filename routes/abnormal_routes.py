@@ -32,7 +32,7 @@ def abnormals_list():
     abnormals_data, file_paths = get_abnormals_list()
     
     return render_template(
-        'abnormal/abnormals.html',
+        'abnormal_core/abnormal_page_route.html', # TODO: Старый дизайн
         abnormals=abnormals_data,
         item_resources=file_paths
     )

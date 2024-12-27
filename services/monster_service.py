@@ -26,7 +26,7 @@ def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monste
             return monsters
 
         # Debug log
-        print("Applied filters:", filters)
+        #print("Applied filters:", filters)
 
         # Level range
         if level_min := filters.get('mLevelMin'):
@@ -58,20 +58,20 @@ def apply_monster_filters(monsters: List[Monster], filters: Dict) -> List[Monste
             except (ValueError, TypeError):
                 pass
 
-        # Respawn Time range
-        if tick_min := filters.get('mTickMin'):
-            try:
-                tick_min = int(tick_min)
-                filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) >= tick_min]
-            except (ValueError, TypeError):
-                pass
+        # # Respawn Time range
+        # if tick_min := filters.get('mTickMin'):
+        #     try:
+        #         tick_min = int(tick_min)
+        #         filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) >= tick_min]
+        #     except (ValueError, TypeError):
+        #         pass
                 
-        if tick_max := filters.get('mTickMax'):
-            try:
-                tick_max = int(tick_max)
-                filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) <= tick_max]
-            except (ValueError, TypeError):
-                pass
+        # if tick_max := filters.get('mTickMax'):
+        #     try:
+        #         tick_max = int(tick_max)
+        #         filtered_monsters = [m for m in filtered_monsters if get_monster_mtick(m.MID) <= tick_max]
+        #     except (ValueError, TypeError):
+        #         pass
 
         # Other filters remain the same...
         if class_filter := filters.get('classFilter'):
@@ -195,14 +195,15 @@ def get_monster_pic_url(monster_id: int):
     return monster_pic_url
 
 # Respawn Time Info
-def get_monster_mtick(monster_id: int) -> Union[str, int]:
-    query = f"SELECT mTick FROM {current_app.config['DATABASE_NAME']}.dbo.TblMonsterSpot WHERE mMID = ?"
-    respawn_result = execute_query(query, (monster_id,), fetch_one=True)
+def get_monster_mtick(monster_id: int, mIsEvent: int) -> Union[tuple[int, int], tuple[int, int]]:
+    query = f"SELECT mTick, mVarRespawnTick FROM {current_app.config['DATABASE_NAME']}.dbo.TblMonsterSpot WHERE mMID = ? AND mIsEvent = ?"
+    result = execute_query(query, (monster_id, mIsEvent), fetch_one=True)
     
-    if respawn_result is None:
-        return 0
+    if result is None:
+        return 0, 0
     
-    return respawn_result[0]
+    return result[0], result[1]
+
 
 
 def get_monster_by_id(monster_id: int) -> Optional[Monster]:

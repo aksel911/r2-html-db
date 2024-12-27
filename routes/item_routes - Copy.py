@@ -41,7 +41,7 @@ def load_data_once(item_types, search_term=''):
     """Функция для загрузки данных при старте"""
     global cached_data
     if cached_data is None:
-        print("Loading items for the first time...")  # Отладочная информация
+        #print("Loading items for the first time...")  # Отладочная информация
         items, file_paths = get_items_by_type(item_types, search_term)
         cached_data = {'items': items, 'file_paths': file_paths}
     else:
@@ -65,16 +65,16 @@ def with_filters(item_types):
                     filters = request.args.to_dict()
                     search_term = filters.pop('search', '') if 'search' in filters else ''
                     
-                    print(f"Received filters: {filters}")  # Отладочная информация
+                    #print(f"Received filters: {filters}")  # Отладочная информация
                     
                     items = cached_data['items']
                     file_paths = cached_data['file_paths']
 
-                    print(f"Found {len(items)} items before filtering")  # Отладочная информация
+                    #print(f"Found {len(items)} items before filtering")  # Отладочная информация
                     
                     # Применяем фильтры
                     filtered_items = apply_filters(items, filters)
-                    print(f"Found {len(filtered_items)} items after filtering")  # Отладочная информация
+                    #print(f"Found {len(filtered_items)} items after filtering")  # Отладочная информация
                     
                     # Конвертируем предметы в словари
                     items_dict = [item_to_dict(item) for item in filtered_items]

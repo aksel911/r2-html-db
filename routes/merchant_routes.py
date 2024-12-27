@@ -8,7 +8,7 @@ def merchants_list():
     """List all merchants and their items"""
     merchants_data, file_paths = get_merchant_sell_list()
     return render_template(
-        'merchant/merchants.html',
+        'merchant_core/merchant_page_route.html', # TODO: Старый дизайн
         items=merchants_data,
         item_resources=file_paths
     )

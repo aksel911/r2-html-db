@@ -136,7 +136,7 @@ def monster_detail(monster_id: int):
     # Получение данных монстра
     if not (monster := get_monster_by_id(monster_id)):
         return "Monster not found", 404
-    print(monster)
+    #print(monster)
     # Преобразуем monster в словарь для удобства работы
     monster_dict = {
         'MID': monster.MID,
@@ -227,14 +227,54 @@ def monster_detail(monster_id: int):
         if not race_match.empty:
             race_info["mDesc"] = race_match.iloc[0]['mDesc']
 
+    
+    
+    
+    def get_respawn_info(time_in_seconds):
+        hours = int(time_in_seconds / 60) // 60
+        minutes = int(time_in_seconds / 60)
+        
+        # Формируем строку времени
+        if hours > 0 and minutes % 60 > 0:
+            formatted_time = f"{hours}ч {minutes % 60}м"
+        elif hours > 0:
+            formatted_time = f"{hours}ч"
+        elif minutes > 0:
+            formatted_time = f"{minutes}м"
+        else:
+            formatted_time = f"{time_in_seconds} сек"
+            
+        return {
+            "mTickMin": int(time_in_seconds / 60),
+            "mTickSec": time_in_seconds % 60,
+            "mTick": time_in_seconds,
+            "hours": hours,
+            "formatted_time": formatted_time
+        }
+    
     # Получение времени респауна
-    respawn_time = get_monster_mtick(monster_id)
-    respawn_info = {
-        "mTickMin": int(respawn_time / 60),
-        "mTickSec": respawn_time % 60,
-        "mTick": respawn_time
-    }
+    respawn_info_normal = {}
+    respawn_info_event = {}
 
+    # Для mIsEvent = 0
+    mTick_normal, mVarRespawnTick_normal = get_monster_mtick(monster_id, 0)
+    if mTick_normal > 0:
+        respawn_info_normal = {
+            "normal": get_respawn_info(mTick_normal),
+            "event": get_respawn_info(mVarRespawnTick_normal)
+        }
+
+    # Для mIsEvent = 1
+    mTick_event, mVarRespawnTick_event = get_monster_mtick(monster_id, 1)
+    if mTick_event > 0:
+        respawn_info_event = {
+            "normal": get_respawn_info(mTick_event),
+            "event": get_respawn_info(mVarRespawnTick_event)
+        }
+    
+    
+    
+    
     # Получение локации монстра
     monster_location = None
     if not sheets_data['location'].empty:
@@ -275,7 +315,8 @@ def monster_detail(monster_id: int):
         file_path_gif=file_path_gif,
         classinfo=class_info,
         raceinfo=race_info,
-        respawntimeinfo=respawn_info,
+        respawn_info_normal=respawn_info_normal,
+        respawn_info_event=respawn_info_event,
         monlocationinfo=monster_location,
         merchant_items=get_merchant_items(monster_id),
         mondropinfo=get_monster_drops(monster_id),
