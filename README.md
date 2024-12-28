@@ -65,6 +65,60 @@ DB_PASSWORD=pass
 GITHUB_URL=https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/
 ```
 
+## 💡 [Docker FAQ]
+
+Перед началом вам необходимо закинуть вашу базу данных: ```FNLParm.bak``` в папку: ```docker_database```, далее использовать .env:
+
+### [Docker] Нужный .env конфиг-файл
+```
+DB_DRIVER={ODBC Driver 17 for SQL Server}
+DB_SERVER=localhost
+DB_NAME=FNLParm
+DB_USER=sa
+DB_PASSWORD=SqlServer2025!
+PORT=5000
+GITHUB_URL=https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/main/static/
+```
+
+### [Docker] Шаги для запуска проекта
+
+1. **Установите Docker и Docker Compose:**
+    - **Linux:**
+      ```bash
+      sudo apt-get update
+      sudo apt-get install docker docker-compose
+      ```
+    - **Windows / macOS:**
+      Скачайте и установите Docker Desktop с [официального сайта](https://www.docker.com/products/docker-desktop).
+
+2. **Клонируйте репозиторий:**
+    ```bash
+    git clone https://github.com/Aksel911/R2-HTML-DB.git
+    cd R2-HTML-DB
+    ```
+
+3. **Запустите проект:**
+    ```bash
+    docker-compose up -d
+    ```
+
+4. **Проверьте статус контейнеров:**
+    ```bash
+    docker ps
+    ```
+
+5. **Для остановки проекта:**
+    ```bash
+    docker-compose down
+    ```
+
+*Примечание:*
+- Проект будет доступен по адресу `http://127.0.0.1:5000` после запуска.
+
+
+##
+
+
 ## 🤝 Вклад в проект
 
 Если вы хотите внести свой вклад в развитие проекта:

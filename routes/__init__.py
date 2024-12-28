@@ -7,6 +7,8 @@ from routes.merchant_routes import bp as merchant_bp
 from routes.chest_routes import bp as chest_bp
 from routes.quest_routes import bp as quest_bp
 
+__all__ = ['register_routes']
+
 def register_routes(app: Flask):
     """Register all blueprint routes"""
     app.register_blueprint(item_bp)
