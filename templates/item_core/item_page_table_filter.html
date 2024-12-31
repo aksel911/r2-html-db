@@ -13,9 +13,6 @@
             <button class="btn btn-info mb-3 ml-2" id="resetFilters">
                 <i class="fas fa-sync"></i> Сбросить фильтры
             </button>
-            <button class="theme-toggle" id="theme-toggle">
-                <i class="fas fa-moon"></i>
-            </button>
             <select id="perPageSelect" class="form-control same-width-as-reset"></select>
         </div>
 
@@ -47,6 +44,14 @@
                     <div class="filter-group">
                         <label for="typeFilter"><i class="fas fa-dragon me-2"></i> Тип предмета:</label>
                         <select class="form-control" id="typeFilter">
+                            <option value="">Все</option>
+                        </select>
+                    </div>
+
+                    <!-- Класс предмета -->
+                    <div class="filter-group">
+                        <label for="typeClassFilter"><i class="fas fa-dragon me-2"></i> Класс:</label>
+                        <select class="form-control" id="typeClassFilter">
                             <option value="">Все</option>
                         </select>
                     </div>
@@ -155,9 +160,16 @@
         <span>Загрузка данных...</span>
     </div>
 </div>
+
+
+
+
+
 <div id="errorMessage" class="message-container error-message"></div>
 
 
 
 <!-- ГЛАВНЫЕ СКРИПТЫ ФИЛЬТРА -->
 <script src="/static/bg/js/filter/item_page_table_filter.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/atropos@2.0.2/atropos.css">
+

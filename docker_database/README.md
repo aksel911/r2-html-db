@@ -2,7 +2,6 @@
 
 Тут должна быть ваша база данных: ```FNLParm.bak```, а так же не удаляйте и ничего не изменяйте в файле: ```restore.sql```, это необходимо для Docker!
 
-
 ### Нужный .env конфиг-файл для Docker
 ```
 DB_DRIVER={ODBC Driver 17 for SQL Server}
