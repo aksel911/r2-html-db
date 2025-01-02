@@ -15,7 +15,6 @@
     --text-dark: #000000;
     --text-muted: #666;
     --border-color: rgba(30, 60, 114, 0.1);
-    --transition-speed: 0.3s;
 
     --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.2);
     --transition-base: all 0.3s ease;
@@ -37,24 +36,35 @@ body {
 }
 
 /* Fixed position containers */
-.back-button-container {
+.back-button-container,
+.theme-toggle-container {
     position: -webkit-sticky;
     position: sticky;
     left: 20px;
     z-index: 9999;
     width: fit-content;
-    top: 105px;
+}
+
+.back-button-container {
+    top: 80px;
     display: flex;
     gap: 10px;
     align-items: center;
     margin-bottom: -60px;
 }
 
-@media (max-width: 768px) {
-    .back-button-container {
+.theme-toggle-container {
+    bottom: 20px;
+    margin-top: auto;
+}
+
+@media (max-width: 768px) { /* Настройте ширину по необходимости */
+    .back-button-container,
+    .theme-toggle-container {
         display: none;
     }
 }
+
 
 /* Buttons */
 .theme-toggle,
@@ -175,6 +185,10 @@ img:hover {
     font-weight: bold;
 }
 
+.progress {
+    margin-top: -32px;
+}
+
 .exp-bar { background-color: var(--success-color); }
 .health-bar { background-color: var(--danger-color); }
 .mana-bar { background-color: var(--info-color); }
@@ -207,31 +221,6 @@ img:hover {
     animation: shimmer 2s infinite;
 }
 
-/* Monster title */
-.monster-title {
-    position: relative;
-    overflow: visible;
-}
-
-.monster-title::before,
-.monster-title::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 30px;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary-color), transparent);
-}
-
-.monster-title::before {
-    left: -40px;
-    transform: translateY(-50%);
-}
-
-.monster-title::after {
-    right: -40px;
-    transform: translateY(-50%) rotate(180deg);
-}
 
 /* Animations */
 .fadeIn {
@@ -530,19 +519,16 @@ body.dark-theme {
     background-image: url('https://raw.githubusercontent.com/Aksel911/R2-HTML-DB/refs/heads/main/static/bg/BG_black.jpg') !important;
     color: var(--text-dark);
 }
+
+.dark-theme h1 {
+    color: #fff5e6!important;
+    text-decoration: none!important
+}
+
 .dark-theme h1,
 .dark-theme h2,
 .dark-theme p {
     color: rgba(255, 255, 255, 0.9) !important; 
-}
-
-
-.dark-theme .monster-title {
-    background: linear-gradient(135deg, #4a90e2 0%, #87ceeb 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: none;
 }
 
 .dark-theme .back-button {
@@ -558,18 +544,15 @@ body.dark-theme {
 }
 
 .dark-theme a {
-    color: #FFF5E6 !important;
-    text-decoration: none !important;
+    color: #fff5e6!important
 }
 
 .dark-theme a:hover {
-    color: #FFE4B5 !important;
-    text-decoration: underline !important;
+    color: #ffe4b5!important;
 }
 
 .dark-theme .monster-viewer-container {
     border-radius: 8px;
-    padding: 10px;
 }
 
 .dark-theme p[style*="display: flex"] {
@@ -600,6 +583,14 @@ body.dark-theme {
 
 
 /* Главное название монстра или предмета  */
+/* Common styles for both titles */
+
+.detail-title-desktop,
+.detail-title-mobile {
+    text-align: center;
+}
+
+.monster-title-mobile,
 .monster-title {
     font-size: 3rem;
     font-weight: 800;
@@ -617,12 +608,14 @@ body.dark-theme {
     overflow: visible;
 }
 
+.monster-title-text-mobile,
 .monster-title-text {
     position: relative;
     z-index: 1;
     text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1), -1px -1px 0px rgba(255, 255, 255, 0.1);
 }
 
+.monster-title-glow-mobile,
 .monster-title-glow {
     position: absolute;
     top: 50%;
@@ -633,6 +626,26 @@ body.dark-theme {
     background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
     filter: blur(5px);
     z-index: 0;
+}
+
+/* Desktop version */
+@media screen and (min-width: 961px) {
+    .detail-title-desktop {
+        display: block;
+    }
+    .detail-title-mobile {
+        display: none;
+    }
+}
+
+/* Mobile version */
+@media screen and (max-width: 960px) {
+    .detail-title-desktop {
+        display: none;
+    }
+    .detail-title-mobile {
+        display: block;
+    }
 }
 /* ---------  */
 
@@ -719,12 +732,12 @@ body.dark-theme {
 /* Content styles */
 .skill-content-wrapper {
     transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-x: hidden; /* Hide horizontal scrollbar */
-    overflow-y: scroll; /* Add vertical scrollbar */
-    scrollbar-width: none;
+    height: auto; /* Автоматическая высота */
+    overflow: hidden; /* Скрыть overflow во всех направлениях */
     border-radius: 8px;
     background: var(--bg-module-light);
     margin-top: 8px;
+    text-align: center;
 }
 
 .skill-content-wrapper::-webkit-scrollbar {
@@ -737,7 +750,7 @@ body.dark-theme {
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent !important;
-    padding: 0 !important;
+    padding: 0 0 2px 0 !important;
 }
 
 .skill-section.collapsed {
@@ -962,7 +975,9 @@ body.dark-theme {
 /* ---------  */
 
 
-
+.skill-abnormal-picture {
+    margin-bottom: 30px;
+}
 
 
 
@@ -1068,6 +1083,13 @@ body.dark-theme {
     transform: translateY(-2px);
     box-shadow: 3px 3px 6px rgba(0,0,0,0.15);
 }
+@media (max-width: 768px) { /* Настройте ширину по необходимости */
+    .slain-card  {
+        padding: 0px;
+    }
+}
+
+
 
 .bonus-type {
     font-weight: bold;
@@ -1183,17 +1205,23 @@ body.dark-theme {
 /* ---------  */
 
 
-/* ---------  */
-
-.skill-abnormal-picture {
-    padding: 30px;
-}
-.skill-abnormal-picture:hover {
-    filter: brightness(1) saturate(1);
-}   
 
 
-/* ---------  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

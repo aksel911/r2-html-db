@@ -16,6 +16,13 @@
     --border-opacity: 0.6;
     --glow-opacity: 0.4;
     
+
+
+    --payment-silver-color: rgba(255, 215, 0, 0.4);
+    --payment-honorpoint-color: rgba(0, 191, 255, 0.4);
+    --payment-chaospoint-color: rgba(148, 0, 211, 0.4);
+    --payment-chaossilver-color: rgba(255, 69, 0, 0.4);
+
 }
 
 script {
@@ -24,7 +31,6 @@ script {
 
 body {
     padding: 20px;
-    boverflow-x: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -89,88 +95,16 @@ h1 {
 }
 
 
-
-/* Стили меню  */
-.navbar {
-    background-color: rgba(255,255,255,.95)!important;
-    box-shadow: 0 2px 4px rgba(0,0,0,.1);
-    margin-bottom: 20px;
-    border-radius: 16px;
-    margin: 1rem
+.col-md-12 {
+    margin: 5px 0;
+    margin-left: 0.0rem;
 }
-.dropdown-item:hover {
-    text-decoration: underline;
+.ml-2, .mx-2 {
+    margin-left: 0.0rem !important;
 }
-
-.navbar-brand {
-    color: var(--text-color);
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-decoration: none;
-    padding: .5rem 1rem;
-    border-radius: 4px;
-    transition: all var(--transition-speed)
+.col-md-3 {
+    width: 80%;
 }
-
-.navbar-brand:hover {
-    color: var(--accent-color);
-    transform: translateY(-2px)
-}
-
-.dropdown-menu {
-    border: 0;
-    box-shadow: 0 2px 5px rgba(0,0,0,.1);
-    animation: fadeIn .5s ease-in-out
-}
-
-.nav-item.dropdown {
-    position: relative
-}
-
-.nav-item.dropdown::after {
-    content: "";
-    position: absolute;
-    height: 20px;
-    width: 100%;
-    bottom: -20px;
-    left: 0;
-    z-index: 1000
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    transition: background-color .3s ease
-}
-
-.dropdown-item:hover {
-    background-color: #f5f5f5
-}
-
-.dropdown-item img {
-    height: 24px;
-    width: 24px;
-    margin-right: 8px;
-    opacity: 0;
-    transition: opacity .5s,transform .5s;
-    transform: translateX(-20px)
-}
-
-.dropdown-item:hover img {
-    opacity: 1;
-    transform: translateX(0)
-}
-
-.dark-theme .navbar {
-    background-color: rgba(40,40,40,.95)!important
-}
-
-.dark-theme .dropdown-menu {
-    background-color: rgba(40,40,40,.95)
-}
-/* ---------  */
-
 
 
 .search-container {
@@ -198,11 +132,11 @@ h1 {
     outline: 0
 }
 
-.monster-image,.skill-image,.item-image {
+.skill-image,.item-image {
     transition: transform .3s,box-shadow .3s
 }
 
-.monster-image:hover,.skill-image:hover,.item-image:hover {
+.skill-image:hover,.item-image:hover {
     transform: scale(2);
     z-index: 100;
     box-shadow: 0 4px 8px rgba(0,0,0,.2)
@@ -327,14 +261,12 @@ h1 {
 }
 
 .btn-primary {
-    background-color: linear-gradient(145deg,#e0f7fa,#b2ebf2);
-    border: 2px solid #81d4fa;
+    border: 0;
     color: #fff;
     margin-right: 5px
 }
 
 .btn-primary:hover {
-    background-color: linear-gradient(145deg,#b3e5fc,#81d4fa);
     border-color: #0288d1;
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0,0,0,.2);
@@ -342,7 +274,6 @@ h1 {
 }
 
 .btn-primary:active {
-    background-color: linear-gradient(145deg,#81d4fa,#4fc3f7);
     border-color: #0288d1;
     color: #fff;
     transform: translateY(0);
@@ -430,10 +361,12 @@ h1 {
     display: grid;
     grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
     gap: 20px;
-    padding: 20px;
+    padding: 10px;
     background: rgba(255,255,255,.02);
     border-radius: 12px
 }
+
+
 
 .filter-card {
     background: rgba(255,255,255,.05);
@@ -487,10 +420,6 @@ body.dark-theme {
     color: var(--text-dark)
 }
 
-.dark-theme .dropdown-item:hover {
-    background-color: #2c3e50
-}
-
 .dark-theme .table-wrapper {
     background: linear-gradient(135deg, rgba(40, 40, 40, 0.95), rgba(60, 60, 60, 0.2));
   }
@@ -531,13 +460,11 @@ body.dark-theme {
 }
 
 .dark-theme .btn-primary {
-    background-color: linear-gradient(145deg,#0a3a54,#061f29);
-    border: 2px solid #2e3a3b;
+    border: 0;
     color: #fff
 }
 
 .dark-theme .btn-primary:hover {
-    background-color: linear-gradient(145deg,#0d5a80,#083241);
     border-color: #3a4b4e;
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0,0,0,.4);
@@ -545,7 +472,6 @@ body.dark-theme {
 }
 
 .dark-theme .btn-primary:active {
-    background-color: linear-gradient(145deg,#083241,#021218);
     border-color: #1e2829;
     color: #cfd8dc;
     transform: translateY(0);
@@ -629,7 +555,6 @@ body.dark-theme {
 
 .dark-theme .filters-container {
     background: rgba(19, 19, 19, 0.4);
-    padding-block: 5px;
 }
 
 .dark-theme .card {
@@ -776,139 +701,7 @@ body.dark-theme .theme-toggle:hover {
     }
 }
 
-@media (max-width:768px) {
-    .navbar-nav {
-        flex-direction: column;
-        align-items: flex-start
-    }
 
-    .nav-item {
-        width: 100%;
-        margin: .25rem 0
-    }
-
-    .dropdown-menu {
-        position: static;
-        width: 100%;
-        box-shadow: none;
-        display: none
-    }
-
-    .nav-item:hover .dropdown-menu {
-        display: block
-    }
-
-    .dropdown-menu {
-        position: static;
-        float: none;
-        width: 100%;
-        margin-top: 0;
-        background-color: #f8f9fa;
-        border: 0;
-        box-shadow: none
-    }
-
-    .nav-item.dropdown::after {
-        display: none
-    }
-
-    .form-control {
-        padding-right: 35px
-    }
-}
-
-.search-container {
-    margin-bottom: 1rem
-}
-
-.search-suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    gap: 8px
-}
-
-.search-suggestion:hover {
-    background-color: #f8f9fa
-}
-
-.search-suggestion img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain
-}
-
-.highlight {
-    background-color: #fff3cd;
-    padding: 0 2px;
-    border-radius: 2px
-}
-
-#searchSuggestions {
-    box-shadow: 0 4px 6px rgba(0,0,0,.1)
-}
-
-.dark-theme .search-container {
-    margin-bottom: 1rem
-}
-
-.dark-theme .search-suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #34495e;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #2c3e50;
-    color: #fff
-}
-
-.dark-theme .search-suggestion:hover {
-    background-color: #34495e
-}
-
-.dark-theme .search-suggestion img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain
-}
-
-.dark-theme .highlight {
-    background-color: #3498db;
-    padding: 0 2px;
-    border-radius: 2px;
-    color: #fff
-}
-
-.dark-theme #searchSuggestions {
-    box-shadow: 0 4px 6px rgba(0,0,0,.5);
-    background-color: #2c3e50
-}
-
-.search-suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    color: inherit
-}
-
-.dark-theme .search-suggestion {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #34495e;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: #2c3e50;
-    color: #fff;
-    text-decoration: none
-}
 
 .loading-overlay {
     position: fixed;
@@ -1049,7 +842,8 @@ body.dark-theme .theme-toggle:hover {
 .filter-group {
     margin-bottom: 1.25rem;
     position: relative;
-    display: inline-block
+    display: inline-block;
+    text-align: center;
 }
 
 .filter-label {
@@ -1078,6 +872,7 @@ body.dark-theme .theme-toggle:hover {
 
 .filter-toggles {
     display: flex;
+    flex-wrap: wrap;
     gap: 2rem;
     justify-content: center;
     padding: 1.25rem 1rem;
@@ -1294,7 +1089,7 @@ body.dark-theme .theme-toggle:hover {
 
 
 
-/* Отображение предметов */
+/* ! Отображение предметов */
 
 /* Оптимизация для мобильных устройств */
 @media (max-width: 768px) {
@@ -1317,8 +1112,6 @@ body.dark-theme .theme-toggle:hover {
 
 * {
     backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Добавляем плавную анимацию для всех переходов */
@@ -1326,7 +1119,6 @@ body.dark-theme .theme-toggle:hover {
 .atropos * {
     backface-visibility: hidden;
     transform-style: preserve-3d;
-    will-change: transform;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1370,21 +1162,20 @@ body.dark-theme .theme-toggle:hover {
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-
+.atropos-inner .monster-image, 
 .atropos-inner .item-card-image {
     width: 48px;
     height: 48px;
-    transform: translateZ(10px) rotateX(0deg) rotateY(0deg) scale(1); /* Начальные параметры */
+    transform: translateZ(0px) rotateX(0deg) rotateY(0deg) scale(1); /* Начальные параметры */
     transition: transform 0.3s ease-out, filter 0.3s ease-out;
     will-change: transform, filter; /* Оптимизация производительности */
 }
 
+.atropos-inner:hover .monster-image,
 .atropos-inner:hover .item-card-image {
-    transform: translateZ(30px) scale(1.05);
-    filter: brightness(1.3) saturate(1.3);
+    transform: translateZ(0px) scale(1.05);
+    filter: brightness(1.2) saturate(1.2);
 }   
-
-
 
 /* Основные стили для hover */
 .atropos-inner:hover {
@@ -1412,7 +1203,7 @@ body.dark-theme .theme-toggle:hover {
 .atropos-inner[data-class="255"]:not(:hover) {
     border-color: rgba(128, 128, 128, 0.15); /* Возвращаемся к серому цвету */
     box-shadow: 0 4px 20px rgba(31, 38, 135, 0.1); /* Плавный переход обратно */
-    transition: all 0.3s ease, box-shadow 0.3 ease-in-out; /* Плавный переход обратно */
+    transition: all 0.3s ease, box-shadow 0.3s ease-in-out; /* Плавный переход обратно */
     
 }
 
@@ -1619,14 +1410,6 @@ body.dark-theme .theme-toggle:hover {
     }
 }
 
-
-
-
-
-
-
-
-
 /* Оптимизация Atropos анимаций */
 .atropos-rotate {
     transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1) !important;
@@ -1641,27 +1424,21 @@ body.dark-theme .theme-toggle:hover {
 }
 
 
-/* Улучшенные hover эффекты */
-.atropos-inner:hover {
-    --blur-strength: 20px;
-    transform: translateY(-5px) scale(1.02);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 
 
 /* Улучшаем качество текста при трансформациях */
+.merchant-card-title,
+.monster-card-title,
 .item-card-title,
 .item-card-description,
 .stat-badge {
     transform: translateZ(0);
     backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 
 /* Изображение предмета */
+.monster-image,
 .item-card-image {
     width: 48px;
     height: 48px;
@@ -1672,7 +1449,7 @@ body.dark-theme .theme-toggle:hover {
     overflow: visible;
     padding: 0;
     margin: 0 auto;
-
+    
     transform: translateZ(20px);
     transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -1681,12 +1458,13 @@ body.dark-theme .theme-toggle:hover {
 @keyframes iconFadeIn {
     0% {
         opacity: 0;
-        filter: blur(80px);
-        transform: scale(0.8) translateY(40px);
+        filter: blur(100px);
+        transform: scale(0.6) translateY(20px);
     }
-    50% {
-        opacity: 0.5;
-        filter: blur(1px);
+    60% {
+        opacity: 0.6;
+        filter: blur(30px);
+        transform: scale(0.9) translateY(10px);
     }
     100% {
         opacity: 1;
@@ -1705,6 +1483,7 @@ body.dark-theme .theme-toggle:hover {
 
 
 /* Задержка для каждой иконки */
+.atropos:nth-child(n) .monster-image,
 .atropos:nth-child(n) .item-card-image {
     animation-delay: calc(var(--index) * 0.1s + 0.2s);
 }
@@ -1841,7 +1620,7 @@ body.dark-theme .theme-toggle:hover {
     height: 100%;
 }
 
-
+.monster-image img,
 .item-card-image img {
     width: 100%;
     height: 100%;
@@ -1865,6 +1644,8 @@ body.dark-theme .theme-toggle:hover {
 }
 
 /* Название предмета */
+.merchant-card-title,
+.monster-card-title,
 .item-card-title {
     text-align: center;
     margin: 1.5rem 0;
@@ -1945,12 +1726,6 @@ body.dark-theme .theme-toggle:hover {
     transform: translateY(0);
 }
 
-
-
-
-
-
-
 /* Темная тема */
 .dark-theme .atropos-inner {
     background: linear-gradient(145deg, rgba(40, 41, 45, 0.97), rgba(30, 31, 35, 0.95));
@@ -1963,6 +1738,8 @@ body.dark-theme .theme-toggle:hover {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
+.dark-theme .merchant-card-title a,
+.dark-theme .monster-card-title a,
 .dark-theme .item-card-title a {
     color: #90caf9;
 }
@@ -1977,7 +1754,6 @@ body.dark-theme .theme-toggle:hover {
     color: #b0bec5;
     border-color: rgba(255, 255, 255, 0.1);
 }
-
 
 
 /* Glassmorphism 2.0 с variable blur */
@@ -2054,26 +1830,9 @@ body.dark-theme .theme-toggle:hover {
     scrollbar-color: rgba(74, 158, 255, 0.3) transparent;
 }
 
-
-.item-card-description::-webkit-scrollbar {
-    width: 6px;
-}
-
-.item-card-description::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.item-card-description::-webkit-scrollbar-thumb {
-    background: rgba(74, 158, 255, 0.3);
-    border-radius: 3px;
-    transition: background 0.3s;
-}
-
-.item-card-description::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 158, 255, 0.5);
-}
-
 /* Динамический текст */
+.merchant-card-title a,
+.monster-card-title a,
 .item-card-title a {
     background-image: linear-gradient(
         90deg,
@@ -2099,6 +1858,8 @@ body.dark-theme .theme-toggle:hover {
     pointer-events: all;
 }
 
+.merchant-card-title a:hover,
+.monster-card-title a:hover,
 .item-card-title a:hover {
     background-position: 0%;
     background: rgba(74, 158, 255, 0.05); /* Снижена прозрачность */
@@ -2107,7 +1868,8 @@ body.dark-theme .theme-toggle:hover {
 
 
 /* Темная тема */
-
+.dark-theme .merchant-card-title a:hover,
+.dark-theme .monster-card-title a:hover,
 .dark-theme .item-card-title a:hover {
     background-position: 0%;
     background: rgba(74, 158, 255, 0.1); /* Снижена прозрачность */
@@ -2446,6 +2208,8 @@ body.dark-theme .theme-toggle:hover {
 }
 
 /* Улучшаем видимость контента в темной теме */
+.dark-theme .merchant-card-title a,
+.dark-theme .monster-card-title a,
 .dark-theme .item-card-title a,
 .dark-theme .item-card-description,
 .dark-theme .stat-badge {
@@ -2453,3 +2217,1381 @@ body.dark-theme .theme-toggle:hover {
 }
 
 
+
+
+
+
+
+
+
+/* ! МОНСТРЫ */
+/* Monster Type Colors */
+
+/* Grid layout одинаковый с предметами */
+.monsters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1.5rem;
+}
+
+/* Monster Card Base */
+.atropos-inner[data-monster-type] {
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(250, 250, 250, 0.95));
+    padding: 2rem;
+    border: 1px solid rgba(230, 230, 230, 0.5);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Monster Type-Specific Glows */
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes rotate {
+    to {
+        --angle: 360deg;
+    }
+}
+
+.atropos-inner[data-monster-type]::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    animation: rotate 6s linear infinite;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.atropos-inner[data-monster-type]:hover::after {
+    opacity: 1;
+}
+
+/* Monster Type-Specific Styles */
+/* Базовые классы (от легких к тяжелым) */
+/* A класс (1) */
+
+.atropos-inner[data-monster-type="1"]:hover {
+    box-shadow: 0 4px 20px #99FF99;
+}
+ .atropos-inner[data-monster-type="1"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 255, 153, 0),
+        rgba(204, 255, 204, 0.2) 25%,
+        rgba(153, 255, 153, 0.4) 50%,
+        rgba(204, 255, 204, 0.2) 75%,
+        rgba(153, 255, 153, 0)
+    );
+ }
+ .monster-image[data-monster-type="1"] {
+    box-shadow: 0 4px 20px #99FF99;
+ }
+ 
+ /* B класс (2) */
+ .atropos-inner[data-monster-type="2"]:hover {
+    box-shadow: 0 4px 20px #99FFCC;
+ }
+ .atropos-inner[data-monster-type="2"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 255, 204, 0),
+        rgba(204, 255, 230, 0.2) 25%,
+        rgba(153, 255, 204, 0.4) 50%,
+        rgba(204, 255, 230, 0.2) 75%,
+        rgba(153, 255, 204, 0)
+    );
+ }
+ .monster-image[data-monster-type="2"] {
+    box-shadow: 0 4px 20px #99FFCC;
+ }
+ 
+ /* C класс (3) */
+ .atropos-inner[data-monster-type="3"]:hover {
+    box-shadow: 0 4px 20px #99FFFF;
+}
+ .atropos-inner[data-monster-type="3"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 255, 255, 0),
+        rgba(204, 255, 255, 0.2) 25%,
+        rgba(153, 255, 255, 0.4) 50%,
+        rgba(204, 255, 255, 0.2) 75%,
+        rgba(153, 255, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="3"] {
+    box-shadow: 0 4px 20px #99FFFF;
+ }
+ 
+ /* D класс (4) */
+ .atropos-inner[data-monster-type="4"]:hover {
+    box-shadow: 0 4px 20px #99CCFF;
+}
+ .atropos-inner[data-monster-type="4"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 204, 255, 0),
+        rgba(204, 230, 255, 0.2) 25%,
+        rgba(153, 204, 255, 0.4) 50%,
+        rgba(204, 230, 255, 0.2) 75%,
+        rgba(153, 204, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="4"] {
+    box-shadow: 0 4px 20px #99CCFF;
+ }
+
+ /* E класс (5) */
+ .atropos-inner[data-monster-type="5"]:hover {
+    box-shadow: 0 4px 20px #9999FF;
+}
+ .atropos-inner[data-monster-type="5"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 153, 255, 0),
+        rgba(204, 204, 255, 0.2) 25%,
+        rgba(153, 153, 255, 0.4) 50%,
+        rgba(204, 204, 255, 0.2) 75%,
+        rgba(153, 153, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="5"] {
+    box-shadow: 0 4px 20px #9999FF;
+ }
+ 
+ /* F класс (6) */
+ .atropos-inner[data-monster-type="6"]:hover {
+    box-shadow: 0 4px 20px #CC99FF;
+}
+ .atropos-inner[data-monster-type="6"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(204, 153, 255, 0),
+        rgba(230, 204, 255, 0.2) 25%,
+        rgba(204, 153, 255, 0.4) 50%,
+        rgba(230, 204, 255, 0.2) 75%,
+        rgba(204, 153, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="6"] {
+    box-shadow: 0 4px 20px #CC99FF;
+ }
+ 
+ /* G класс (7) */
+ .atropos-inner[data-monster-type="7"]:hover {
+    box-shadow: 0 4px 20px #FF99FF;
+}
+ .atropos-inner[data-monster-type="7"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 153, 255, 0),
+        rgba(255, 204, 255, 0.2) 25%,
+        rgba(255, 153, 255, 0.4) 50%,
+        rgba(255, 204, 255, 0.2) 75%,
+        rgba(255, 153, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="7"] {
+    box-shadow: 0 4px 20px #FF99FF;
+ }
+ 
+ /* H класс (8) */
+ .atropos-inner[data-monster-type="8"]:hover {
+    box-shadow: 0 4px 20px #FF99CC;
+}
+ .atropos-inner[data-monster-type="8"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 153, 204, 0),
+        rgba(255, 204, 238, 0.2) 25%,
+        rgba(255, 153, 204, 0.4) 50%,
+        rgba(255, 204, 238, 0.2) 75%,
+        rgba(255, 153, 204, 0)
+    );
+ }
+ .monster-image[data-monster-type="8"] {
+    box-shadow: 0 4px 20px #FF99CC;
+ }
+ 
+ /* I класс (9) */
+ .atropos-inner[data-monster-type="9"]:hover {
+    box-shadow: 0 4px 20px #FF9999;
+}
+ .atropos-inner[data-monster-type="9"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 153, 153, 0),
+        rgba(255, 204, 204, 0.2) 25%,
+        rgba(255, 153, 153, 0.4) 50%,
+        rgba(255, 204, 204, 0.2) 75%,
+        rgba(255, 153, 153, 0)
+    );
+ }
+ .monster-image[data-monster-type="9"] {
+    box-shadow: 0 4px 20px #FF9999;
+ }
+ 
+ /* J класс (10) */
+ .atropos-inner[data-monster-type="10"]:hover {
+    box-shadow: 0 4px 20px #FFCC99;
+}
+ .atropos-inner[data-monster-type="10"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 204, 153, 0),
+        rgba(255, 230, 204, 0.2) 25%,
+        rgba(255, 204, 153, 0.4) 50%,
+        rgba(255, 230, 204, 0.2) 75%,
+        rgba(255, 204, 153, 0)
+    );
+ }
+ .monster-image[data-monster-type="10"] {
+    box-shadow: 0 4px 20px #FFCC99;
+ }
+ 
+ /* K класс (11) */
+ .atropos-inner[data-monster-type="11"]:hover {
+    box-shadow: 0 4px 20px #FFB366;
+}
+ .atropos-inner[data-monster-type="11"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 179, 102, 0),
+        rgba(255, 214, 153, 0.2) 25%,
+        rgba(255, 179, 102, 0.4) 50%,
+        rgba(255, 214, 153, 0.2) 75%,
+        rgba(255, 179, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="11"] {
+    box-shadow: 0 4px 20px #FFB366;
+ }
+ 
+ /* L класс (12) */
+ .atropos-inner[data-monster-type="12"]:hover {
+    box-shadow: 0 4px 20px #FF9966;
+}
+ .atropos-inner[data-monster-type="12"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 153, 102, 0),
+        rgba(255, 204, 153, 0.2) 25%,
+        rgba(255, 153, 102, 0.4) 50%,
+        rgba(255, 204, 153, 0.2) 75%,
+        rgba(255, 153, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="12"] {
+    box-shadow: 0 4px 20px #FF9966;
+ }
+ 
+ /* M класс (13) */
+ .atropos-inner[data-monster-type="13"]:hover {
+    box-shadow: 0 4px 20px #FF6666;
+}
+ .atropos-inner[data-monster-type="13"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 102, 102, 0),
+        rgba(255, 153, 153, 0.2) 25%,
+        rgba(255, 102, 102, 0.4) 50%,
+        rgba(255, 153, 153, 0.2) 75%,
+        rgba(255, 102, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="13"] {
+    box-shadow: 0 4px 20px #FF6666;
+ }
+ 
+ /* N класс (14) */
+ .atropos-inner[data-monster-type="14"]:hover {
+    box-shadow: 0 4px 20px #FF3366;
+}
+ .atropos-inner[data-monster-type="14"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 51, 102, 0),
+        rgba(255, 153, 170, 0.2) 25%,
+        rgba(255, 51, 102, 0.4) 50%,
+        rgba(255, 153, 170, 0.2) 75%,
+        rgba(255, 51, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="14"] {
+    box-shadow: 0 4px 20px #FF3366;
+ }
+ 
+ /* O класс (15) */
+ .atropos-inner[data-monster-type="15"]:hover {
+    box-shadow: 0 4px 20px #FF0066;
+}
+ .atropos-inner[data-monster-type="15"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 0, 102, 0),
+        rgba(255, 102, 170, 0.2) 25%,
+        rgba(255, 0, 102, 0.4) 50%,
+        rgba(255, 102, 170, 0.2) 75%,
+        rgba(255, 0, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="15"] {
+    box-shadow: 0 4px 20px #FF0066;
+ }
+ 
+ /* P класс (16) */
+ .atropos-inner[data-monster-type="16"]:hover {
+    box-shadow: 0 4px 20px #CC0066;
+}
+ .atropos-inner[data-monster-type="16"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(204, 0, 102, 0),
+        rgba(255, 51, 154, 0.2) 25%,
+        rgba(204, 0, 102, 0.4) 50%,
+        rgba(255, 51, 154, 0.2) 75%,
+        rgba(204, 0, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="16"] {
+    box-shadow: 0 4px 20px #CC0066;
+ }
+ 
+ /* Q класс (17) */
+ .atropos-inner[data-monster-type="17"]:hover {
+    box-shadow: 0 4px 20px #990066;
+}
+ .atropos-inner[data-monster-type="17"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(153, 0, 102, 0),
+        rgba(204, 51, 138, 0.2) 25%,
+        rgba(153, 0, 102, 0.4) 50%,
+        rgba(204, 51, 138, 0.2) 75%,
+        rgba(153, 0, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="17"] {
+    box-shadow: 0 4px 20px #990066;
+ }
+ 
+ /* R класс (18) */
+ .atropos-inner[data-monster-type="18"]:hover {
+    box-shadow: 0 4px 20px #660066;
+}
+ .atropos-inner[data-monster-type="18"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(102, 0, 102, 0),
+        rgba(153, 51, 153, 0.2) 25%,
+        rgba(102, 0, 102, 0.4) 50%,
+        rgba(153, 51, 153, 0.2) 75%,
+        rgba(102, 0, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="18"] {
+    box-shadow: 0 4px 20px #660066;
+ }
+ 
+ /* S класс (19) */
+ .atropos-inner[data-monster-type="19"]:hover {
+    box-shadow: 0 4px 20px #330066;
+}
+ .atropos-inner[data-monster-type="19"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(51, 0, 102, 0),
+        rgba(102, 51, 153, 0.2) 25%,
+        rgba(51, 0, 102, 0.4) 50%,
+        rgba(102, 51, 153, 0.2) 75%,
+        rgba(51, 0, 102, 0)
+    );
+ }
+
+ 
+ /* T класс (20) */
+ .atropos-inner[data-monster-type="20"]:hover {
+    box-shadow: 0 4px 20px #000066;
+}
+ .atropos-inner[data-monster-type="20"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(0, 0, 102, 0),
+        rgba(51, 51, 153, 0.2) 25%,
+        rgba(0, 0, 102, 0.4) 50%,
+        rgba(51, 51, 153, 0.2) 75%,
+        rgba(0, 0, 102, 0)
+    );
+ }
+ .monster-image[data-monster-type="20"] {
+    box-shadow: 0 4px 20px #000066;
+ }
+ 
+ /* U класс (21) */
+ .atropos-inner[data-monster-type="21"]:hover {
+    box-shadow: 0 4px 20px #000033;
+}
+ .atropos-inner[data-monster-type="21"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(0, 0, 51, 0),
+        rgba(26, 26, 102, 0.2) 25%,
+        rgba(0, 0, 51, 0.4) 50%,
+        rgba(26, 26, 102, 0.2) 75%,
+        rgba(0, 0, 51, 0)
+    );
+ }
+ .monster-image[data-monster-type="21"] {
+    box-shadow: 0 4px 20px #000033;
+ }
+ 
+ /* V класс (22) */
+ .atropos-inner[data-monster-type="22"]:hover {
+    box-shadow: 0 4px 20px #1A0033;
+}
+ .atropos-inner[data-monster-type="22"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(26, 0, 51, 0),
+        rgba(51, 26, 102, 0.2) 25%,
+        rgba(26, 0, 51, 0.4) 50%,
+        rgba(51, 26, 102, 0.2) 75%,
+        rgba(26, 0, 51, 0)
+    );
+ }
+ .monster-image[data-monster-type="22"] {
+    box-shadow: 0 4px 20px #1A0033;
+ }
+ 
+ /* W класс (24) */
+ .atropos-inner[data-monster-type="24"]:hover {
+    box-shadow: 0 4px 20px #330033;
+}
+ .atropos-inner[data-monster-type="24"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(51, 0, 51, 0),
+        rgba(102, 26, 102, 0.2) 25%,
+        rgba(51, 0, 51, 0.4) 50%,
+        rgba(102, 26, 102, 0.2) 75%,
+        rgba(51, 0, 51, 0)
+    );
+ }
+ .monster-image[data-monster-type="24"] {
+    box-shadow: 0 4px 20px #330033;
+ }
+ 
+ /* X класс (25) */
+ .atropos-inner[data-monster-type="25"]:hover {
+    box-shadow: 0 4px 20px #330000;
+}
+ .atropos-inner[data-monster-type="25"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(51, 0, 0, 0),
+        rgba(102, 26, 26, 0.2) 25%,
+        rgba(51, 0, 0, 0.4) 50%,
+        rgba(102, 26, 26, 0.2) 75%,
+        rgba(51, 0, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="25"] {
+    box-shadow: 0 4px 20px #330000;
+ }
+ 
+ /* Специальные классы */
+ /* NPC (23) */
+ .atropos-inner[data-monster-type="23"]:hover {
+    box-shadow: 0 4px 20px #808080;
+}
+ .atropos-inner[data-monster-type="23"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(128, 128, 128, 0),
+        rgba(166, 166, 166, 0.2) 25%,
+        rgba(128, 128, 128, 0.4) 50%,
+        rgba(166, 166, 166, 0.2) 75%,
+        rgba(128, 128, 128, 0)
+    );
+ }
+ .monster-image[data-monster-type="23"] {
+    box-shadow: 0 4px 20px #808080;
+ }
+ 
+ /* Особый Монстр (26) */
+ .atropos-inner[data-monster-type="26"]:hover {
+    box-shadow: 0 4px 20px #FFD700;
+}
+ .atropos-inner[data-monster-type="26"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 215, 0, 0),
+        rgba(255, 240, 170, 0.2) 25%,
+        rgba(255, 215, 0, 0.4) 50%,
+        rgba(255, 240, 170, 0.2) 75%,
+        rgba(255, 215, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="26"] {
+    box-shadow: 0 4px 20px #FFD700;
+ }
+ 
+ /* Событие (27) */
+ .atropos-inner[data-monster-type="27"]:hover {
+    box-shadow: 0 4px 20px #00FFFF;
+}
+ .atropos-inner[data-monster-type="27"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(0, 255, 255, 0),
+        rgba(153, 255, 255, 0.2) 25%,
+        rgba(0, 255, 255, 0.4) 50%,
+        rgba(153, 255, 255, 0.2) 75%,
+        rgba(0, 255, 255, 0)
+    );
+ }
+ .monster-image[data-monster-type="27"] {
+    box-shadow: 0 4px 20px #00FFFF;
+ }
+ 
+ /* Именной (28) */
+ .atropos-inner[data-monster-type="28"]:hover {
+    box-shadow: 0 4px 20px #FF1493;
+}
+ .atropos-inner[data-monster-type="28"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 20, 147, 0),
+        rgba(255, 105, 180, 0.2) 25%,
+        rgba(255, 20, 147, 0.4) 50%,
+        rgba(255, 105, 180, 0.2) 75%,
+        rgba(255, 20, 147, 0)
+    );
+ }
+ .monster-image[data-monster-type="28"] {
+    box-shadow: 0 4px 20px #FF1493;
+ }
+ 
+ /* Босс (29) */
+ .atropos-inner[data-monster-type="29"]:hover {
+    box-shadow: 0 4px 20px #FF0000;
+}
+ .atropos-inner[data-monster-type="29"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 0, 0, 0),
+        rgba(255, 77, 77, 0.2) 25%,
+        rgba(255, 0, 0, 0.4) 50%,
+        rgba(255, 77, 77, 0.2) 75%,
+        rgba(255, 0, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="29"] {
+    box-shadow: 0 4px 20px #FF0000;
+ }
+ 
+ /* S альтернативный (31) */
+ .atropos-inner[data-monster-type="31"]:hover {
+    box-shadow: 0 4px 20px #4B0082;
+}
+ .atropos-inner[data-monster-type="31"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(75, 0, 130, 0),
+        rgba(139, 0, 139, 0.2) 25%,
+        rgba(75, 0, 130, 0.4) 50%,
+        rgba(139, 0, 139, 0.2) 75%,
+        rgba(75, 0, 130, 0)
+    );
+ }
+ .monster-image[data-monster-type="31"] {
+    box-shadow: 0 4px 20px #4B0082;
+ }
+ 
+ /* Налетчики (32) */
+ .atropos-inner[data-monster-type="32"]:hover {
+    box-shadow: 0 4px 20px #8B0000;
+}
+ .atropos-inner[data-monster-type="32"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(139, 0, 0, 0),
+        rgba(178, 34, 34, 0.2) 25%,
+        rgba(139, 0, 0, 0.4) 50%,
+        rgba(178, 34, 34, 0.2) 75%,
+        rgba(139, 0, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="32"] {
+    box-shadow: 0 4px 20px #8B0000;
+ }
+ 
+ /* Эпик Мобы (33) */
+ .atropos-inner[data-monster-type="33"]:hover {
+    box-shadow: 0 4px 20px #9400D3;
+}
+ .atropos-inner[data-monster-type="33"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(148, 0, 211, 0),
+        rgba(186, 85, 211, 0.2) 25%,
+        rgba(148, 0, 211, 0.4) 50%,
+        rgba(186, 85, 211, 0.2) 75%,
+        rgba(148, 0, 211, 0)
+    );
+ }
+ .monster-image[data-monster-type="33"] {
+    box-shadow: 0 4px 20px #9400D3;
+ }
+ 
+ /* Эпик Боссы (34) */
+ .atropos-inner[data-monster-type="34"]:hover {
+    box-shadow: 0 4px 20px #4B0082;
+}
+ .atropos-inner[data-monster-type="34"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(75, 0, 130, 0),
+        rgba(128, 0, 128, 0.2) 25%,
+        rgba(75, 0, 130, 0.4) 50%,
+        rgba(128, 0, 128, 0.2) 75%,
+        rgba(75, 0, 130, 0)
+    );
+ }
+ .monster-image[data-monster-type="34"] {
+    box-shadow: 0 4px 20px #4B0082;
+ }
+ 
+ /* Статуя (35) */
+ .atropos-inner[data-monster-type="35"]:hover {
+    box-shadow: 0 4px 20px #708090;
+}
+ .atropos-inner[data-monster-type="35"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(112, 128, 144, 0),
+        rgba(169, 169, 169, 0.2) 25%,
+        rgba(112, 128, 144, 0.4) 50%,
+        rgba(169, 169, 169, 0.2) 75%,
+        rgba(112, 128, 144, 0)
+    );
+ }
+ .monster-image[data-monster-type="35"] {
+    box-shadow: 0 4px 20px #708090;
+ }
+ 
+ /* Последователи (36) */
+ .atropos-inner[data-monster-type="36"]:hover {
+    box-shadow: 0 4px 20px #DAA520;
+}
+ .atropos-inner[data-monster-type="36"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(218, 165, 32, 0),
+        rgba(255, 215, 0, 0.2) 25%,
+        rgba(218, 165, 32, 0.4) 50%,
+        rgba(255, 215, 0, 0.2) 75%,
+        rgba(218, 165, 32, 0)
+    );
+ }
+ .monster-image[data-monster-type="36"] {
+    box-shadow: 0 4px 20px #DAA520;
+ }
+ 
+ /* Разъяренные Боссы (37) */
+ .atropos-inner[data-monster-type="37"]:hover {
+    box-shadow: 0 4px 20px #FF4500;
+}
+ .atropos-inner[data-monster-type="37"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 69, 0, 0),
+        rgba(255, 99, 71, 0.2) 25%,
+        rgba(255, 69, 0, 0.4) 50%,
+        rgba(255, 99, 71, 0.2) 75%,
+        rgba(255, 69, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="37"] {
+    box-shadow: 0 4px 20px #FF4500;
+ }
+ 
+ /* Падшие Боссы (38) */
+ .atropos-inner[data-monster-type="38"]:hover {
+    box-shadow: 0 4px 20px #800000;
+}
+ .atropos-inner[data-monster-type="38"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(128, 0, 0, 0),
+        rgba(165, 42, 42, 0.2) 25%,
+        rgba(128, 0, 0, 0.4) 50%,
+        rgba(165, 42, 42, 0.2) 75%,
+        rgba(128, 0, 0, 0)
+    );
+ }
+ .monster-image[data-monster-type="38"] {
+    box-shadow: 0 4px 20px #800000;
+ }
+
+
+
+/* Monster Card Components */
+
+.card-title {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+    z-index: 10;
+    font-size: 1.2rem;
+}
+
+/* Monster Info Box */
+.monster-info {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.monster-race,
+.monster-class {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #4a5568;
+}
+
+/* Stats Grid */
+.stat-badges {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.stat-badge {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s cubic-bezier(0.1, 0, 0.2, 1);
+}
+
+.stat-badge:hover {
+    transform: translateY(-2px);
+    background: rgba(74, 158, 255, 0.15);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Theme Adjustments */
+.dark-theme .atropos-inner[data-monster-type] {
+    background: linear-gradient(145deg, rgba(40, 41, 45, 0.97), rgba(30, 31, 35, 0.95));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .monster-info {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .monster-race,
+.dark-theme .monster-class {
+    color: #b0bec5;
+}
+
+.dark-theme .stat-badge {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes monsterCardAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.atropos {
+    animation: monsterCardAppear 0.3s ease forwards;
+}
+
+.atropos:nth-child(n) {
+    animation-delay: calc(0.05s * var(--index, 0));
+}
+
+
+
+/* Base select styles */
+#classFilter {
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+    appearance: none;
+    background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23444%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 12px top 50%;
+    background-size: 12px auto;
+}
+
+#classFilter:hover {
+    border-color: #aaa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#classFilter:focus {
+    outline: none;
+    border-color: #666;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Option base styles */
+#classFilter option {
+    font-weight: 500;
+    padding: 8px;
+    background-color: #fff;
+}
+
+/* Monster type colors */
+/* Базовые типы (от легких к тяжелым) */
+#classFilter option[value="1"] { color: #99FF99; background-color: rgba(153, 255, 153, 0.1); }
+#classFilter option[value="2"] { color: #99FFCC; background-color: rgba(153, 255, 204, 0.1); }
+#classFilter option[value="3"] { color: #99FFFF; background-color: rgba(153, 255, 255, 0.1); }
+#classFilter option[value="4"] { color: #99CCFF; background-color: rgba(153, 204, 255, 0.1); }
+#classFilter option[value="5"] { color: #9999FF; background-color: rgba(153, 153, 255, 0.1); }
+#classFilter option[value="6"] { color: #CC99FF; background-color: rgba(204, 153, 255, 0.1); }
+#classFilter option[value="7"] { color: #FF99FF; background-color: rgba(255, 153, 255, 0.1); }
+#classFilter option[value="8"] { color: #FF99CC; background-color: rgba(255, 153, 204, 0.1); }
+#classFilter option[value="9"] { color: #FF9999; background-color: rgba(255, 153, 153, 0.1); }
+#classFilter option[value="10"] { color: #FFCC99; background-color: rgba(255, 204, 153, 0.1); }
+#classFilter option[value="11"] { color: #FFB366; background-color: rgba(255, 179, 102, 0.1); }
+#classFilter option[value="12"] { color: #FF9966; background-color: rgba(255, 153, 102, 0.1); }
+#classFilter option[value="13"] { color: #FF6666; background-color: rgba(255, 102, 102, 0.1); }
+#classFilter option[value="14"] { color: #FF3366; background-color: rgba(255, 51, 102, 0.1); }
+#classFilter option[value="15"] { color: #FF0066; background-color: rgba(255, 0, 102, 0.1); }
+#classFilter option[value="16"] { color: #CC0066; background-color: rgba(204, 0, 102, 0.1); }
+#classFilter option[value="17"] { color: #990066; background-color: rgba(153, 0, 102, 0.1); }
+#classFilter option[value="18"] { color: #660066; background-color: rgba(102, 0, 102, 0.1); }
+#classFilter option[value="19"] { color: #330066; background-color: rgba(51, 0, 102, 0.1); }
+#classFilter option[value="20"] { color: #000066; background-color: rgba(0, 0, 102, 0.1); }
+#classFilter option[value="21"] { color: #000033; background-color: rgba(0, 0, 51, 0.1); }
+#classFilter option[value="22"] { color: #1A0033; background-color: rgba(26, 0, 51, 0.1); }
+#classFilter option[value="23"] { color: #330033; background-color: rgba(51, 0, 51, 0.1); }
+#classFilter option[value="24"] { color: #330000; background-color: rgba(51, 0, 0, 0.1); }
+#classFilter option[value="25"] { color: #660000; background-color: rgba(102, 0, 0, 0.1); }
+
+/* Специальные типы */
+#classFilter option[value="26"] { color: #FFD700; background-color: rgba(255, 215, 0, 0.1); }
+#classFilter option[value="27"] { color: #00FFFF; background-color: rgba(0, 255, 255, 0.1); }
+#classFilter option[value="28"] { color: #FF1493; background-color: rgba(255, 20, 147, 0.1); }
+#classFilter option[value="29"] { color: #FF0000; background-color: rgba(255, 0, 0, 0.1); }
+#classFilter option[value="31"] { color: #4B0082; background-color: rgba(75, 0, 130, 0.1); }
+#classFilter option[value="32"] { color: #8B0000; background-color: rgba(139, 0, 0, 0.1); }
+#classFilter option[value="33"] { color: #9400D3; background-color: rgba(148, 0, 211, 0.1); }
+#classFilter option[value="34"] { color: #4B0082; background-color: rgba(75, 0, 130, 0.1); }
+#classFilter option[value="35"] { color: #708090; background-color: rgba(112, 128, 144, 0.1); }
+#classFilter option[value="36"] { color: #DAA520; background-color: rgba(218, 165, 32, 0.1); }
+#classFilter option[value="37"] { color: #FF4500; background-color: rgba(255, 69, 0, 0.1); }
+#classFilter option[value="38"] { color: #800000; background-color: rgba(128, 0, 0, 0.1); }
+
+/* Default option style */
+#classFilter option[value=""] {
+    color: inherit;
+    font-weight: normal;
+    background-color: transparent;
+}
+
+/* Dark theme styles */
+.dark-theme #classFilter {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #fff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23fff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.dark-theme #classFilter:hover {
+    border-color: #555;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme #classFilter:focus {
+    border-color: #666;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dark-theme #classFilter option {
+    background-color: #2a2a2a;
+}
+
+/* Enhance color visibility in dark theme */
+.dark-theme #classFilter option[value]:not([value=""]) {
+    filter: brightness(1.2) saturate(1.2);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ! Merchant СТИЛИ ПРОДАВЦОВ */
+/* Grid layout */
+.merchants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1.5rem;
+}
+
+
+/* Merchant Card Base */
+.atropos-inner[data-merchant-type] {
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(250, 250, 250, 0.95));
+    padding: 2rem;
+    border: 1px solid rgba(230, 230, 230, 0.5);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    will-change: transform;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    position: relative;
+    overflow: visible !important;
+}
+
+/* Payment Type-Specific Glows */
+.atropos-inner[data-merchant-type]::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    animation: rotate 6s linear infinite;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.atropos-inner[data-merchant-type]:hover::after {
+    opacity: 1;
+}
+
+/* Payment Type-Specific Styles */
+/* Silver */
+.atropos-inner[data-merchant-type="0"]:hover {
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+.atropos-inner[data-merchant-type="0"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 215, 0, 0),
+        rgba(255, 215, 0, 0.2) 25%,
+        rgba(255, 215, 0, 0.4) 50%,
+        rgba(255, 215, 0, 0.2) 75%,
+        rgba(255, 215, 0, 0)
+    );
+}
+.merchant-image[data-merchant-type="0"] {
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Honor Point */
+.atropos-inner[data-merchant-type="1"]:hover {
+    box-shadow: 0 4px 20px rgba(0, 191, 255, 0.4);
+}
+.atropos-inner[data-merchant-type="1"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(0, 191, 255, 0),
+        rgba(0, 191, 255, 0.2) 25%,
+        rgba(0, 191, 255, 0.4) 50%,
+        rgba(0, 191, 255, 0.2) 75%,
+        rgba(0, 191, 255, 0)
+    );
+}
+.merchant-image[data-merchant-type="1"] {
+    box-shadow: 0 4px 20px rgba(0, 191, 255, 0.4);
+}
+
+/* Chaos Points */
+.atropos-inner[data-merchant-type="2"]:hover {
+    box-shadow: 0 4px 20px rgba(148, 0, 211, 0.4);
+}
+.atropos-inner[data-merchant-type="2"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(148, 0, 211, 0),
+        rgba(148, 0, 211, 0.2) 25%,
+        rgba(148, 0, 211, 0.4) 50%,
+        rgba(148, 0, 211, 0.2) 75%,
+        rgba(148, 0, 211, 0)
+    );
+}
+.merchant-image[data-merchant-type="2"] {
+    box-shadow: 0 4px 20px rgba(148, 0, 211, 0.4);
+}
+
+/* Chaos Silver */
+.atropos-inner[data-merchant-type="3"]:hover {
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+}
+.atropos-inner[data-merchant-type="3"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 69, 0, 0),
+        rgba(255, 69, 0, 0.2) 25%,
+        rgba(255, 69, 0, 0.4) 50%,
+        rgba(255, 69, 0, 0.2) 75%,
+        rgba(255, 69, 0, 0)
+    );
+}
+.merchant-image[data-merchant-type="3"] {
+    box-shadow: 0 4px 20px rgba(255, 69, 0, 0.4);
+}
+
+/* Merchant Card Components */
+.merchant-card-id {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.15), rgba(74, 158, 255, 0.1));
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #2c5282;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(74, 158, 255, 0.2);
+}
+
+
+
+
+/* Merchant Image */
+.merchant-image {
+    width: 48px;
+    height: 48px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    padding: 0;
+    margin: 0 auto;
+    transform: translateZ(20px);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.merchant-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stats Display */
+.stat-badges {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.stat-badge {
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #4a5568;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s cubic-bezier(0.1, 0, 0.2, 1);
+}
+
+.stat-badge:hover {
+    transform: translateY(-2px);
+    background: rgba(74, 158, 255, 0.15);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Merchant Items List */
+.merchant-items {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.merchant-item {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.merchant-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.merchant-item-image {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.merchant-item-info {
+    flex: 1;
+}
+
+.merchant-item-name {
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.25rem;
+}
+
+.merchant-item-price {
+    font-size: 0.875rem;
+    color: #718096;
+}
+
+/* Dark Theme Adjustments */
+.dark-theme .merchant-card-id {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+    color: #bbdefb;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+
+
+.dark-theme .stat-badge {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .merchant-item {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .merchant-item-name {
+    color: #e2e8f0;
+}
+
+.dark-theme .merchant-item-price {
+    color: #a0aec0;
+}
+
+.dark-theme .atropos-inner[data-merchant-type] {
+    background: linear-gradient(145deg, rgba(30, 30, 30, 0.97), rgba(40, 40, 40, 0.95));
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark-theme .atropos-inner[data-merchant-type="0"]::after {
+    background: conic-gradient(
+        from var(--angle),
+        rgba(255, 215, 0, 0),
+        rgba(255, 215, 0, 0.1) 25%,
+        rgba(255, 215, 0, 0.2) 50%,
+        rgba(255, 215, 0, 0.1) 75%,
+        rgba(255, 215, 0, 0)
+    );
+}
+
+
+.dark-theme .merchant-image {
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .merchant-items {
+    background: rgba(30, 30, 30, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.merchant-animate-in {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .merchants-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .merchant-items {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-badges {
+        grid-template-columns: 1fr;
+    }
+
+    .merchant-card-id {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+}
+
+/* Filter Styles */
+.merchant-filter-group {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.merchant-filter-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #2d3748;
+}
+
+.merchant-filter-select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    color: #4a5568;
+    transition: all 0.3s ease;
+}
+
+.merchant-filter-select:hover {
+    border-color: #cbd5e0;
+}
+
+.merchant-filter-select:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    outline: none;
+}
+
+/* Price Range Input Styles */
+.price-range-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.price-range-input {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.price-range-input:hover {
+    border-color: #cbd5e0;
+}
+
+.price-range-input:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    outline: none;
+}
+
+/* Search Bar Styles */
+.merchant-search {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.merchant-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-left: 2.5rem;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+.merchant-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+}
+
+/* Payment Type Indicators */
+.payment-type-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.payment-gold {
+    background-color: rgba(255, 215, 0, 0.1);
+    color: #b7791f;
+}
+
+.payment-honorpoint {
+    background-color: rgba(0, 191, 255, 0.1);
+    color: #2b6cb0;
+}
+
+.payment-chaospoint {
+    background-color: rgba(148, 0, 211, 0.1);
+    color: #6b46c1;
+}
+
+.payment-chaosssilver {
+    background-color: rgba(255, 69, 0, 0.1);
+    color: #c53030;
+}
