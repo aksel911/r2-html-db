@@ -1,0 +1,13 @@
+{
+    "workbench.colorCustomizations": {
+        "tab.activeBorder": "#212121",
+        "tab.activeBackground": "#212121",
+        "titleBar.activeBackground": "#212121",
+        "titleBar.activeForeground": "#ffffff",
+        "activityBar.background": "#212121",
+        "activityBar.foreground": "#ffffff",
+        "statusBar.background": "#212121",
+        "statusBar.foreground": "#ffffff"
+    },
+    "window.title": "~[PYTHON]~${separator}${dirty}${activeEditorShort}${separator}${rootName}${separator}${profileName}${separator}${appName}"
+}
